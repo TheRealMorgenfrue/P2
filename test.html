@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Translate Test</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <button id="button" onclick="animateElement(element, keyframes, timing)">Button</button>
+</body>
+<script>
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    let keyframes = [  
+        { transform: "translateY(0px)" },
+        { transform: "translateY(100px)" }
+    ];
+    let timing = {
+    // timing options
+        duration: 1000,
+        iterations: 1,
+    }
+
+    let element = document.getElementById("button");
+
+    async function animateElement(element, keyframes, timing){
+        element.animate(keyframes, timing);
+        await sleep(1000);
+
+        if(!element.offsetY){
+            element.offsetY = -100;    //This attribute is not standard!
+                                       //And currently hardcoded to be -100.
+        }
+        console.log(`New position is ${element.offsetY}`)
+
+        element.style.position = "relative";
+        element.style.bottom = `${element.offsetY}px`;
+        element.offsetY += (-100);     //Again, hardcoded to -100
+    }
+
+    //animateElement(element, keyframes, timing)
+</script>
+</html>
