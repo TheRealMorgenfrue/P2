@@ -5,12 +5,11 @@ function createTable(rows, colums) {
         throw new Error('Matrix size must be larger than 0');
     }
 
-    const cell = document.createElement('input')
-    cell.style.width = '10px';
     const body = document.body,
-          tbl = document.createElement('table');
-    tbl.style.width = '200px';
-    //tbl.style.border = '1px solid black';
+          tbl = document.createElement('table'), 
+          des_width = '200px';
+    
+    tbl.style.width = des_width;  /* Width of cells set to an abitrary number of pixels currently  */ 
 
     for (let i = 1; i <= rows; i++) {    // Print rows
         const tr = tbl.insertRow();
@@ -18,18 +17,18 @@ function createTable(rows, colums) {
             if(i === 2 && j === 1) {
                 //break;
             }
-            if(true) {
-                let td = tr.insertCell();
-                td.appendChild(cell);
-                document.createElement(br);
-                //td.appendChild(document.createTextNode(`Cell ${i},${j}`));
-                //td.style.border = '1px solid black';
-                if(i === 1 && j === 1) {
-                    //td.setAttribute('rowSpan', '2');
+            let td = tr.insertCell();
+            let input_cell = document.createElement('input');
+            input_cell.style.width = '10px';
+            td.appendChild(input_cell);
+            //td.appendChild(document.createTextNode(`Cell ${i},${j}`));
+            td.style.border = '1px solid black';
+            if(i === 1 && j === 1) {
+                //td.setAttribute('rowSpan', '2');
                 }
             }
         }
-    }
     body.appendChild(tbl);
 }
+
 createTable(4,4);
