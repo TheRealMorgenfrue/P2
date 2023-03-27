@@ -3,7 +3,7 @@
 
 //We use EC6 modules!
 export {validateBMIRecordForm, validateBMIStatForm, renderHTMLBMIUpdatePage, renderHTMLBMIStatPage,recordBMI};
-import { ValidationError } from "./router.js";
+import { ValidationError } from "./router_old.js";
 
 /* ***************************************************
  * Application code for the BMI tracker application 
