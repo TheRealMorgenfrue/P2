@@ -17,7 +17,7 @@ function createTable(rows, colums) {
         Control variables
     ************************/
     const cell_width = '100px',    // Width of input cells in the matrix
-          max_input_length = 15;   // Max number of chars allowed in input cells
+          max_input_length = 5;   // Max number of chars allowed in input cells
 
 
 
@@ -33,10 +33,17 @@ function createTable(rows, colums) {
             }*/
             
             let td = tr.insertCell();
-            let input_cell = document.createElement('input');
+            
+            const input_cell = document.createElement('input');
             input_cell.setAttribute("maxLength", max_input_length);
             input_cell.style.width = cell_width;
             td.appendChild(input_cell);
+
+            
+            const math_format = document.createElement('math');
+            math_format.style.width = cell_width;
+            td.appendChild(math_format);
+
             //td.appendChild(document.createTextNode(`Cell ${i},${j}`));
             td.style.border = '1px solid black';
             
@@ -54,8 +61,24 @@ createTable(4,4);
 function getTable_size() {
     const body = document.body;
     const input = document.createElement('input');
+    
+    input.setAttribute("id", "table_size");
+    //input.setAttribute("onclick", console.log('This works'));
 
+
+
+    body.appendChild(input);    // When done editing the element, add it to the html body. This is crucial for stuff like getElementById
+
+
+    const id = input.getAttribute("id");
+    let element = document.getElementById("table_size");
+
+    console.log(`Got element: ${element} and id: ${id}`);
     
 
 
+
+
 }
+
+getTable_size();
