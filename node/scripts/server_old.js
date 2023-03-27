@@ -16,7 +16,7 @@ import process from "process";
 /* ****************************************************************************
  * Application code for the yatzy application 
  ***************************************************************************** */
-import {processReq,ValidationError, NoResourceError} from "./router.js";
+import {processReq,ValidationError, NoResourceError} from "./router_old.js";
 export {startServer,extractJSON, extractForm, fileResponse, htmlResponse,jsonResponse,errorResponse,reportError};
 
 const hostname = '127.0.0.1';
