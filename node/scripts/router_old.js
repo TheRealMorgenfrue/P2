@@ -1,6 +1,6 @@
 export {ValidationError, NoResourceError, processReq};
-import {validateBMIRecordForm, validateBMIStatForm, renderHTMLBMIStatPage, renderHTMLBMIUpdatePage, recordBMI} from "./app.js";
-import {extractJSON, fileResponse, htmlResponse,extractForm,jsonResponse,errorResponse,reportError,startServer} from "./server.js";
+import {validateBMIRecordForm, validateBMIStatForm, renderHTMLBMIStatPage, renderHTMLBMIUpdatePage, recordBMI} from "./app_old.js";
+import {extractJSON, fileResponse, htmlResponse,extractForm,jsonResponse,errorResponse,reportError,startServer} from "./server_old.js";
 const ValidationError="Validation Error";
 const NoResourceError="No Such Resource";
 
