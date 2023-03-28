@@ -1,56 +1,44 @@
 'use strict'
+// Insert function that creates the entire html_page?
 
 function createTable(rows, colums) {
-    try {   // If the matrix's size is smaller than 1 then ABORT
+    try { // If the matrix's size is smaller than 1 then ABORT
         if(rows < 1 || colums < 1) {
             throw new Error(`Matrix size must be larger than 0 (Got row = ${rows}, colum = ${colums})`);
         }
     } catch (error) {
         console.error(`${error}`);
-        //return;   // Technically not necessary to stop code execution here since i and j starts at 1 down below
     }
-
-    const body = document.body,
-          tbl = document.createElement('table');
-          tbl.setAttribute("id", "matrix");  
-
     /************************
         Control variables
     ************************/
-    const cell_width = '100px',    // Width of input cells in the matrix
-          max_input_length = 10;   // Max number of chars allowed in input cells
+    const cell_width = '100px', // Width of input cells in the matrix
+    body = document.body,    
+    tbl = document.createElement('table'); 
+    tbl.setAttribute("id", "matrix");
+    tbl.style.width = cell_width;  // Ensure that each input cell fills out cell in matrix
 
-    /************************
-    ************************/
-
-    tbl.style.width = cell_width;
-    for (let i = 1; i <= rows; i++) {    // Print rows
+    /*************************/
+    
+    for (let i = 1; i <= rows; i++) {   
         const tr = tbl.insertRow();
         tr.setAttribute("draggable", true); // Make rows draggable
 
-        for (let j = 1; j <= colums; j++) {  // Print colums
-            /*if(i === 2 && j === 1) {
-                //break;
-            }*/
-            
-            let td = tr.insertCell();
+        for (let j = 1; j <= colums; j++) { 
+            let td = tr.insertCell(); 
             
             const input_cell = document.createElement('input');
-            input_cell.setAttribute("maxLength", max_input_length);
-            input_cell.style.width = cell_width;
+            // There must be an easier way of inputting all of these number elements
+            input_cell.setAttribute("required",""); // Make each cell element required so user cannot submit an empty matrix
+            input_cell.setAttribute("placeholder", "0");
+            input_cell.style.width = cell_width; // Ensure that each input cell fills out cell in matrix
             td.appendChild(input_cell);
 
-            
             const math_format = document.createElement('math');
             math_format.style.width = cell_width;
             td.appendChild(math_format);
 
-            //td.appendChild(document.createTextNode(`Cell ${i},${j}`));
             td.style.border = '1px solid black';
-            
-            /*if(i === 1 && j === 1) {
-                //td.setAttribute('rowSpan', '2');
-              }*/
             }
         }
     body.appendChild(tbl);
@@ -109,4 +97,22 @@ function getTable_size() {
     createTable(rows, colums);  // Initialize table
 }
 
+function addTableSubmit(){
+    const body = document.body;
+    const input = document.createElement('input');
+    input.setAttribute("type","button");
+    input.setAttribute("value","I am done making a table");
+    input.addEventListener("onclick", submitTable);
+    body.appendChild(input);
+}
+
+function submitTable(ev){
+    table_rows = document.getElementById("#matrix").children;
+    console.log(table_rows[1]);
+    for(let i = 0; i < table_rows.length; i++){
+        table_rows[0].setAttribute("readonly","true");
+    }
+}
+
 getTable_size();
+addTableSubmit();
