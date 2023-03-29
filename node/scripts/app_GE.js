@@ -107,12 +107,17 @@ function addTableSubmit(){
     input.setAttribute("value","I am done making a table");
     body.appendChild(input);
     input.addEventListener("click", submitTable);
+    input.addEventListener("click", submitTable);
 }
 
 function submitTable(){
     const tbl = document.getElementById("matrix");
     const table_rows = tbl.querySelectorAll("input");
+function submitTable(){
+    const tbl = document.getElementById("matrix");
+    const table_rows = tbl.querySelectorAll("input");
     for(let i = 0; i < table_rows.length; i++){
+        table_rows[i].setAttribute("readonly","true");
         table_rows[i].setAttribute("readonly","true");
     }
 }
