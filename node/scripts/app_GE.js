@@ -20,8 +20,6 @@ function createTable(rows, colums) {
     const cell_width = '100px',    // Width of input cells in the matrix
           max_input_length = 10;   // Max number of chars allowed in input cells
 
-    body.childNodes
-
     /************************
     ************************/
 
