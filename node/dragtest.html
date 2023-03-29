@@ -24,6 +24,7 @@
     </table>
 </body>
 <script>
+    //the following code focuses on using the built-in drag and drop-API to move table rows
 
     let target = document.getElementById("text");
     target.addEventListener("dragenter", event => {
@@ -51,6 +52,8 @@
     //and https://www.w3schools.com/jsref/event_ondragstart.asp and the other w3schools drag and drop-pages
 </script>
 <script>
+    //the following code tries to implement a drag and drop-system from scratch and wants to avoid having to hold a mouse button down
+
     const once = {  //creating an option for later eventListeners to ensure they only fire once
         once: true,
     };
@@ -79,13 +82,39 @@
             document.addEventListener("mousemove", updatePositionEvent);    //Update the position of the element when the mouse is moved
         
             document.addEventListener("mousedown", event => {                   //add a listener to the document that fires once when the document is clicked at any point
-                document.removeEventListener("mousemove", updatePositionEvent); //not that we use "mousedown" instead of "click" for the handlers in this code,
-                new_element.remove();                                           //since this listener would activate on the click-event used to pickup the element otherwise
+                document.removeEventListener("mousemove", updatePositionEvent);
+                let dropTarget = document.elementFromPoint(event.pageX, event.pageY);
+                
+                console.log(`Dropped on ${dropTarget}`)
+
+                new_element.remove();
             }, once);
         });
     });
 
     const words = document.getElementById("words");
     words.addEventListener("mousedown", event => {console.log("Words clicked")});
+</script>
+<script>
+    //the functions in this tag have to make table rows into arrays and then read that array so it can be turned into a new html tr-element
 
+    //this function takes a tr-element and places the HMTL-code in every cell in an array, which it returns
+    function rowContentToArray(element){
+        let array = new Array;
+        cells = element.querySelectorAll("td");
+        cells.forEach((cell, index) => {
+            array[index] = cell.innerHTML;
+        });
+        return array;
+    }
+
+    //this function produces a string of HTML-code by concatenating the strings in a given array and adding <td></td>-tags around it
+    //it is intended to be used with innerHTML as such: tr.innerHTML = arrayToRowContent(array);
+    function arrayToRowContent(array){
+        string = "";
+        array.forEach(substring => {
+            string += `<td>${substring}</td>`;
+        });
+        return string;
+    }
 </script>
