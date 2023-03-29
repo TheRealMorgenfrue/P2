@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<head>
+    <title>Test for dragging an element</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <p id="draggable" draggable="true">
+        Drag Me
+    </p>
+    <div id="text">
+        Here's some unsuspecting text that you're surely not going to drag anything on to.
+    </div>
+
+    <table id="table 1">
+        <tr id="table 1 row 1" draggable="true"><td>11</td><td>12</td></tr>
+        <tr id="table 1 row 2" draggable="true"><td>21</td><td>22</td></tr>
+    </table>
+    <div id="words">
+        Something might be logged in the console when you drag something from the bottom table onto this div
+    </div>
+    <table id="table 2">
+        <tr id="table 2 row 1" draggable="false" style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;"><td>11</td><td>12</td></tr>
+        <tr id="table 2 row 2" draggable="false" style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;"><td>21</td><td>22</td></tr>
+    </table>
+</body>
+<script>
+
+    let target = document.getElementById("text");
+    target.addEventListener("dragenter", event => {
+        console.log(`The target is ${event.target}`)
+    })
+
+    target.addEventListener("dragover", event => {   //this eventlistener stops the red Ø from appearing
+        event.preventDefault();                      //when something is dragged onto the target
+    })
+
+    target.addEventListener("drop", event => {
+        event.preventDefault();
+        console.log("Dropped. Data is");
+        //Retrieve the data of the type "Text"
+        let data = event.dataTransfer.getData("Text");
+        console.log(data);
+    })
+
+    document.addEventListener("dragstart", event => {
+        //The dataTransfer.setData() method sets the data type and the value of the dragged data
+         event.dataTransfer.setData("Text", event.target.id);
+    })
+
+    //A lot of this is modified code from https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer
+    //and https://www.w3schools.com/jsref/event_ondragstart.asp and the other w3schools drag and drop-pages
+</script>
+<script>
+    const once = {  //creating an option for later eventListeners to ensure they only fire once
+        once: true,
+    };
+    
+    const table = document.getElementById("table 2");
+    table_rows = table.querySelectorAll("tr");
+    table_rows.forEach(row => {
+        console.log(`Placing eventListeners on ${row.id}...`);
+        row.addEventListener("click", event => {
+            
+            console.log(`Clicked on ${event.currentTarget}`);              //The handler detects clicks on the individual cells and the rows,
+                                                                           //since clicks on the cells propagate upwards in the DOM. We use event.currentTarget to ensure that the row is what we're working with
+            const new_element = event.currentTarget.cloneNode(true);       //clone the element we clicked on
+            
+            table.appendChild(new_element);                         //make the new element show up on the screen and place it under the cursor
+            new_element.style.position = "absolute";                //setting the position type to "absolute" (default is "static"), so the element will reach to position changes
+            new_element.style.left = `${event.pageX}px`;
+            new_element.style.top = `${event.pageY}px`;
+            new_element.style.pointerEvents = "none";               //make the new element non-interactible with the mouse, so elements under it can be clicked
+
+            function updatePositionEvent(event){                    //define a function to be used with mouseEvents that places the new element under the cursor
+                new_element.style.left = `${event.pageX}px`;        //the function cannot be defined outside the eventListener,
+                new_element.style.top = `${event.pageY}px`;         //since new_element only exists here and there is no way to get it via the mouseEvents we use
+            }                                                       //smoother movement might be achieved with the transform-method
+            
+            document.addEventListener("mousemove", updatePositionEvent);    //Update the position of the element when the mouse is moved
+        
+            document.addEventListener("mousedown", event => {                   //add a listener to the document that fires once when the document is clicked at any point
+                document.removeEventListener("mousemove", updatePositionEvent); //not that we use "mousedown" instead of "click" for the handlers in this code,
+                new_element.remove();                                           //since this listener would activate on the click-event used to pickup the element otherwise
+            }, once);
+        });
+    });
+
+    const words = document.getElementById("words");
+    words.addEventListener("mousedown", event => {console.log("Words clicked")});
+
+</script>
