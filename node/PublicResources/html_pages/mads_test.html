@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Linear Algebra Visualizer</title>
+    <link rel="stylesheet" type="text/css" href="css/simple.css">
+</head>
+<body>
+    <h1>Linear Algebra visualizer</h1>
+    <h2>First matrix table</h2>
+    <table id = "my_first_table">
+        <caption>An example matrix</caption>
+        <tr><td>11</td><td>12</td></tr>
+        <tr><td>21</td><td>22</td></tr>
+    </table>
+    <h2>Second matrix table</h2>
+    <caption>An example matrix</caption>
+    <form>
+    <table id = "my_second_table">
+        <br>
+        <tr>
+            <td><input type = "text"></td>
+            <td> <input type = "text"></td>
+        </tr>
+        <br>
+        <tr>
+            <td><input type = "text"></td>
+            <td><input type = "text"></td>
+        </tr>
+    </table>
+    </form>
+    <script>
+        // Selection part of the script
+        let table = document.getElementById("my_first_table"); // Get element that is a table 
+        let tableRows = table.querySelectorAll("tr"); // Make array of all table rows 
+        let tableCell = tableRows[0].querySelector("td"); // Get element 0.0 of table
+        // Manipulation part of the script 
+        addEventListener("click",changeCellVal);
+        function changeCellVal(){};
+    </script>
+</body>
+</html>
+
