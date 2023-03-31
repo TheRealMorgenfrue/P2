@@ -22,8 +22,16 @@
         <tr id="table 2 row 1" draggable="false" style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;"><td>11</td><td>12</td></tr>
         <tr id="table 2 row 2" draggable="false" style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;"><td>21</td><td>22</td></tr>
     </table>
+    <div id="writing">
+        Drag something onto this element and see the magic happen
+    </div>
+    <table id="table 3">
+        <tr id="table 3 row 1" draggable="false" style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;"><td>11</td><td>12</td></tr>
+        <tr id="table 3 row 2" draggable="false" style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;"><td>21</td><td>22</td></tr>
+    </table>
 </body>
 <script>
+    //the following code focuses on using the built-in drag and drop-API to move table rows
 
     let target = document.getElementById("text");
     target.addEventListener("dragenter", event => {
@@ -51,12 +59,14 @@
     //and https://www.w3schools.com/jsref/event_ondragstart.asp and the other w3schools drag and drop-pages
 </script>
 <script>
+    //the following code tries to implement a drag and drop-system from scratch and wants to avoid having to hold a mouse button down
+
     const once = {  //creating an option for later eventListeners to ensure they only fire once
         once: true,
     };
     
     const table = document.getElementById("table 2");
-    table_rows = table.querySelectorAll("tr");
+    let table_rows = table.querySelectorAll("tr");
     table_rows.forEach(row => {
         console.log(`Placing eventListeners on ${row.id}...`);
         row.addEventListener("click", event => {
@@ -78,14 +88,120 @@
             
             document.addEventListener("mousemove", updatePositionEvent);    //Update the position of the element when the mouse is moved
         
-            document.addEventListener("mousedown", event => {                   //add a listener to the document that fires once when the document is clicked at any point
-                document.removeEventListener("mousemove", updatePositionEvent); //not that we use "mousedown" instead of "click" for the handlers in this code,
-                new_element.remove();                                           //since this listener would activate on the click-event used to pickup the element otherwise
+            document.addEventListener("mousedown", event => {               //add a listener to the document that fires once when the document is clicked at any point
+                document.removeEventListener("mousemove", updatePositionEvent);
+                let dropTarget = document.elementFromPoint(event.pageX, event.pageY);
+                
+                console.log(`Dropped on ${dropTarget}`)
+
+                new_element.remove();
             }, once);
         });
     });
 
     const words = document.getElementById("words");
     words.addEventListener("mousedown", event => {console.log("Words clicked")});
+</script>
+<script>
+    //the functions in this tag have to make table rows into arrays and then read that array so it can be turned into a new html tr-element
 
+    //this function takes a tr-element and places the HMTL-code in every cell in an array, which it returns
+    function rowContentToArray(element){
+        let array = new Array;
+        cells = element.querySelectorAll("td");
+        cells.forEach((cell, index) => {
+            array[index] = cell.innerHTML;
+        });
+        return array;
+    }
+
+    //this function produces a string of HTML-code by concatenating the strings in a given array and adding <td></td>-tags around it
+    //it is intended to be used with innerHTML as such: tr.innerHTML = arrayToRowContent(array);
+    function arrayToRowContent(array){
+        string = "";
+        array.forEach(substring => {
+            string += `<td>${substring}</td>`;
+        });
+        return string;
+    }
+</script>
+<script>
+    //the functions in this tag build on the from-scratch drag and drop-functionality from the second script tag
+    //this is an attempt to standardise them and make them work for any element by using custom events
+    //the events we are working with are
+    //. draggingStarted -> Fires when the user begins dragging an element. event.target is the element that gets dragged
+    //. draggingStopped -> Fires when the user stops dragging an element. event.target is the element at the spot where the drag ends
+    //. draggedOn       -> Fires when the user drags something on top of an element. That element is event.target
+    //. draggedOff      -> Fires when the user drags something away from an element. That element is event.target
+    //all events have an attribute accessed with event.detail that contains a reference to a copy of the dragged element
+ 
+    function dragFunctionality(event){
+        //set the drag target and fire an event on it when dragging begins after cloning it. We use CustomEvent so we can pass info on the cloned element in event.detail
+        const dragTarget = event.currentTarget;
+
+        //clone the element the handler is attached to and place it on the cursor
+        //note that the element is made a child of the dragTarget
+        const newElement = dragTarget.cloneNode(true);  //we also clone the element's ID! Be careful when referring to it!
+        dragTarget.appendChild(newElement);
+        newElement.style.position = "absolute";
+        newElement.style.left = `${event.pageX}px`;
+        newElement.style.top = `${event.pageY}px`;
+        newElement.style.pointerEvents = "none";
+
+        //Fire a custom event with the clone of the dragged element in its detail-attribute
+        const dragEvent = new CustomEvent("draggingStarted", {bubbles:true, detail:newElement});
+        dragTarget.dispatchEvent(dragEvent);
+        
+        //prepare events to fire in the updatePositionEvent-function and a variable to keep track of the element under the cursor
+        const dragOntoEvent = new CustomEvent("draggedOn", {bubbles:true, detail:newElement}); //this event should be fired when something is dragged onto an element, but not dropped
+        const dragOffEvent = new CustomEvent("draggedOff", {bubbles:true, detail:newElement}); //this event should be fired when something is dragged off of an element
+        let dropTarget = document.elementFromPoint(event.pageX, event.pageY);
+
+        //define a function to update the cloned element's position and run it whenever the mouse is moved
+        function updatePositionEvent(event){
+            newElement.style.left = `${event.pageX}px`;
+            newElement.style.top = `${event.pageY}px`;
+            if(dropTarget !== document.elementFromPoint(event.pageX, event.pageY)){
+                dropTarget.dispatchEvent(dragOffEvent);
+                dropTarget = document.elementFromPoint(event.pageX, event.pageY);
+                dropTarget.dispatchEvent(dragOntoEvent);
+            } 
+        }     
+        document.addEventListener("mousemove", updatePositionEvent);
+        
+        //stop the event from propagating immediately, so no other handlers of the same type will be triggered by this event
+        event.stopImmediatePropagation();
+        
+        //listen for a click to register when the user wants to drop the element. BLOCKS ALL "CLICK"-LISTENERS UNTIL THE DRAGGED ELEMENT IS DROPPED
+        document.addEventListener("click", event => {
+            //set the drop target and fire a custom event on it
+            const dropEvent = new CustomEvent("draggingStopped", {bubbles:true, detail:newElement});
+            dropTarget.dispatchEvent(dropEvent);
+            
+            //delete the cloned element and remove the handler that moves it around
+            document.removeEventListener("mousemove", updatePositionEvent);
+            newElement.remove();
+
+            //this handler is capturing, so it triggers before the pickup-handler and blocks it with stopImmediatePropagation
+            event.stopImmediatePropagation();
+        }, {capture: true, once: true});
+    }
+
+    //function to initialise the drag functionality on a given element
+    function initDrag(element){
+        element.addEventListener("click", dragFunctionality)
+    }
+
+    /////////////////
+    //TESTING BELOW//
+    /////////////////
+
+    //add drag functionality to table 3 for testing purposes
+    table_rows = document.getElementById("table 3").querySelectorAll("tr");
+    table_rows.forEach(row => {initDrag(row)})
+
+    //add an evenlisteners to the document for testing purposes
+    document.addEventListener("draggingStopped", event => {
+        console.log(`Target element is ${event.target}\nDragged element is ${event.detail}`);
+    });
 </script>
