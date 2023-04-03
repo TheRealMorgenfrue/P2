@@ -1,6 +1,16 @@
 'use strict'
+let loc = window.location.pathname;
+let dir = loc.substring(0, loc.lastIndexOf('/'));
+console.log(dir);
+
+
 // Insert function that creates the entire html_page?
 
+/* 
+Function that creates a ${rows} times ${colums} table - aka. the matrix
+Takes two integers as input.
+Additionally, it creates buttons to lock/unlock the table
+*/
 function createTable(rows, colums) {
     try { // If the matrix's size is smaller than 1 then ABORT
         if(rows < 1 || colums < 1) {
@@ -20,10 +30,11 @@ function createTable(rows, colums) {
     tbl.style.width = cell_width;  // Ensure that each input cell fills out cell in matrix
 
     /*************************/
-    
+
     for (let i = 1; i <= rows; i++) {   
         const tr = tbl.insertRow();
-        tr.setAttribute("draggable", true); // Make rows draggable
+
+        initDrag(tr); // Make rows draggable
 
         for (let j = 1; j <= colums; j++) { 
             let td = tr.insertCell(); 
@@ -49,37 +60,66 @@ function createTable(rows, colums) {
     unlockTableButton(); 
 }
 
+/* 
+Function that deletes the table created by createTable - aka. the matrix
+Additionally, it deletes the buttons created by createTable to make sure they aren't jumbled around
+*/
 function deleteTable() {
     const tbl = document.getElementById("matrix");
     const lockTableButton = document.getElementById("lockbutton").id;
     const unlockTableButton = document.getElementById("unlockbutton").id;
     const parent = tbl.parentElement;
     parent.removeChild(tbl);
-    deleteButton(lockTableButton); // Ensure lockbutton button is removed and correctly placed each time table is generated
+    deleteButton(lockTableButton); // Ensure lock button is removed and correctly placed each time table is generated
     deleteButton(unlockTableButton);
 }
 
+/* 
+Function that creates two input fields to let the user change the size of the matrix
+Additionally, it initializes the table (matrix) by calling createTable
+*/
 function getTable_size() {
     const body = document.body;
     const input_rows = document.createElement('input');
     const input_colums = document.createElement('input');
     const cdot = document.createTextNode(' x ');    // This is just to see the input boxes as "${rows} x ${colums}"
-    let row_value = 2;   // Make the table a 2 x 2 at the start
-    let colum_value = 2;
-    let max_matrix_size = 10; // How big's the matrix? (e.g. 10 x 10)
+
+
+    class TS_C {  // Short for TableSettings
+        constructor() {
+            this.row_value = 2,
+            this.colum_value = 2,
+            this.max_matrix_size = 10 
+        }
+
+
+
+    };
+
+
+    let TS = {
+        row_value: 2,
+        colum_value: 2,
+        max_matrix_size: 10
+    };
+
+
+    //let row_value = 2;   // Make the table a 2 x 2 at the start
+    //let colum_value = 2;
+    //let max_matrix_size = 10; // How big's the matrix? (e.g. 10 x 10)
     let input_width = '50px';  // Make both input boxes's size fit 2 digit numbers
     
     // Add attributes to the row input box
     input_rows.setAttribute("id", "row_size");
     input_rows.setAttribute("title", "Input desired row size - max 10");
-    input_rows.setAttribute("value", row_value);
+    input_rows.setAttribute("value", TS.row_value);
     input_rows.setAttribute("type", "number");
     input_rows.style.width = input_width;
 
     // Add attributes to the colum input box
     input_colums.setAttribute("id", "colum_size");
     input_colums.setAttribute("title", "Input desired colum size - max 10");
-    input_colums.setAttribute("value", colum_value);
+    input_colums.setAttribute("value", TS.colum_value);
     input_colums.setAttribute("type", "number");
     input_colums.style.width = input_width;
 
@@ -91,54 +131,80 @@ function getTable_size() {
     let row_element = document.getElementById("row_size");  // Create input box for number of rows
     let colum_element = document.getElementById("colum_size");  // Create input box for number of colums
     
-    row_element.addEventListener("focusout", (event) => {     // Creates a new table with new rows when leaving input box (and deletes the old table)
-        row_value = event.target.value;
-
-        input_rows.removeAttribute("value");
-
-        if(row_value > max_matrix_size) {
-            row_value = max_matrix_size;
-            input_rows.setAttribute("value", row_value);
-
-            let test = row_element.value;
-            console.log(`INPUT ROW VALUE: ${test}`);
-
-            console.error(`Error: Row size (${row_value}) is larger than max allowed (${max_matrix_size}). Resetting size to: ${max_matrix_size}`);
-        }
-
-        input_rows.setAttribute("value", row_value);
-
-        deleteTable();
-        createTable(row_value, colum_value);
-        });
-
-    colum_element.addEventListener("focusout", (event) => {   // Creates a new table with new colums when leaving input box (and deletes the old table)  
-        colum_value = event.target.value;
-        console.log(`Row value: ${colum_value}`);
-
-        input_rows.removeAttribute("value");
 
 
-        if(colum_value > max_matrix_size) {
-            colum_value = max_matrix_size;
-            input_colums.setAttribute("value", colum_value);
-            console.error(`Error: Colum size (${colum_value}) is larger than max allowed (${max_matrix_size}). Resetting size to: ${max_matrix_size}`);
-        }
+    addEventHandler(row_element, "focusout", TS);
+    //addEventHandler(colum_element, "colum_focusout", TableSettings);
 
-        input_colums.setAttribute("value", colum_value);
-
-        deleteTable();
-        createTable(row_value, colum_value);
-        });
-
-    createTable(row_value, colum_value);  // Initialize table at page load since we don't trigger the eventlisteners there
+    createTable(TS.row_value, TS.colum_value);  // Initialize table at page load since we don't trigger the eventlisteners there
 }
 
+function addEventHandler(element_id, handler_type, TS) {
+    switch(handler_type) {
+        case "enter": {
+            element_id.addEventListener("keypress", e => {     // Creates a new table with new rows when pressing "enter" (and deletes the old table)
+                if(e.key === 'Enter') {
+                    TS.row_value = element_id.value;
+                    deleteTable();
+                    createTable(rows, colums);
+                }
+            });
+            break;
+        }
+        case "focusout": {
+            element_id.addEventListener("focusout", (event) => {     // Creates a new table with new rows when leaving input box (and deletes the old table)
+                TS.row_value = event.target.value;
+
+                if(TS.row_value > TS.max_matrix_size) {
+                    console.error(`Error: Row size (${TS.row_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
+                    TS.row_value = TS.max_matrix_size;
+                    //input_rows.setAttribute("value", row_value);
+                }
+                
+                deleteTable();
+                createTable(TS.row_value, TS.colum_value);
+                });
+                break;
+        }
+        case "colum_enter": {
+            element_id.addEventListener("keypress", e => {   // Creates a new table with new colums when pressing "enter" (and deletes the old table)
+                if(e.key === 'Enter') {
+                    colums = element_id.value;
+                    deleteTable();
+                    createTable(rows, colums);
+                }
+            });
+            break;
+        }
+        case "colum_focusout": {
+            element_id.addEventListener("focusout", (event) => {   // Creates a new table with new colums when leaving input box (and deletes the old table)  
+                TS.colum_value = event.target.value;
+                console.log(`Colum value: ${TS.colum_value}`);
+        
+                if(colum_value > max_matrix_size) {
+                    console.error(`Error: Colum size (${colum_value}) is larger than max allowed (${max_matrix_size}). Resetting size to: ${max_matrix_size}`);
+                    colum_value = max_matrix_size;
+                    input_colums.setAttribute("value", colum_value);
+                }
+
+                deleteTable();
+                createTable(row_value, colum_value);
+            });
+            break;
+        }
+        default:
+            console.error(`Error: Tried to add an event handler to '${handler_type}', however, no such element exists`);
+    }
+}
+
+/* 
+Function that creates the button to make the table read only
+Does so via an eventlistener
+*/
 function lockTableButton(){
     const body = document.body;
     const tbl = document.getElementById("matrix");
     const input = document.createElement('input');
-    const element = document.getElementById("lockbutton");
 
     input.setAttribute("id", "lockbutton");
     input.setAttribute("type","button");
@@ -146,7 +212,10 @@ function lockTableButton(){
     body.after(tbl,input);
     input.addEventListener("click", lockTable);
 }
-// Make cells read only 
+
+/* 
+Helper function for lockTableButton that sets all cells in the table to read only
+*/
 function lockTable(){
     const tbl = document.getElementById("matrix");
     const table_rows = tbl.querySelectorAll("input");
@@ -155,13 +224,21 @@ function lockTable(){
     }
 }
 
+/* 
+Function that deletes any element given to it
+Takes the element's id as input
+(Right now it's meant to delete buttons - hence the function name)
+*/
 function deleteButton(id) {
     const button = document.getElementById(`${id}`);
     const parent = button.parentElement;
     parent.removeChild(button);
 }
 
-// Make cells writeable  
+/* 
+Function that creates a button to make the table writeable again
+Does so via an eventlistener
+*/
 function unlockTableButton(){
     const body = document.body,
     tbl = document.getElementById("matrix"),
@@ -174,6 +251,9 @@ function unlockTableButton(){
     input.addEventListener("click", unlockTable);
 }
 
+/* 
+Helper function for unlockTableButton that makes all cells in the table (matrix) writeable again
+*/
 function unlockTable(){
     const tbl = document.getElementById("matrix");
     const table_rows = tbl.querySelectorAll("input");
@@ -182,6 +262,11 @@ function unlockTable(){
     })
 }
 
+/* 
+Function that removes unwanted characters in a string
+Takes a string as input
+Returns a string with wanted characters
+*/
 function sanitize(str){
     str=str
   .replace(/&/g, "")
@@ -194,6 +279,10 @@ function sanitize(str){
   return str.trim();
 }
 
+/* 
+Function that sanitizes the cells in the table (matrix)
+Does so by calling the function sanitize
+*/
 function validateButtonInput(){
     const tbl = document.getElementById("matrix");
     const input = tbl.querySelectorAll("input");
@@ -201,13 +290,90 @@ function validateButtonInput(){
     input.forEach(element => {
         element.addEventListener("focusout", (event) =>  {
             let str = event.target.value;
-            let sanstr = sanitize(str);//
+            let sanstr = sanitize(str);
             console.log(`Got string: ${str} and sani: ${sanstr}`);
             event.target.value = sanstr;
         }
         )
     }
     );
+}
+
+/************ Drag'n Drop *************** 
+the functions in this tag build on the from-scratch drag and drop-functionality from the second script tag
+this is an attempt to standardise them and make them work for any element by using custom events
+the events we are working with are
+. draggingStarted -> Fires when the user begins dragging an element. event.target is the element that gets dragged
+. draggingStopped -> Fires when the user stops dragging an element. event.target is the element at the spot where the drag ends
+. draggedOn       -> Fires when the user drags something on top of an element. That element is event.target
+. draggedOff      -> Fires when the user drags something away from an element. That element is event.target
+all events have an attribute accessed with event.detail that contains a reference to a copy of the dragged element
+*/
+
+/* 
+Function that makes an element draggable
+Description of input goes here
+Must be called by the function initDrag
+*/
+function dragFunctionality(event){
+    //set the drag target and fire an event on it when dragging begins after cloning it. We use CustomEvent so we can pass info on the cloned element in event.detail
+    const dragTarget = event.currentTarget;
+
+    //clone the element the handler is attached to and place it on the cursor
+    //note that the element is made a child of the dragTarget
+    const newElement = dragTarget.cloneNode(true);  //we also clone the element's ID! Be careful when referring to it!
+    dragTarget.appendChild(newElement);
+    newElement.style.position = "absolute";
+    newElement.style.left = `${event.pageX}px`;
+    newElement.style.top = `${event.pageY}px`;
+    newElement.style.pointerEvents = "none";
+
+    //Fire a custom event with the clone of the dragged element in its detail-attribute
+    const dragEvent = new CustomEvent("draggingStarted", {bubbles:true, detail:newElement});
+    dragTarget.dispatchEvent(dragEvent);
+    
+    //prepare events to fire in the updatePositionEvent-function and a variable to keep track of the element under the cursor
+    const dragOntoEvent = new CustomEvent("draggedOn", {bubbles:true, detail:newElement}); //this event should be fired when something is dragged onto an element, but not dropped
+    const dragOffEvent = new CustomEvent("draggedOff", {bubbles:true, detail:newElement}); //this event should be fired when something is dragged off of an element
+    let dropTarget = document.elementFromPoint(event.pageX, event.pageY);
+
+    //define a function to update the cloned element's position and run it whenever the mouse is moved
+    function updatePositionEvent(event){
+        newElement.style.left = `${event.pageX}px`;
+        newElement.style.top = `${event.pageY}px`;
+        if(dropTarget !== document.elementFromPoint(event.pageX, event.pageY)){
+            dropTarget.dispatchEvent(dragOffEvent);
+            dropTarget = document.elementFromPoint(event.pageX, event.pageY);
+            dropTarget.dispatchEvent(dragOntoEvent);
+        } 
+    }     
+    document.addEventListener("mousemove", updatePositionEvent);
+    
+    //stop the event from propagating immediately, so no other handlers of the same type will be triggered by this event
+    event.stopImmediatePropagation();
+    
+    //listen for a click to register when the user wants to drop the element. BLOCKS ALL "CLICK"-LISTENERS UNTIL THE DRAGGED ELEMENT IS DROPPED
+    document.addEventListener("click", event => {
+        //set the drop target and fire a custom event on it
+        const dropEvent = new CustomEvent("draggingStopped", {bubbles:true, detail:newElement});
+        dropTarget.dispatchEvent(dropEvent);
+        
+        //delete the cloned element and remove the handler that moves it around
+        document.removeEventListener("mousemove", updatePositionEvent);
+        newElement.remove();
+
+        //this handler is capturing, so it triggers before the pickup-handler and blocks it with stopImmediatePropagation
+        event.stopImmediatePropagation();
+    }, {capture: true, once: true});
+}
+
+/* 
+Function that initialises the drag functionality on a given element by calling dragFunctionality
+Takes an element as input
+*/
+function initDrag(element){
+    element.setAttribute("style", "-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;");
+    element.addEventListener("click", dragFunctionality)
 }
 
 getTable_size();
