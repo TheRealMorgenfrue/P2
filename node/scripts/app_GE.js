@@ -19,18 +19,21 @@ function createTable(rows, colums) {
     } catch (error) {
         console.error(`${error}`);
     }
-    /************************
-        Control variables
-    ************************/
-    const cell_width = '100px', // Width of input cells in the matrix
-    max_input_length = 8,
-    body = document.body,   
-    tbl = document.createElement('table'); 
-    tbl.setAttribute("id", "matrix");
-    tbl.style.width = cell_width;  // Ensure that each input cell fills out cell in matrix
+
+    // Object to store variables for the table - basically it's settings
+    let TS = {
+        table_id: "matrix",
+        max_input_length: 8,
+        cell_width: "100px",    // Width of input cells in the matrix
+        placeholder: "0"
+    };
+
+    const body = document.body,
+    tbl = document.createElement('table');
+    tbl.id = TS.table_id; 
+    tbl.style.width = TS.cell_width;  // Ensure that each input cell fills out cell in matrix
 
     /*************************/
-
     for (let i = 1; i <= rows; i++) {   
         const tr = tbl.insertRow();
 
@@ -39,17 +42,16 @@ function createTable(rows, colums) {
         for (let j = 1; j <= colums; j++) { 
             let td = tr.insertCell(); 
             
-            const input_cell = document.createElement('input');
-            // There must be an easier way of inputting all of these number elements
-            input_cell.setAttribute("required",""); // Make each cell element required so user cannot submit an empty matrix
-            input_cell.setAttribute("placeholder", "0");
-            input_cell.setAttribute("maxlength", max_input_length);
-            input_cell.style.width = cell_width; // Ensure that each input cell fills out cell in matrix
-            td.appendChild(input_cell);
+            const td_input = document.createElement('input');
+            td_input.required = ""; // Make each cell element required so user cannot submit an empty matrix
+            td_input.placeholder = TS.placeholder;
+            td_input.maxlength = TS.max_input_length;
+            td_input.style.width = TS.cell_width; // Ensure that each input cell fills out cell in matrix
+            td.appendChild(td_input);
 
-            const math_format = document.createElement('math');
-            math_format.style.width = cell_width;
-            td.appendChild(math_format);
+            // const math_format = document.createElement('math');
+            // math_format.style.width = TS.cell_width;
+            // td.appendChild(math_format);
 
             td.style.border = '1px solid black';
             }
@@ -65,122 +67,133 @@ Function that deletes the table created by createTable - aka. the matrix
 Additionally, it deletes the buttons created by createTable to make sure they aren't jumbled around
 */
 function deleteTable() {
-    const tbl = document.getElementById("matrix");
-    const lockTableButton = document.getElementById("lockbutton").id;
-    const unlockTableButton = document.getElementById("unlockbutton").id;
-    const parent = tbl.parentElement;
-    parent.removeChild(tbl);
-    deleteButton(lockTableButton); // Ensure lock button is removed and correctly placed each time table is generated
-    deleteButton(unlockTableButton);
+    deleteElement("matrix");
+    deleteElement("lockbutton"); // Ensure lock button is removed and correctly placed each time table is generated
+    deleteElement("unlockbutton");
 }
 
 /* 
 Function that creates two input fields to let the user change the size of the matrix
 Additionally, it initializes the table (matrix) by calling createTable
 */
-function getTable_size() {
-    const body = document.body;
-    const input_rows = document.createElement('input');
-    const input_colums = document.createElement('input');
-    const cdot = document.createTextNode(' x ');    // This is just to see the input boxes as "${rows} x ${colums}"
-
-    // Object to store variables for the table - basically it's settings
-    let TS = {  // Short for TableSettings.
-        row_id: "row",       // This id refers to input_rows, not the matrix
-        colum_id: "colum",   // This id refers to input_colums, not the matrix
-        row_value: 2,
-        colum_value: 2,
-        max_matrix_size: 10
+function getTableSize() {
+    // Object created by a constructor function to store variables for the table - basically it's settings
+    let TS = new function() {  // TS is short for TableSettings
+        this.row_id = "fish";       // This id refers to the input box, not the matrix
+        this.colum_id = "colum";   // This id refers to the input box, not the matrix
+        this.type = "number"
+        this.row_value = 2;
+        this.colum_value = 2;
+        this.max_matrix_size = 10;
+        this.min_matrix_size = 2;
+        this.input_width = "50px";  // Make both input boxes's size fit 2 digit numbers
+        this.title = `Input desired row size - max ${this.max_matrix_size}`;
     };
 
-    let input_width = '50px';  // Make both input boxes's size fit 2 digit numbers
-    
-    // Add attributes to the row input box
-    input_rows.setAttribute("id", TS.row_id);
-    input_rows.setAttribute("title", `Input desired row size - max ${TS.max_matrix_size}`);
-    input_rows.setAttribute("value", TS.row_value);
-    input_rows.setAttribute("type", "number");
-    input_rows.style.width = input_width;
+    const body = document.body;
+    const Input = {
+        row: document.createElement('input'),
+        colum: document.createElement('input')
+    };
+    const cdot = document.createTextNode(' x ');    // This is just to see the input boxes as "${rows} x ${colums}"
 
-    // Add attributes to the colum input box
-    input_colums.setAttribute("id", TS.colum_id);
-    input_colums.setAttribute("title", `Input desired colum size - max ${TS.max_matrix_size}`);
-    input_colums.setAttribute("value", TS.colum_value);
-    input_colums.setAttribute("type", "number");
-    input_colums.style.width = input_width;
+    // Maybe wanna make a constructor out of this helper function?
+    add_Attributes("row", Input, TS);   // Do NOT use TS.row_id as a variable instead of "row" (equivalent for colums). That could cause a serious issue
+    add_Attributes("colum", Input, TS);
 
-    body.appendChild(input_rows);    // When done editing the element, add it to the html body. This is crucial for stuff like getElementById
-    body.appendChild(input_colums);
-    body.insertBefore(cdot, input_colums);  // insertBefore can be used to insert an element before another element
-                                            // (this way you can place it whereever in the code - as opposed to appendChild)
+    body.appendChild(Input.row);    // When done editing the element, add it to the html body. This is crucial for stuff like getElementById
+    body.appendChild(Input.colum);
+    body.insertBefore(cdot, Input.colum);  // insertBefore can be used to insert an element before another element
+                                            // (this way you can place it whereever in the code - as opposed to appendChild)  
 
-    addEventHandler(TS.row_id, "focusout", TS);
-    addEventHandler(TS.colum_id, "focusout", TS);
-    addEventHandler(TS.row_id, "enter", TS);
-    addEventHandler(TS.colum_id, "enter", TS);
+    createEventListener(TS.row_id, "input", TS);
+    createEventListener(TS.colum_id, "input", TS);
+    createEventListener(TS.row_id, "click", TS);
+    createEventListener(TS.colum_id, "click", TS);
 
     createTable(TS.row_value, TS.colum_value);  // Initialize table at page load since we don't trigger the eventlisteners there
+}
+
+/* 
+Helper function that adds attributes to get_Table
+*/
+function add_Attributes(type, Input, TS) {
+    Input[`${type}`].id = TS[`${type}_id`];
+    Input[`${type}`].title = TS.title;
+    Input[`${type}`].value = TS[`${type}_value`];
+    Input[`${type}`].type = TS.type;
+    Input[`${type}`].style.width = TS.input_width;
 }
 
 /* 
 Function that adds an eventlistener a given element id passed to it
 Can be extended with other eventlisteners
 Takes three inputs where:
-    String: 'type_id' is the element's id (getElementById)
-    String: 'handler_type' is the type of the eventlistener (e.g. "focusout")
-    Object: 'TS' is an object that contains settings for the table - defined in get_Tablesize
+    String: 'type_id' is the element's id
+    String: 'listener_type' is the type of the eventlistener (e.g. "focusout")
+    Object: 'TS' contains settings for the table - defined in get_TableSize
 */
-function addEventHandler(type_id, handler_type, TS) {
-    let element_id = document.getElementById(`${type_id}`);
-    let element_value = TS[`${type_id}_value`];
+function createEventListener(type_id, listener_type, TS) {
+    let element_id = document.getElementById(type_id);
+    let element_value = TS[`${type_id}_value`];     // Makes it possible to use a variable to access properties of an object
 
-    switch(handler_type) {
+    switch(listener_type) {
+/* Deprecated ****
         case "enter": {
-            element_id.addEventListener("keypress", (event) => {     // Creates a new table with new rows when pressing "enter" (and deletes the old table)
+            element_id.addEventListener("keypress", (event) => {     // Creates a new table with a new size when pressing "enter" (and deletes the old table)
                 if(event.key === 'Enter') {
                     element_value = event.target.value;
-
-                    if(element_value > TS.max_matrix_size) {
-                        console.error(`Error: ${type_id} size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
-                        element_value = TS.max_matrix_size;
-                    }
-                    deleteTable();
-                    if(type_id === "row") {
-                        createTable(element_value, TS.colum_value);   
-                    }
-                    else if(type_id === "colum") {
-                        createTable(TS.row_value, element_value);  
-                    }
-                    else {
-                        console.error(`Error: got string id '${type_id}' which is not defined in scope '${handler_type}'`);
-                    }
+                    helpAddEventListener(type_id, listener_type, TS, element_value);
                 }
             });
             break;
         }
         case "focusout": {
-            element_id.addEventListener("focusout", (event) => {     // Creates a new table with new rows when leaving input box (and deletes the old table)
+            element_id.addEventListener("focusout", (event) => {     // Creates a new table with a new size when leaving input box (and deletes the old table)
                 element_value = event.target.value;
-
-                if(element_value > TS.max_matrix_size) {
-                    console.error(`Error: ${type_id} size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
-                    element_value = TS.max_matrix_size;
-                }
-                deleteTable();
-                if(type_id === "row") {
-                    createTable(element_value, TS.colum_value);   
-                }
-                else if(type_id === "colum") {
-                    createTable(TS.row_value, element_value);  
-                }
-                else {
-                    console.error(`Error: got string id ${type_id} which is not defined in scope '${handler_type}'`);
-                }
-                });
-                break;
+                helpAddEventListener(type_id, listener_type, TS, element_value);      
+            });   
+            break;
+        }
+         */
+        case "input": {
+            element_id.addEventListener("input", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
+                element_value = event.target.value;
+                if(listener_type === "input") {
+                    if(element_value > TS.max_matrix_size) {
+                        console.error(`Error: ${type_id} size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
+                        element_value = TS.max_matrix_size;
+                    }
+                    else if(element_value < TS.min_matrix_size) {
+                        console.error(`Error: ${type_id} size (${element_value}) is smaller than min allowed (${TS.min_matrix_size}). Resetting size to: ${TS.min_matrix_size}`);
+                        element_value = TS.min_matrix_size;
+                    }
+                    deleteTable();
+                    if(type_id === TS.row_id) {
+                        createTable(element_value, TS.colum_value);
+                        TS.row_value = element_value;   
+                    }
+                    else if(type_id === TS.colum_id) {
+                        createTable(TS.row_value, element_value);
+                        TS.colum_value = element_value;   
+                    }
+                    else {
+                        console.error(`Error: got string id '${type_id}' which is not defined in scope '${listener_type}'`);
+                    }
+                    document.getElementById(type_id).value = element_value; 
+                }     
+            });   
+            break;
+        }
+        case "click": {
+            element_id.addEventListener("click", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
+                element_id.focus();
+                element_id.select();   
+            });   
+            break;
         }
         default:
-            console.error(`Error: Tried to add an event handler with element id '${type_id}' to '${handler_type}', however, no such element id exists`);
+            console.error(`Error: tried to add an event listener called '${listener_type}' to element id '${type_id}', however, no such event listener exists`);
     }
 }
 
@@ -214,12 +227,11 @@ function lockTable(){
 /* 
 Function that deletes any element given to it
 Takes the element's id as input
-(Right now it's meant to delete buttons - hence the function name)
 */
-function deleteButton(id) {
-    const button = document.getElementById(`${id}`);
-    const parent = button.parentElement;
-    parent.removeChild(button);
+function deleteElement(id) {
+    const element = document.getElementById(`${id}`);
+    const parent = element.parentElement;
+    parent.removeChild(element);
 }
 
 /* 
@@ -363,4 +375,4 @@ function initDrag(element){
     element.addEventListener("click", dragFunctionality)
 }
 
-getTable_size();
+getTableSize();
