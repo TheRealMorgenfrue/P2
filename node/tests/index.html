@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Can you park here?</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+  <link href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAADicUQAAAAAAMzMzADY2NgAPz8/AAkJzgAStv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAERERERERERERERERERERERERERERERERERERERERERERREERERREEQBCJAAAAiQAYEJAAAAEJAUQBAAAAABAAREAAAMAAAABEREDMwMzMBERERAzAzMBEREREQAAABERERERERERERERERERERERERERERERERERERERERERERH//wAA//8AAP//AAD//wAAx+MAAAAAAAAAAAAAgAEAAMABAADwAwAA+AcAAPwPAAD//wAA//8AAP//AAD//wAA" rel="icon" type="image/x-icon" />
+</head>
+<body>
+<div class="container">
+  <ul class="parking-rules">
+    <li class="parking-rule">
+      <ul>
+        <li> Ambulance Parking Only</li>
+        <li> 9pm to 3am </li>
+        <li> Mon Thru Fri  </li>
+      </ul>
+    </li>
+    <li class="parking-rule">
+      <ul>
+        <li> Fire truck Parking Only</li>
+        <li>24hrs</li>
+        <li> Saturday to Sunday </li>
+      </ul>
+    </li>
+    <li class="parking-rule">
+      <ul>
+        <li> Car Parking</li>
+        <li> 3am to 3pm </li>
+        <li> Mon Thru Fri  </li>
+      </ul>
+    </li>
+    <li class="parking-rule">
+      <ul>
+        <li> Bicycle Parking</li>
+        <li> 3pm to 9pm </li>
+        <li> Mon Thru Fri  </li>
+      </ul>
+    </li>
+  </ul>
+  <section class="drop-zone" id="drop-zone">
+    <!-- the dashing stuff is just for the border animation -->
+    <span class="dashing"><i></i></span>
+    <span class="dashing"><i></i></span>
+    <span class="dashing"><i></i></span>
+    <span class="dashing"><i></i></span>
+  </section>
+  <section class="drag-vehicle">
+    <h2> Try and park! </h2>
+    <ul class="vehicles">
+      <li>
+        <!-- draggable objects must have draggable attribute -->
+        <img id="fire_truck" draggable="true" alt="fire truck" src="https://cdn.glitch.com/20f985bd-431d-4807-857b-e966e015c91b%2Ftruck-clip-art-fire-truck4.png?1519011787956">
+      </li>
+      <li>
+        <img id="ambulance" draggable="true" alt="ambulance" src="https://cdn.glitch.com/20f985bd-431d-4807-857b-e966e015c91b%2Fambulance5.png?1519011787610">
+      </li>
+      <li>
+        <img id="car" draggable="true" alt="car" src="https://cdn.glitch.com/20f985bd-431d-4807-857b-e966e015c91b%2Fcar-20clip-20art-1311497037_Vector_Clipart.png?1519011788408">
+      </li>
+      <li>
+        <img id="bicycle" draggable="true" alt="bicycle" src="https://cdn.glitch.com/20f985bd-431d-4807-857b-e966e015c91b%2Fbicycle-20clip-20art-bicycle3.png?1519011787816">
+      </li>
+    </ul>
+    <button class="filter-vehicles">Show vehicles that can park</button>
+    <button aria-label="Show all vehicles" class="show-all">Show all</button>
+  </section>
+</div>
+<footer>
+  <a href="https://glitch.com/edit/#!/remix/park">
+    Remix this in Glitch
+  </a>
+</footer>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/moment-range/3.1.1/moment-range.js"></script>
+<script defer src="script.js"></script>
+</body>
+</html>
