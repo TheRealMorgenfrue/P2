@@ -84,41 +84,27 @@ function getTable_size() {
     const input_colums = document.createElement('input');
     const cdot = document.createTextNode(' x ');    // This is just to see the input boxes as "${rows} x ${colums}"
 
-
-    class TS_C {  // Short for TableSettings
-        constructor() {
-            this.row_value = 2,
-            this.colum_value = 2,
-            this.max_matrix_size = 10 
-        }
-
-
-
-    };
-
-
-    let TS = {
+    // Object to store variables for the table - basically it's settings
+    let TS = {  // Short for TableSettings.
+        row_id: "row",       // This id refers to input_rows, not the matrix
+        colum_id: "colum",   // This id refers to input_colums, not the matrix
         row_value: 2,
         colum_value: 2,
         max_matrix_size: 10
     };
 
-
-    //let row_value = 2;   // Make the table a 2 x 2 at the start
-    //let colum_value = 2;
-    //let max_matrix_size = 10; // How big's the matrix? (e.g. 10 x 10)
     let input_width = '50px';  // Make both input boxes's size fit 2 digit numbers
     
     // Add attributes to the row input box
-    input_rows.setAttribute("id", "row_size");
-    input_rows.setAttribute("title", "Input desired row size - max 10");
+    input_rows.setAttribute("id", TS.row_id);
+    input_rows.setAttribute("title", `Input desired row size - max ${TS.max_matrix_size}`);
     input_rows.setAttribute("value", TS.row_value);
     input_rows.setAttribute("type", "number");
     input_rows.style.width = input_width;
 
     // Add attributes to the colum input box
-    input_colums.setAttribute("id", "colum_size");
-    input_colums.setAttribute("title", "Input desired colum size - max 10");
+    input_colums.setAttribute("id", TS.colum_id);
+    input_colums.setAttribute("title", `Input desired colum size - max ${TS.max_matrix_size}`);
     input_colums.setAttribute("value", TS.colum_value);
     input_colums.setAttribute("type", "number");
     input_colums.style.width = input_width;
@@ -128,72 +114,73 @@ function getTable_size() {
     body.insertBefore(cdot, input_colums);  // insertBefore can be used to insert an element before another element
                                             // (this way you can place it whereever in the code - as opposed to appendChild)
 
-    let row_element = document.getElementById("row_size");  // Create input box for number of rows
-    let colum_element = document.getElementById("colum_size");  // Create input box for number of colums
-    
-
-
-    addEventHandler(row_element, "focusout", TS);
-    //addEventHandler(colum_element, "colum_focusout", TableSettings);
+    addEventHandler(TS.row_id, "focusout", TS);
+    addEventHandler(TS.colum_id, "focusout", TS);
+    addEventHandler(TS.row_id, "enter", TS);
+    addEventHandler(TS.colum_id, "enter", TS);
 
     createTable(TS.row_value, TS.colum_value);  // Initialize table at page load since we don't trigger the eventlisteners there
 }
 
-function addEventHandler(element_id, handler_type, TS) {
+/* 
+Function that adds an eventlistener a given element id passed to it
+Can be extended with other eventlisteners
+Takes three inputs where:
+    String: 'type_id' is the element's id (getElementById)
+    String: 'handler_type' is the type of the eventlistener (e.g. "focusout")
+    Object: 'TS' is an object that contains settings for the table - defined in get_Tablesize
+*/
+function addEventHandler(type_id, handler_type, TS) {
+    let element_id = document.getElementById(`${type_id}`);
+    let element_value = TS[`${type_id}_value`];
+
     switch(handler_type) {
         case "enter": {
-            element_id.addEventListener("keypress", e => {     // Creates a new table with new rows when pressing "enter" (and deletes the old table)
-                if(e.key === 'Enter') {
-                    TS.row_value = element_id.value;
+            element_id.addEventListener("keypress", (event) => {     // Creates a new table with new rows when pressing "enter" (and deletes the old table)
+                if(event.key === 'Enter') {
+                    element_value = event.target.value;
+
+                    if(element_value > TS.max_matrix_size) {
+                        console.error(`Error: ${type_id} size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
+                        element_value = TS.max_matrix_size;
+                    }
                     deleteTable();
-                    createTable(rows, colums);
+                    if(type_id === "row") {
+                        createTable(element_value, TS.colum_value);   
+                    }
+                    else if(type_id === "colum") {
+                        createTable(TS.row_value, element_value);  
+                    }
+                    else {
+                        console.error(`Error: got string id '${type_id}' which is not defined in scope '${handler_type}'`);
+                    }
                 }
             });
             break;
         }
         case "focusout": {
             element_id.addEventListener("focusout", (event) => {     // Creates a new table with new rows when leaving input box (and deletes the old table)
-                TS.row_value = event.target.value;
+                element_value = event.target.value;
 
-                if(TS.row_value > TS.max_matrix_size) {
-                    console.error(`Error: Row size (${TS.row_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
-                    TS.row_value = TS.max_matrix_size;
-                    //input_rows.setAttribute("value", row_value);
+                if(element_value > TS.max_matrix_size) {
+                    console.error(`Error: ${type_id} size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
+                    element_value = TS.max_matrix_size;
                 }
-                
                 deleteTable();
-                createTable(TS.row_value, TS.colum_value);
+                if(type_id === "row") {
+                    createTable(element_value, TS.colum_value);   
+                }
+                else if(type_id === "colum") {
+                    createTable(TS.row_value, element_value);  
+                }
+                else {
+                    console.error(`Error: got string id ${type_id} which is not defined in scope '${handler_type}'`);
+                }
                 });
                 break;
         }
-        case "colum_enter": {
-            element_id.addEventListener("keypress", e => {   // Creates a new table with new colums when pressing "enter" (and deletes the old table)
-                if(e.key === 'Enter') {
-                    colums = element_id.value;
-                    deleteTable();
-                    createTable(rows, colums);
-                }
-            });
-            break;
-        }
-        case "colum_focusout": {
-            element_id.addEventListener("focusout", (event) => {   // Creates a new table with new colums when leaving input box (and deletes the old table)  
-                TS.colum_value = event.target.value;
-                console.log(`Colum value: ${TS.colum_value}`);
-        
-                if(colum_value > max_matrix_size) {
-                    console.error(`Error: Colum size (${colum_value}) is larger than max allowed (${max_matrix_size}). Resetting size to: ${max_matrix_size}`);
-                    colum_value = max_matrix_size;
-                    input_colums.setAttribute("value", colum_value);
-                }
-
-                deleteTable();
-                createTable(row_value, colum_value);
-            });
-            break;
-        }
         default:
-            console.error(`Error: Tried to add an event handler to '${handler_type}', however, no such element exists`);
+            console.error(`Error: Tried to add an event handler with element id '${type_id}' to '${handler_type}', however, no such element id exists`);
     }
 }
 
