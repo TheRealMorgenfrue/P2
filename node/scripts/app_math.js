@@ -1,6 +1,6 @@
 'use strict'
 
-// Creates a string representation of the equation in a given row
+// Takes a row element and creates a string containing a html element representing the equation in the given row
 function rowToEquationHTML (row) {
 
     let equation_arr = row.querySelectorAll("td");
@@ -17,7 +17,7 @@ function rowToEquationHTML (row) {
     return equation;
 }
 
-// Creates an array of table row contents
+// Takes a row element and creates an array of table row contents as numbers
 function rowToEquationArray (row) {
     let equation_arr = row.querySelectorAll("td");
     let equation = [];
@@ -30,7 +30,7 @@ function rowToEquationArray (row) {
     return equation;
 }
 
-// Transforms array in-place into upper triangular version - pseudocode from https://en.wikipedia.org/wiki/Gaussian_elimination
+// Transforms 2D array of numbers in-place into upper triangular version - pseudocode from https://en.wikipedia.org/wiki/Gaussian_elimination
 // Uses partial pivoting, a method to reduce round off errors
 // Info about partial pivoting: https://web.mit.edu/10.001/Web/Course_Notes/GaussElimPivoting.html - https://math.libretexts.org/Bookshelves/Applied_Mathematics/Numerical_Methods_(Chasnov)/03%3A_System_of_Equations/3.03%3A_Partial_Pivoting
 function gaussianElimination (equations) {
@@ -62,6 +62,7 @@ function gaussianElimination (equations) {
     }
 }
 
+// Swaps rows of 2d array of numbers in-place
 function swapRows (row, i_max, equations) {
     let temp = equations[row];
     equations[row] = equations[i_max];
@@ -69,6 +70,7 @@ function swapRows (row, i_max, equations) {
 }
 
 // Gets solutions by back-substituting in equations - based on https://gist.github.com/codecontemplator/6b3db07a29e435940ffc
+// Takes 2D array of numbers, creates 2D array for coefficient matrix and vector for right hand side, returns array x of solutions
 function backSubstitution(equations) {
     let A = new Array(equations.length); // Creates an array for coefficient matrix
     let b = new Array(equations.length); // Creates an array for constant matrix
@@ -98,6 +100,7 @@ function backSubstitution(equations) {
 }
 
 // Rounds number to given digits, default 0 - https://stackoverflow.com/questions/15762768/javascript-math-round-to-two-decimal-places
+// Takes number and decimals and returns rounded number
 function roundTo(n, digits) {
     if (digits === undefined) { // Default digits is 0
         digits = 0;
