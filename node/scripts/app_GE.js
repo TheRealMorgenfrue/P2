@@ -371,8 +371,31 @@ Function that initialises the drag functionality on a given element by calling d
 Takes an element as input
 */
 function initDrag(element){
-    element.setAttribute("style", "-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;");
     element.addEventListener("click", dragFunctionality)
 }
 
-getTableSize();
+/*
+Function that controls the highlighting of an element with the mouse.
+Several values can be entered as strings:
+. none
+. auto
+. text
+. all
+. contain
+Read about their behavior on https://developer.mozilla.org/en-US/docs/Web/CSS/user-select
+*/
+function highlightPermissions(element, value){
+    try{
+        if(value !== "none" && value !== "auto" && value !== "text" && value !== "all" && value !== "contain"){
+            throw new Error(`${value} is not a valid option!\nValid values are "none", "auto", "text", "all", and "contain".`);
+        }
+    element.style.WebkitUserSelect = value; // Safari
+    element.style.msUserSelect = value; // IE 10+ and Edge
+    element.style.userSelect = value; // Standard syntax
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+//Running The Program*/
+getTable_size();
