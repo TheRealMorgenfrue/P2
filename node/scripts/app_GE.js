@@ -3,6 +3,33 @@ let loc = window.location.pathname;
 let dir = loc.substring(0, loc.lastIndexOf('/'));
 console.log(dir);
 
+// Courtesy of https://stackoverflow.com/questions/15505225/inject-css-stylesheet-as-string-using-javascript/63936671#63936671
+// Helper function for 'window.onload' method
+function loadStyle(src) {
+    return new Promise(function (resolve, reject) {
+        let link = document.createElement('link');
+        link.href = src;
+        link.rel = 'stylesheet';
+
+        link.onload = () => resolve(link);
+        link.onerror = () => reject(new Error(`Style load error for ${src}`));
+
+        document.head.append(link);
+    });
+}
+
+/* 
+This calls loadStyle when the page is loading to apply CSS styles to the HTML
+To add more CSS styles, simply uncomment a '.then' and provide the path to the file (or add another '.then' if all are used)
+*/
+window.onload = function () {
+    loadStyle("../styles/simple.css")
+        // .then(() => loadStyle(""))
+        //.then(() => loadStyle("css/icomoon.css"))
+        .then(() => {
+            console.log('All styles are loaded!');
+        }).catch(err => console.error(err));
+}
 
 // Insert function that creates the entire html_page?
 
@@ -24,14 +51,12 @@ function createTable(rows, colums) {
     let TS = {
         table_id: "matrix",
         max_input_length: 8,
-        cell_width: "100px",    // Width of input cells in the matrix
         placeholder: "0"
     };
 
     const body = document.body,
     tbl = document.createElement('table');
-    tbl.id = TS.table_id; 
-    tbl.style.width = TS.cell_width;  // Ensure that each input cell fills out cell in matrix
+    tbl.id = TS.table_id;
 
     /*************************/
     for (let i = 1; i <= rows; i++) {   
@@ -46,20 +71,19 @@ function createTable(rows, colums) {
             td_input.required = ""; // Make each cell element required so user cannot submit an empty matrix
             td_input.placeholder = TS.placeholder;
             td_input.maxlength = TS.max_input_length;
-            td_input.style.width = TS.cell_width; // Ensure that each input cell fills out cell in matrix
+            td_input.classList.add("tblCells");     // Apply the CSS class defined in the CSS file
             td.appendChild(td_input);
 
             // const math_format = document.createElement('math');
             // math_format.style.width = TS.cell_width;
             // td.appendChild(math_format);
 
-            td.style.border = '1px solid black';
             }
         }
+    tbl.classList.add("tbl");    
     body.appendChild(tbl);
+    addTableButtons();
     validateButtonInput();
-    lockTableButton();  
-    unlockTableButton(); 
 }
 
 /* 
@@ -79,14 +103,13 @@ Additionally, it initializes the table (matrix) by calling createTable
 function getTableSize() {
     // Object created by a constructor function to store variables for the table - basically it's settings
     let TS = new function() {  // TS is short for TableSettings
-        this.row_id = "fish";       // This id refers to the input box, not the matrix
+        this.row_id = "row";       // This id refers to the input box, not the matrix
         this.colum_id = "colum";   // This id refers to the input box, not the matrix
         this.type = "number"
         this.row_value = 2;
         this.colum_value = 2;
         this.max_matrix_size = 10;
         this.min_matrix_size = 2;
-        this.input_width = "50px";  // Make both input boxes's size fit 2 digit numbers
         this.title = `Input desired row size - max ${this.max_matrix_size}`;
     };
 
@@ -95,17 +118,20 @@ function getTableSize() {
         row: document.createElement('input'),
         colum: document.createElement('input')
     };
+    const cdot_div = document.createElement("span");
     const cdot = document.createTextNode(' x ');    // This is just to see the input boxes as "${rows} x ${colums}"
+    cdot_div.appendChild(cdot);
+    cdot_div.classList.add("tbl", "inputbox");
 
-    // Maybe wanna make a constructor out of this helper function?
+    // Adds attributes to row and colum elements
     add_Attributes("row", Input, TS);   // Do NOT use TS.row_id as a variable instead of "row" (equivalent for colums). That could cause a serious issue
     add_Attributes("colum", Input, TS);
 
     body.appendChild(Input.row);    // When done editing the element, add it to the html body. This is crucial for stuff like getElementById
     body.appendChild(Input.colum);
-    body.insertBefore(cdot, Input.colum);  // insertBefore can be used to insert an element before another element
-                                            // (this way you can place it whereever in the code - as opposed to appendChild)  
+    body.insertBefore(cdot_div, Input.colum);  // insertBefore can be used to insert an element before another element (this way you can place it whereever in the code - as opposed to appendChild) 
 
+    // Make eventlisteners for row and colum elements
     createEventListener(TS.row_id, "input", TS);
     createEventListener(TS.colum_id, "input", TS);
     createEventListener(TS.row_id, "click", TS);
@@ -118,11 +144,12 @@ function getTableSize() {
 Helper function that adds attributes to get_Table
 */
 function add_Attributes(type, Input, TS) {
+    // [`${type}`] Makes it possible to use a variable to access properties of an object
     Input[`${type}`].id = TS[`${type}_id`];
     Input[`${type}`].title = TS.title;
     Input[`${type}`].value = TS[`${type}_value`];
     Input[`${type}`].type = TS.type;
-    Input[`${type}`].style.width = TS.input_width;
+    Input[`${type}`].classList.add("tbl", "inputBox");
 }
 
 /* 
@@ -161,11 +188,11 @@ function createEventListener(type_id, listener_type, TS) {
                 element_value = event.target.value;
                 if(listener_type === "input") {
                     if(element_value > TS.max_matrix_size) {
-                        console.error(`Error: ${type_id} size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
+                        console.warn(`Row (id: ${type_id}) size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
                         element_value = TS.max_matrix_size;
                     }
                     else if(element_value < TS.min_matrix_size) {
-                        console.error(`Error: ${type_id} size (${element_value}) is smaller than min allowed (${TS.min_matrix_size}). Resetting size to: ${TS.min_matrix_size}`);
+                        console.warn(`Colum (id: ${type_id}) size (${element_value}) is smaller than min allowed (${TS.min_matrix_size}). Resetting size to: ${TS.min_matrix_size}`);
                         element_value = TS.min_matrix_size;
                     }
                     deleteTable();
@@ -201,16 +228,37 @@ function createEventListener(type_id, listener_type, TS) {
 Function that creates the button to make the table read only
 Does so via an eventlistener
 */
-function lockTableButton(){
-    const body = document.body;
-    const tbl = document.getElementById("matrix");
-    const input = document.createElement('input');
 
-    input.setAttribute("id", "lockbutton");
-    input.setAttribute("type","button");
-    input.setAttribute("value","Lock");
-    body.after(tbl,input);
-    input.addEventListener("click", lockTable);
+function addTableButtons() {
+    let BS = {
+        lock_button_id: "lockbutton",
+        lock_button_value: "Lock",
+        lock_button_type: "button",
+        unlock_button_id: "unlockbutton",
+        unlock_button_value: "Unlock",
+        unlock_button_type: "button",
+        lock_Table: function() { lockTable(); },
+        unlock_Table: function() { unlockTable(); }
+    };
+   
+    const Input = {
+        body: document.body,
+        tbl: document.getElementById("matrix"),
+        lock_button: document.createElement('input'),
+        unlock_button: document.createElement('input')
+    };
+
+    addButtonAttributes("lock", Input, BS);
+    addButtonAttributes("unlock", Input, BS);
+}
+
+function addButtonAttributes(type, Input, BS) {
+    Input[`${type}_button`].id = BS[`${type}_button_id`];
+    Input[`${type}_button`].value = BS[`${type}_button_value`];
+    Input[`${type}_button`].type = BS[`${type}_button_type`];
+    Input[`${type}_button`].classList.add("tbl", "inputBox");
+    Input.body.after(Input.tbl, Input[`${type}_button`]);
+    Input[`${type}_button`].addEventListener("click",  BS[`${type}_Table`]);
 }
 
 /* 
@@ -225,32 +273,6 @@ function lockTable(){
 }
 
 /* 
-Function that deletes any element given to it
-Takes the element's id as input
-*/
-function deleteElement(id) {
-    const element = document.getElementById(`${id}`);
-    const parent = element.parentElement;
-    parent.removeChild(element);
-}
-
-/* 
-Function that creates a button to make the table writeable again
-Does so via an eventlistener
-*/
-function unlockTableButton(){
-    const body = document.body,
-    tbl = document.getElementById("matrix"),
-    input = document.createElement("input");
-    
-    input.setAttribute("id", "unlockbutton");
-    input.setAttribute("type","button");
-    input.setAttribute("value", "Unlock");
-    body.after(tbl,input);
-    input.addEventListener("click", unlockTable);
-}
-
-/* 
 Helper function for unlockTableButton that makes all cells in the table (matrix) writeable again
 */
 function unlockTable(){
@@ -259,6 +281,16 @@ function unlockTable(){
     table_rows.forEach(element => {
         element.removeAttribute("readonly", "false");
     })
+}
+
+/* 
+Function that deletes any element given to it
+Takes the element's id as input
+*/
+function deleteElement(id) {
+    const element = document.getElementById(`${id}`);
+    const parent = element.parentElement;
+    parent.removeChild(element);
 }
 
 /* 
@@ -321,8 +353,9 @@ function dragFunctionality(event){
     //clone the element the handler is attached to and place it on the cursor
     //note that the element is made a child of the dragTarget
     const newElement = dragTarget.cloneNode(true);  //we also clone the element's ID! Be careful when referring to it!
-    dragTarget.appendChild(newElement);
+    document.body.appendChild(newElement);
     newElement.style.position = "absolute";
+    newElement.style.zIndex = "2000";
     newElement.style.left = `${event.pageX}px`;
     newElement.style.top = `${event.pageY}px`;
     newElement.style.pointerEvents = "none";
@@ -397,5 +430,5 @@ function highlightPermissions(element, value){
     }
 }
 
-//Running The Program*/
-getTable_size();
+//Running The Program
+getTableSize();
