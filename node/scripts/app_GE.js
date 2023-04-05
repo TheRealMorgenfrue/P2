@@ -320,10 +320,11 @@ function dragFunctionality(event){
     const dragTarget = event.currentTarget;
 
     //clone the element the handler is attached to and place it on the cursor
-    //note that the element is made a child of the dragTarget
+    //note that the element is made a child of the body and its zIndex is set very large to make it appear in front of everything else
     const newElement = dragTarget.cloneNode(true);  //we also clone the element's ID! Be careful when referring to it!
-    dragTarget.appendChild(newElement);
+    document.body.appendChild(newElement);
     newElement.style.position = "absolute";
+    newElement.style.zIndex = "2000";
     newElement.style.left = `${event.pageX}px`;
     newElement.style.top = `${event.pageY}px`;
     newElement.style.pointerEvents = "none";

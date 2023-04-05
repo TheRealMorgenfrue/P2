@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<head>
+    <title>Test for positioning elements</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <div>
+        Initial div for spacing
+    </div>
+    <div id="mainDiv">
+        Here's a div. Mouse over it.
+    </div>
+    <div id="tableContainer" style="position: relative; left: 50px;">
+        <table id="table" style="position: relative; left: 150px;">
+            <tr id="row1">
+                <td>1</td><td>2</td><td>3</td><td>4</td>
+            </tr>
+            <tr id="row2">
+                <td>5</td><td>6</td><td>7</td><td>8</td>
+            </tr>
+            <tr id="row3">
+                <td>9</td><td>10</td><td>11</td><td>12</td>
+            </tr>
+        </table>
+    </div>
+</body>
+<script>
+    /*  PROTOTYPE CODE FOR THE FUNCTION
+
+    const container = document.getElementById("tableContainer");
+    const mainElement = document.getElementById("row2");
+    mainElement.addEventListener("click", event => {
+        console.log("Handler triggered");
+
+        
+        
+        //get the bounding rectangle for the main element's content.
+        const boundingRectangleMain = mainElement.getBoundingClientRect();
+        let x = boundingRectangleMain.left;
+        let y = boundingRectangleMain.top;
+        console.log(`Bounding rectangle for ${mainElement} has left = ${x} and top = ${y}.\nHeight is ${boundingRectangleMain.height} and width is ${boundingRectangleMain.width}`);
+
+        //create a new element and get its rectangle. Note that it must be in the document for height and width to be nonzero.
+        const newElement = document.createElement("div");
+        newElement.innerHTML = "It's another div";
+        document.body.appendChild(newElement);
+        const boundingRectangleNew = newElement.getBoundingClientRect();
+        console.log(`Bounding rectangle for ${newElement} has height = ${boundingRectangleNew.height} and width = ${boundingRectangleNew.width}.`);
+
+        //offset the new element either right or left. Very wide elements may be placed offscreen!
+        const right = true;
+        if(right){
+            x += boundingRectangleMain.width;
+        } else {
+            x -= boundingRectangleNew.width;
+        }
+
+        //calculate the vertical offset needed for the two elements to be lined up through the middle
+        const a = boundingRectangleMain.height, b = boundingRectangleNew.height;
+        const offsetY = (a - b)/2;
+        console.log(`Offsetting by ${offsetY} for vertical alignment.`);
+        y += offsetY;
+
+        newElement.style.position = "absolute";
+        newElement.style.left = `${x}px`;
+        newElement.style.top = `${y}px`;
+    })
+    */
+    const mainElement = document.getElementById("row2");
+    const newElement = document.createElement("div");
+        newElement.innerHTML = "It's another div";
+        newElement.style.width = "100px"
+        document.getElementById("tableContainer").appendChild(newElement);
+
+    //places the newElement to the right or left of the mainElement. The last argument "left" is optional and defaults to false.
+    //If "left" is set to true, the newElement will be attached to the left side instead of the right side
+    //Remember to add the elements to the document before running the function, as the elements' heigt and width in the document must be defined
+    function attachToSide(mainElement, newElement, left){
+        //get the bounding rectangles for the elements relative to the viewPort and define x and y. We add window.pageXOffset and window.pageYOffset
+        //to make sure the bounding rectangle is independent of the viewPort's position when the function runs
+        const boundingRectangleMain = mainElement.getBoundingClientRect();
+        let x = boundingRectangleMain.left + window.pageXOffset;
+        let y = boundingRectangleMain.top + window.pageYOffset;
+        console.log(`Initial coordinates are (${x}, ${y}). x adjusted by ${window.pageXOffset} and y adjusted by ${window.pageYOffset}`);
+        const boundingRectangleNew = newElement.getBoundingClientRect();
+
+        //offset the x-coordinate either left or right of the main element. Note that if left can be omitted from the arguments as "undefined" is falsy
+        if(left){
+            x -= boundingRectangleNew.width;
+            console.log(`Offsetting element to the left by ${boundingRectangleNew.width}`)
+        } else {
+            x += boundingRectangleMain.width;
+            console.log(`Offsetting element to the right by ${boundingRectangleMain.width}`)
+        }
+        console.log(`x-offset coordinates are (${x}, ${y})`);
+
+        //offset the y-coordinate so the two elements line up in the middle instead of at the top
+        const a = boundingRectangleMain.height, b = boundingRectangleNew.height;
+        const offsetY = (a - b)/2;
+        y += offsetY;
+        console.log(`Y is offset by ${offsetY}px.`)
+        console.log(`y-offset coordinates are (${x}, ${y})`)
+
+        //since the newElement gets position: absolute, we must respect its frame of reference. The frame of reference defaults to the document body
+        //however, if an element has anything other than position: static, that element's children will use it as their frame of reference
+        //to account for this, we sum up the .left and .top-values of newElement's non-static ancestors and subtract it from x and y respectively
+        //Note the use of window.getComputedStyle to get a string-representation of an element's style type as well as the use of RegEx to remove non-numerical characters
+        let p = newElement.parentElement
+        while (p) {
+            if(getComputedStyle(p).position !== "static"){
+                x -= p.style.left.replace(/\D/g, "");
+                y -= p.style.top.replace(/\D/g, "");
+                console.log(`Found style type: ${p.style.position} with values Left: ${p.style.left} and Top: ${p.style.top}`);
+                console.log(`Corrected coordinates are (${x}, ${y})`)
+            }
+            p = p.parentElement;
+        }
+
+        //set the newElement's position. 
+        newElement.style.position = "absolute";
+        newElement.style.left = `${x}px`;
+        newElement.style.top = `${y}px`;
+        console.log(`Final coordinates are (${x}, ${y})`)
+    }
+
+    attachToSide(mainElement, newElement);
+
+    document.addEventListener("click", event => {console.log(event.pageX, event.pageY)})
+</script>
