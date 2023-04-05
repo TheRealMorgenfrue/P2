@@ -74,17 +74,30 @@ function createTable(rows, colums) {
             td_input.placeholder = TS.placeholder;
             td_input.maxlength = TS.max_input_length;
             td_input.id = `${i}${j}`;
-            createEventListener(td_input.id, "focusout", "null");
+            // const fisk = document.getElementById(td_input.id);
+            // console.log(`ID: '${td_input.id}' GET: ${fisk}`);
+
+            createEventListener(td_input, "click", "null");
 
 
 
 
-            td_input.addEventListener("input", (event) => {
-                const td_cell_id = event.target.id;
-                const id_num = Number(td_cell_id);
-                const i = /\d/;
-                const j = /\d$/;
-                console.log(`ID is ${id_num}, i = ${i}, j = ${j}`);
+            td_input.addEventListener("focusout", (event) => {
+                const cell_id = event.target.id;
+                let cell_value = event.target.value;
+                let san_cell_value = sanitize(cell_value);
+                event.target.value = san_cell_value;
+
+                // let test = document.getElementById(cell_id);
+                // console.log(`ID: '${cell_id}' GET: ${test}`);
+                const i = cell_id.match(/\d/);
+                const j = cell_id.match(/\d$/);
+                console.log(`ID is ${cell_id}, i = ${i}, j = ${j}`);
+
+                td_persistent[i][j] = san_cell_value;
+                console.table(td_persistent);
+
+
             })
             td_input.classList.add("tblCells");     // Apply the CSS class defined in the CSS file
             td.appendChild(td_input);
@@ -172,8 +185,6 @@ function getTableSize() {
     createEventListener(TS.colum_id, "input", TS);
     createEventListener(TS.row_id, "click", TS);
     createEventListener(TS.colum_id, "click", TS);
-    createEventListener(TS.row_id, "focusout", TS);
-    createEventListener(TS.colum_id, "focusout", TS);
 
     createTable(TS.row_value, TS.colum_value);  // Initialize table at page load since we don't trigger the eventlisteners there
 }
@@ -199,13 +210,23 @@ Takes three inputs where:
     Object: 'TS' contains settings for the table - defined in get_TableSize
 */
 function createEventListener(type_id, listener_type, TS) {
-    // console.log(`${type_id}`);
-    let element = document.getElementById(type_id);
-    let element_value = 0;
-
+    let element,
+    element_value = 0
     try{
-        if(!element) {
-            throw new Error(`getElementById returned '${element}' with ID '${type_id}' while trying to add EventListener '${listener_type}'`);
+        if(!element) {  // null
+            // throw new Error(`getElementById returned '${element}' with ID '${type_id}' while trying to add EventListener '${listener_type}'`);
+        }
+        if (
+            typeof type_id === 'object' &&
+            !Array.isArray(type_id) &&
+            type_id !== null
+        ) {
+            element = type_id;
+            console.log(` element: ${element}, ${type_id}`);
+        }
+        else {
+            element = document.getElementById(type_id);
+            console.log(`FISH element: ${element}, ${type_id}`);
         }
     }
     catch(error) {
@@ -224,18 +245,15 @@ function createEventListener(type_id, listener_type, TS) {
             break;
         } */
         case "focusout": {
-            element.addEventListener("focusout", (event) => {     // Creates a new table with a new size when leaving input box (and deletes the old table)
-                let str = event.target.value;
-                let sanstr = sanitize(str);
-                console.log(`Got string: ${str} and sani: ${sanstr}`);
-                event.target.value = sanstr;
+            element.addEventListener("focusout", (event) => {
+
             });   
             break;
         }
         case "input": {
             element.addEventListener("input", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
                 element_value = event.target.value;
-                
+
                 if(element_value > TS.max_matrix_size) {
                     console.warn(`Row (id: ${type_id}) size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
                     element_value = TS.max_matrix_size;
@@ -256,7 +274,7 @@ function createEventListener(type_id, listener_type, TS) {
                 else {
                     console.error(`Error: got string id '${type_id}' which is not defined in scope '${listener_type}'`);
                 }
-                document.getElementById(type_id).value = element_value;   
+                document.getElementById(type_id).value = element_value; 
             });   
             break;
         }
