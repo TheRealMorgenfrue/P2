@@ -58,13 +58,14 @@ function createTable(rows, colums) {
     const body = document.body,
     tbl = document.createElement('table');
     tbl.id = TS.table_id;
+
     let td_persistent = create2Array(rows, colums);
 
     /*************************/
     for (let i = 1; i <= rows; i++) {   
         const tr = tbl.insertRow();
 
-        initDrag(tr); // Make rows draggable
+        // initDrag(tr); // Make rows draggable
 
         for (let j = 1; j <= colums; j++) { 
             let td = tr.insertCell(); 
@@ -90,12 +91,13 @@ function createTable(rows, colums) {
 
                 // let test = document.getElementById(cell_id);
                 // console.log(`ID: '${cell_id}' GET: ${test}`);
-                const i = cell_id.match(/\d/);
-                const j = cell_id.match(/\d$/);
+                const i = cell_id.match(/\d/)-1;    
+                const j = cell_id.match(/\d$/)-1;
                 console.log(`ID is ${cell_id}, i = ${i}, j = ${j}`);
 
                 td_persistent[i][j] = san_cell_value;
-                console.table(td_persistent);
+                console.log(`ARR: ${td_persistent} :::: ${td_persistent[i][j]}`);
+                // console.table(td_persistent);
 
 
             })
@@ -205,7 +207,7 @@ function add_Attributes(type, Input, TS) {
 Function that adds an eventlistener a given element id passed to it
 Can be extended with other eventlisteners
 Takes three inputs where:
-    String: 'type_id' is the element's id
+    String/Object: 'type_id' can be both the element's id or the element object (i.e. the element itself)
     String: 'listener_type' is the type of the eventlistener (e.g. "focusout")
     Object: 'TS' contains settings for the table - defined in get_TableSize
 */
@@ -213,18 +215,17 @@ function createEventListener(type_id, listener_type, TS) {
     let element,
     element_value = 0
     try{
-        if(!element) {  // null
-            // throw new Error(`getElementById returned '${element}' with ID '${type_id}' while trying to add EventListener '${listener_type}'`);
+        if(type_id === null) {
+            throw new Error(`getElementById returned ${null} with ID '${type_id}' while trying to add EventListener '${listener_type}'`);
         }
-        if (
+        if (    // type_id is an object
             typeof type_id === 'object' &&
-            !Array.isArray(type_id) &&
-            type_id !== null
+            !Array.isArray(type_id)
         ) {
             element = type_id;
-            console.log(` element: ${element}, ${type_id}`);
+            console.log(`element: ${element}, ${type_id}`);
         }
-        else {
+        else {  // type_id is NOT an object but the actual id
             element = document.getElementById(type_id);
             console.log(`FISH element: ${element}, ${type_id}`);
         }
