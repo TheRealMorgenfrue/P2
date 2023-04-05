@@ -44,7 +44,8 @@ function createTable(rows, colums) {
             throw new Error(`Matrix size must be larger than 0 (Got row = ${rows}, colum = ${colums})`);
         }
     } catch (error) {
-        console.error(`${error}`);
+        console.error(error);
+        return;
     }
 
     // Object to store variables for the table - basically it's settings
@@ -57,6 +58,7 @@ function createTable(rows, colums) {
     const body = document.body,
     tbl = document.createElement('table');
     tbl.id = TS.table_id;
+    let td_persistent = create2Array(rows, colums);
 
     /*************************/
     for (let i = 1; i <= rows; i++) {   
@@ -71,6 +73,19 @@ function createTable(rows, colums) {
             td_input.required = ""; // Make each cell element required so user cannot submit an empty matrix
             td_input.placeholder = TS.placeholder;
             td_input.maxlength = TS.max_input_length;
+            td_input.id = `${i}${j}`;
+            createEventListener(td_input.id, "focusout", "null");
+
+
+
+
+            td_input.addEventListener("input", (event) => {
+                const td_cell_id = event.target.id;
+                const id_num = Number(td_cell_id);
+                const i = /\d/;
+                const j = /\d$/;
+                console.log(`ID is ${id_num}, i = ${i}, j = ${j}`);
+            })
             td_input.classList.add("tblCells");     // Apply the CSS class defined in the CSS file
             td.appendChild(td_input);
 
@@ -83,8 +98,29 @@ function createTable(rows, colums) {
     tbl.classList.add("tbl");    
     body.appendChild(tbl);
     addTableButtons();
-    validateButtonInput();
+    // validateButtonInput();
 }
+
+/* 
+Creates an array of arrays
+Courtesy of https://stackoverflow.com/a/16694645
+*/
+function create2Array(row, colum, fn) {
+    let arr = [],
+        d = function(x, y) {},
+        f = fn || d,
+        curr = [];
+    for (let i = 0; i < row; i++) {
+        for (let j = 0; j < colum; j++) {
+             curr[j] = f.call(window, i, j); 
+        };
+        arr[i] = curr;
+    };
+    return arr;
+};
+
+
+
 
 /* 
 Function that deletes the table created by createTable - aka. the matrix
@@ -136,6 +172,8 @@ function getTableSize() {
     createEventListener(TS.colum_id, "input", TS);
     createEventListener(TS.row_id, "click", TS);
     createEventListener(TS.colum_id, "click", TS);
+    createEventListener(TS.row_id, "focusout", TS);
+    createEventListener(TS.colum_id, "focusout", TS);
 
     createTable(TS.row_value, TS.colum_value);  // Initialize table at page load since we don't trigger the eventlisteners there
 }
@@ -161,12 +199,22 @@ Takes three inputs where:
     Object: 'TS' contains settings for the table - defined in get_TableSize
 */
 function createEventListener(type_id, listener_type, TS) {
-    let element_id = document.getElementById(type_id);
-    let element_value = TS[`${type_id}_value`];     // Makes it possible to use a variable to access properties of an object
+    // console.log(`${type_id}`);
+    let element = document.getElementById(type_id);
+    let element_value = 0;
+
+    try{
+        if(!element) {
+            throw new Error(`getElementById returned '${element}' with ID '${type_id}' while trying to add EventListener '${listener_type}'`);
+        }
+    }
+    catch(error) {
+        console.error(error);
+        return;
+    }
 
     switch(listener_type) {
-/* Deprecated ****
-        case "enter": {
+/*         case "enter": {
             element_id.addEventListener("keypress", (event) => {     // Creates a new table with a new size when pressing "enter" (and deletes the old table)
                 if(event.key === 'Enter') {
                     element_value = event.target.value;
@@ -174,48 +222,48 @@ function createEventListener(type_id, listener_type, TS) {
                 }
             });
             break;
-        }
+        } */
         case "focusout": {
-            element_id.addEventListener("focusout", (event) => {     // Creates a new table with a new size when leaving input box (and deletes the old table)
-                element_value = event.target.value;
-                helpAddEventListener(type_id, listener_type, TS, element_value);      
+            element.addEventListener("focusout", (event) => {     // Creates a new table with a new size when leaving input box (and deletes the old table)
+                let str = event.target.value;
+                let sanstr = sanitize(str);
+                console.log(`Got string: ${str} and sani: ${sanstr}`);
+                event.target.value = sanstr;
             });   
             break;
         }
-         */
         case "input": {
-            element_id.addEventListener("input", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
+            element.addEventListener("input", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
                 element_value = event.target.value;
-                if(listener_type === "input") {
-                    if(element_value > TS.max_matrix_size) {
-                        console.warn(`Row (id: ${type_id}) size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
-                        element_value = TS.max_matrix_size;
-                    }
-                    else if(element_value < TS.min_matrix_size) {
-                        console.warn(`Colum (id: ${type_id}) size (${element_value}) is smaller than min allowed (${TS.min_matrix_size}). Resetting size to: ${TS.min_matrix_size}`);
-                        element_value = TS.min_matrix_size;
-                    }
-                    deleteTable();
-                    if(type_id === TS.row_id) {
-                        createTable(element_value, TS.colum_value);
-                        TS.row_value = element_value;   
-                    }
-                    else if(type_id === TS.colum_id) {
-                        createTable(TS.row_value, element_value);
-                        TS.colum_value = element_value;   
-                    }
-                    else {
-                        console.error(`Error: got string id '${type_id}' which is not defined in scope '${listener_type}'`);
-                    }
-                    document.getElementById(type_id).value = element_value; 
-                }     
+                
+                if(element_value > TS.max_matrix_size) {
+                    console.warn(`Row (id: ${type_id}) size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
+                    element_value = TS.max_matrix_size;
+                }
+                else if(element_value < TS.min_matrix_size) {
+                    console.warn(`Colum (id: ${type_id}) size (${element_value}) is smaller than min allowed (${TS.min_matrix_size}). Resetting size to: ${TS.min_matrix_size}`);
+                    element_value = TS.min_matrix_size;
+                }
+                deleteTable();
+                if(type_id === TS.row_id) {
+                    createTable(element_value, TS.colum_value);
+                    TS.row_value = element_value;   
+                }
+                else if(type_id === TS.colum_id) {
+                    createTable(TS.row_value, element_value);
+                    TS.colum_value = element_value;   
+                }
+                else {
+                    console.error(`Error: got string id '${type_id}' which is not defined in scope '${listener_type}'`);
+                }
+                document.getElementById(type_id).value = element_value;   
             });   
             break;
         }
         case "click": {
-            element_id.addEventListener("click", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
-                element_id.focus();
-                element_id.select();   
+            element.addEventListener("click", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
+                element.focus();
+                element.select();   
             });   
             break;
         }
@@ -314,9 +362,9 @@ function sanitize(str){
 Function that sanitizes the cells in the table (matrix)
 Does so by calling the function sanitize
 */
-function validateButtonInput(){
-    const tbl = document.getElementById("matrix");
-    const input = tbl.querySelectorAll("input");
+function validateInput(id){
+    const element = document.getElementById(`${id}`);
+    const input = element.querySelectorAll("input");
 
     input.forEach(element => {
         element.addEventListener("focusout", (event) =>  {

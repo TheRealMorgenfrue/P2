@@ -11,7 +11,7 @@
 /* This class controls stuff for the entire table. Thus, every element that relies on the table's position must also have this class */
 .tbl {
   position: relative;
-  left: 30%;
+  left: 2%;
 }
 /* This class controls stuff in the table cells, e.g. the matrix cells */
 .tblCells {
