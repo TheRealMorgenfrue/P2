@@ -3,6 +3,12 @@ let loc = window.location.pathname;
 let dir = loc.substring(0, loc.lastIndexOf('/'));
 console.log(dir);
 
+
+let tbl_persistent,
+    prev_i,
+    prev_j; // Maybe ship i and j with the array? (tbl_persistent)
+
+
 // Courtesy of https://stackoverflow.com/questions/15505225/inject-css-stylesheet-as-string-using-javascript/63936671#63936671
 // Helper function for 'window.onload' method
 function loadStyle(src) {
@@ -59,8 +65,6 @@ function createTable(rows, colums) {
     tbl = document.createElement('table');
     tbl.id = TS.table_id;
 
-    let td_persistent = create2Array(rows, colums);
-
     /*************************/
     for (let i = 1; i <= rows; i++) {   
         const tr = tbl.insertRow();
@@ -74,33 +78,11 @@ function createTable(rows, colums) {
             td_input.required = ""; // Make each cell element required so user cannot submit an empty matrix
             td_input.placeholder = TS.placeholder;
             td_input.maxlength = TS.max_input_length;
-            td_input.id = `${i}${j}`;
-            // const fisk = document.getElementById(td_input.id);
-            // console.log(`ID: '${td_input.id}' GET: ${fisk}`);
+            td_input.id = `${i},${j}`;
 
             createEventListener(td_input, "click", "null");
+            createEventListener(td_input, "tbl_focusout", "null");
 
-
-
-
-            td_input.addEventListener("focusout", (event) => {
-                const cell_id = event.target.id;
-                let cell_value = event.target.value;
-                let san_cell_value = sanitize(cell_value);
-                event.target.value = san_cell_value;
-
-                // let test = document.getElementById(cell_id);
-                // console.log(`ID: '${cell_id}' GET: ${test}`);
-                const i = cell_id.match(/\d/)-1;    
-                const j = cell_id.match(/\d$/)-1;
-                console.log(`ID is ${cell_id}, i = ${i}, j = ${j}`);
-
-                td_persistent[i][j] = san_cell_value;
-                console.log(`ARR: ${td_persistent} :::: ${td_persistent[i][j]}`);
-                // console.table(td_persistent);
-
-
-            })
             td_input.classList.add("tblCells");     // Apply the CSS class defined in the CSS file
             td.appendChild(td_input);
 
@@ -110,32 +92,45 @@ function createTable(rows, colums) {
 
             }
         }
+    prev_i = rows;
+    prev_j = colums;
     tbl.classList.add("tbl");    
     body.appendChild(tbl);
     addTableButtons();
     // validateButtonInput();
 }
 
+function createArray(rows, colums) {
+    let arr = new Array(rows);
+    for (let i = 0; i < rows; i++) {
+      arr[i] = new Array(colums);
+      for (let j = 0; j < colums; j++) {
+        // arr[i][j] = `[${i}, ${j}]`;
+      }
+    }
+    return arr;
+}
+
+
+
+
+
+
 /* 
 Creates an array of arrays
-Courtesy of https://stackoverflow.com/a/16694645
+Courtesy of https://stackoverflow.com/a/966938
 */
-function create2Array(row, colum, fn) {
-    let arr = [],
-        d = function(x, y) {},
-        f = fn || d,
-        curr = [];
-    for (let i = 0; i < row; i++) {
-        for (let j = 0; j < colum; j++) {
-             curr[j] = f.call(window, i, j); 
-        };
-        arr[i] = curr;
-    };
-    return arr;
-};
-
-
-
+// function createArray(length) {
+//     let arr = new Array(length || 0),
+//         i = length;
+//     if (arguments.length > 1) {
+//         let args = Array.prototype.slice.call(arguments, 1);
+//         while(i--) {
+//             arr[length-1 - i] = createArray.apply(this, args);
+//         }
+//     }
+//     return arr;
+// }
 
 /* 
 Function that deletes the table created by createTable - aka. the matrix
@@ -164,6 +159,8 @@ function getTableSize() {
         this.title = `Input desired row size - max ${this.max_matrix_size}`;
     };
 
+    tbl_persistent = createArray(TS.row_value, TS.colum_value);
+
     const body = document.body;
     const Input = {
         row: document.createElement('input'),
@@ -183,8 +180,8 @@ function getTableSize() {
     body.insertBefore(cdot_div, Input.colum);  // insertBefore can be used to insert an element before another element (this way you can place it whereever in the code - as opposed to appendChild) 
 
     // Make eventlisteners for row and colum elements
-    createEventListener(TS.row_id, "input", TS);
-    createEventListener(TS.colum_id, "input", TS);
+    createEventListener(TS.row_id, "tblsize_input", TS);
+    createEventListener(TS.colum_id, "tblsize_input", TS);
     createEventListener(TS.row_id, "click", TS);
     createEventListener(TS.colum_id, "click", TS);
 
@@ -209,78 +206,90 @@ Can be extended with other eventlisteners
 Takes three inputs where:
     String/Object: 'type_id' can be both the element's id or the element object (i.e. the element itself)
     String: 'listener_type' is the type of the eventlistener (e.g. "focusout")
-    Object: 'TS' contains settings for the table - defined in get_TableSize
+    Object: 'Settings' can be used as a settings/info package, i.e. in getTableSize 'Settings' contains settings for the table
+            If such a thing is not needed, simply call the function with "null" as third parameter (with "")
 */
-function createEventListener(type_id, listener_type, TS) {
+function createEventListener(type_id, listener_type, Settings) {
     let element,
-    element_value = 0
-    try{
-        if(type_id === null) {
-            throw new Error(`getElementById returned ${null} with ID '${type_id}' while trying to add EventListener '${listener_type}'`);
-        }
-        if (    // type_id is an object
-            typeof type_id === 'object' &&
-            !Array.isArray(type_id)
-        ) {
-            element = type_id;
-            console.log(`element: ${element}, ${type_id}`);
-        }
-        else {  // type_id is NOT an object but the actual id
-            element = document.getElementById(type_id);
-            console.log(`FISH element: ${element}, ${type_id}`);
-        }
+    element_value = 0;
+    if(type_id === null || listener_type === null || Settings === null) {
+        console.error(`Got ${null} with ID '${type_id}' while trying to add EventListener '${listener_type}' using Settings ${Settings}`);
     }
-    catch(error) {
-        console.error(error);
-        return;
+    if (    // type_id is an object (arrays are objects too)
+        typeof type_id === 'object' &&
+        !Array.isArray(type_id)
+    ) {
+        element = type_id;
+    }
+    else {  // type_id is NOT an object but the actual id
+        element = document.getElementById(type_id);
     }
 
     switch(listener_type) {
-/*         case "enter": {
-            element_id.addEventListener("keypress", (event) => {     // Creates a new table with a new size when pressing "enter" (and deletes the old table)
-                if(event.key === 'Enter') {
-                    element_value = event.target.value;
-                    helpAddEventListener(type_id, listener_type, TS, element_value);
-                }
-            });
-            break;
-        } */
-        case "focusout": {
+        case "tbl_focusout": {  // Here 'Settings' is tbl_persistent - aka. [[]]
             element.addEventListener("focusout", (event) => {
+                const cell_id = event.target.id;
+                console.log(`target value = ${event.target.value}`);
+                let cell_value = event.target.value;
+                let san_cell_value = sanitize(cell_value);
+                event.target.value = san_cell_value;
 
+                if(san_cell_value !== "") {     // Empty strings are no fun :(
+                    const i = cell_id.match(/\d+(?=\,)/)-1;     // Subtract 1 to match array indices
+                    const j = cell_id.match(/\d+$(?!\,)/)-1;
+                    
+                    console.log(`ID is ${cell_id} ::: i = ${i} :::: j = ${j}`);     // Testing
+                    
+                    if(tbl_persistent[i][j] !== san_cell_value) {    // Duplicate strings are quite lame too
+                        tbl_persistent[i][j] = san_cell_value;  // Store cell value in array
+
+                        // Detailed info about the matrix - console edition
+                        console.log(`ARR: [${tbl_persistent}] :::: Value: '${tbl_persistent[i][j]}'`);
+                        console.table(tbl_persistent);
+                    }  
+                }
             });   
             break;
         }
-        case "input": {
+        case "tblsize_input": {
             element.addEventListener("input", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
                 element_value = event.target.value;
 
-                if(element_value > TS.max_matrix_size) {
-                    console.warn(`Row (id: ${type_id}) size (${element_value}) is larger than max allowed (${TS.max_matrix_size}). Resetting size to: ${TS.max_matrix_size}`);
-                    element_value = TS.max_matrix_size;
+                if(element_value > Settings.max_matrix_size) {    // Check if we exceeded the max number of rows allowed
+                    console.warn(`Row (id: ${type_id}) size (${element_value}) is larger than max allowed (${Settings.max_matrix_size}). Resetting size to: ${Settings.max_matrix_size}`);
+                    element_value = Settings.max_matrix_size;
                 }
-                else if(element_value < TS.min_matrix_size) {
-                    console.warn(`Colum (id: ${type_id}) size (${element_value}) is smaller than min allowed (${TS.min_matrix_size}). Resetting size to: ${TS.min_matrix_size}`);
-                    element_value = TS.min_matrix_size;
+                else if(element_value < Settings.min_matrix_size) {   // Check if we exceeded the max number of colums allowed
+                    console.warn(`Colum (id: ${type_id}) size (${element_value}) is smaller than min allowed (${Settings.min_matrix_size}). Resetting size to: ${Settings.min_matrix_size}`);
+                    element_value = Settings.min_matrix_size;
                 }
-                deleteTable();
-                if(type_id === TS.row_id) {
-                    createTable(element_value, TS.colum_value);
-                    TS.row_value = element_value;   
+                if(type_id === Settings.row_id) {     // Are we adding rows?
+                    Settings.row_value = element_value;   
                 }
-                else if(type_id === TS.colum_id) {
-                    createTable(TS.row_value, element_value);
-                    TS.colum_value = element_value;   
+                else if(type_id === Settings.colum_id) {    // Are we adding colums?
+                    Settings.colum_value = element_value;   
                 }
-                else {
+                else {  // The input id does not match the id of neither rows nor colums
                     console.error(`Error: got string id '${type_id}' which is not defined in scope '${listener_type}'`);
                 }
-                document.getElementById(type_id).value = element_value; 
+                document.getElementById(type_id).value = element_value;   // Update the value shown in the input field
+                deleteTable();
+                createTable(Settings.row_value, Settings.colum_value);
+                restoreTable(Settings.row_value, Settings.colum_value);
+
+                // if(type_id === Settings.row_id) {     // Are we adding rows?
+                //     createTable(element_value, Settings.colum_value);
+                //     Settings.row_value = element_value;   
+                // }
+                // else if(type_id === Settings.colum_id) {    // Are we adding colums?
+                //     createTable(Settings.row_value, element_value);
+                //     Settings.colum_value = element_value;   
+                // }
             });   
             break;
         }
         case "click": {
-            element.addEventListener("click", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
+            element.addEventListener("click", (event) => {     // Auto-marks stuff on a clicked element
                 element.focus();
                 element.select();   
             });   
@@ -291,11 +300,61 @@ function createEventListener(type_id, listener_type, TS) {
     }
 }
 
+function restoreTable(rows, colums) {
+    console.log(`got r = ${rows} :: c = ${colums}`);
+    let temp_arr = tbl_persistent.slice();
+
+    console.log(`SPLICE TEMP ARR = [${temp_arr}]`);
+
+    tbl_persistent = createArray(rows, colums);
+    console.log(`Array created: [${tbl_persistent}]`);
+
+
+    // temp_arr.forEach(x => {
+    //     temp_arr.splice(x, 1, NaN); 
+    // })
+
+
+    // const res = Array.from(temp_arr, x => x === undefined ? tbl_persistent.splice(x, 1, NaN) : x);    // '?' = if(<preceeding statement>){<following statemant}, ':' = else{<following statement>}
+    // console.log(`RES created: [${temp_arr}]`);
+    let current_i, current_j;
+    if(prev_i > rows) {
+        current_i = rows;
+    }
+    else {current_i = prev_i;
+    }
+    if(prev_j > colums) {
+        current_j = colums;
+    }
+    else {current_j = prev_j;
+    }
+
+
+/* 
+Current problems:
+current_i && current_j are updated when createTable is called in line 277. This means they're never their intended previous i and j, but the new i and j
+    This causes the for-loops starting line 341 to access parts of the array that doesn't exist causing: "Uncaught TypeError: temp_arr[i] is undefined"
+
+*/
+
+    console.log(`current i: ${current_i} current j: ${current_j}`);
+    for(let i = 0; i < current_i; i++) {
+        for(let j = 0; j < current_j; j++) {
+            console.log(`i: ${i} j: ${j}`);
+            tbl_persistent[i][j] = temp_arr[i][j];
+            console.log(`Array merged: [${tbl_persistent}]`);
+        }
+    }
+ 
+}
+
+
+
+
 /* 
 Function that creates the button to make the table read only
 Does so via an eventlistener
 */
-
 function addTableButtons() {
     let BS = {
         lock_button_id: "lockbutton",
