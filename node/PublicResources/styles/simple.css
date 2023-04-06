@@ -22,3 +22,8 @@
 .inputBox {
   width: 50px;
 }
+
+.buttons {
+  width: 120px;
+  margin-left: 10px;
+}
