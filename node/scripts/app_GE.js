@@ -206,13 +206,13 @@ function createEventListener(type_id, listener_type, Settings) {
         let element,
         element_value = 0;
         try {
-            if(type_id === null || type_id === undefined) {
+            if(!type_id) {
                 throw new Error(`Cannot add EventListener '${listener_type}' to ID '${type_id}': Must not be ${type_id}.`);
             }
-            else if(listener_type === null || listener_type === undefined) {
+            else if(!listener_type) {
                 throw new Error(`Cannot add EventListener '${listener_type}' to ID '${type_id}': Must not be ${listener_type}.`);
             }
-            else if(Settings === null || Settings === undefined) {
+            else if(!Settings) {
                 throw new Error(`Cannot add EventListener '${listener_type}' to ID '${type_id}': Settings is ${Settings}.`);
             }
         } catch (error) {
@@ -268,7 +268,7 @@ function createEventListener(type_id, listener_type, Settings) {
                         element_value = Settings.max_matrix_size;
                     }
                     else if(element_value < Settings.min_matrix_size) {   // Check if we exceeded the max number of columns allowed
-                        console.warn(`Colum (id: ${type_id}) size (${element_value}) is smaller than min allowed (${Settings.min_matrix_size}).\nResetting size to: ${Settings.min_matrix_size}.`);
+                        console.warn(`Column (id: ${type_id}) size (${element_value}) is smaller than min allowed (${Settings.min_matrix_size}).\nResetting size to: ${Settings.min_matrix_size}.`);
                         element_value = Settings.min_matrix_size;
                     }
                     if(type_id === Settings.row_id) {     // Are we adding rows?
