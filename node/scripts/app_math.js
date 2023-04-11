@@ -13,7 +13,7 @@ function rowToEquationHTML (row) {
             if(!(i === equation_arr.length - 2)) equation += " + "; // Doesn't add plus before the last number
         }
     }
-    equation += ` = ${equation_arr[equation_arr.length - 1].innerText}`;
+    equation += ` = ${equation_arr[equation_arr.length - 1].innerText}</p>`;
     return equation;
 }
 
@@ -93,7 +93,7 @@ function backSubstitution(equations) {
         x[i] = (b[i] - sum) / A[i][i]; // Calculates variable by dividing last element of the equation by the diagonal element
     }
     for(let i = 0; i < x.length; i++) { // Rounds solutions to 4 decimals (4 is arbitrary)
-        if(isNaN(x[i])) return "No solutions"; // Should maybe return something else
+        if(isNaN(x[i])) return NaN; // Should maybe return something else
         x[i] = roundTo(x[i],4);
     }
     return x;
@@ -110,8 +110,6 @@ function roundTo(n, digits) {
     let test = (Math.round(n) / scalar); // Rounds number (n) and divides it by the scalar to obtain the rounded value
     return +(test.toFixed(digits)); // Returns rounded value, fixed to the specified number of decimal places
 }
-
-
 
 // Just for testing
 /*
