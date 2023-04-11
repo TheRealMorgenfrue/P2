@@ -1,7 +1,7 @@
 // Terminal commands:
 // npm install jest
 // npm install puppeteer
-//* npm install jsdom - suggested by error with wrong testing environment
+//* npm install jest-environment-jsdom - suggested by error with wrong testing environment
 //* npm install http-server -g
 //* http-server
 // npm test - runs all test files
