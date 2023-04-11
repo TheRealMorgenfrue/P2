@@ -11,6 +11,7 @@ Variable:   "N/A"        / variable_case
 */
 
 let TBL_PERSISTENT,
+    ARR_TBL_PERSISTENT = new Array(),
     CURRENT_I,
     CURRENT_J; // Maybe ship i and j with the array? (TBL_PERSISTENT)
 
@@ -40,10 +41,6 @@ window.onload = function () {
         .then(() => {
             console.log('All styles are loaded!');
         }).catch(err => console.error(err));
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /* 
@@ -92,7 +89,7 @@ function createTable(rows, columns) {
     for (let i = 1; i <= rows; i++) {   
         const tr = tbl.insertRow();
 
-        initDrag(tr); // Make rows draggable
+        // initDrag(tr); // Make rows draggable
 
         for (let j = 1; j <= columns; j++) { 
             let td = tr.insertCell(); 
@@ -133,6 +130,7 @@ function deleteTable() {
     deleteElement("unlockbutton");
     deleteElement("resetbutton");
     deleteElement("clearbutton");
+    deleteElement("rewindbutton");
 }
 
 /* 
@@ -146,7 +144,7 @@ function getTableSize() {
         this.type = "number"
         this.row_value = 2;
         this.column_value = 2;
-        this.max_matrix_size = 10;
+        this.max_matrix_size = 15;
         this.min_matrix_size = 2;
         this.title = `Input desired row size - max ${this.max_matrix_size}`;
     };
@@ -172,12 +170,12 @@ function getTableSize() {
     body.insertBefore(cdot_span, Input.column);  // insertBefore can be used to insert an element before another element (this way you can place it whereever in the code - as opposed to appendChild) 
 
     // Make eventlisteners for row and column elements
-    createEventListener(TableSettings.row_id, "tblsize_input", TableSettings);
-    createEventListener(TableSettings.column_id, "tblsize_input", TableSettings);
+    createEventListener(TableSettings.row_id, "tblsize_change", TableSettings);
+    createEventListener(TableSettings.column_id, "tblsize_change", TableSettings);
     createEventListener(TableSettings.row_id, "click", TableSettings);
     createEventListener(TableSettings.column_id, "click", TableSettings);
 
-    createTable(TableSettings.row_value, TableSettings.column_value);  // Initialize table at page load since we don't trigger the eventlisteners there
+    createTable(Number(TableSettings.row_value), Number(TableSettings.column_value));  // Initialize table at page load since we don't trigger the eventlisteners there
 }
 
 /* 
@@ -228,7 +226,7 @@ function createEventListener(type_id, listener_type, Settings) {
         }
         else {  // type_id is NOT an object but the actual id
             element = document.getElementById(type_id);
-            if(element === null || element === undefined) {
+            if(!element) {
                 throw new Error(`getElementById returned ${element} with ID ${type_id}. Was the ID mistyped or does it not exist?`);
             }
         }
@@ -259,23 +257,22 @@ function createEventListener(type_id, listener_type, Settings) {
                 });   
                 break;
             }
-            case "tblsize_input": {
-                element.addEventListener("input", async (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
-                    await sleep(100);   // This is to prevent the value from being updated immediately after they're typed in. Otherwise, e.g. '56' is interpreted as '5' which is processed and then as '5'+'6' = '56'
+            case "tblsize_change": {
+                element.addEventListener("change", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
                     element_value = event.target.value;
                     if(element_value > Settings.max_matrix_size) {    // Check if we exceeded the max number of rows allowed
-                        console.warn(`Row (id: ${type_id}) size (${element_value}) is larger than max allowed (${Settings.max_matrix_size}).\nResetting size to: ${Settings.max_matrix_size}.`);
+                        console.warn(`id: ${type_id} size (${element_value}) is larger than max allowed (${Settings.max_matrix_size}).\nResetting size to: ${Settings.max_matrix_size}.`);
                         element_value = Settings.max_matrix_size;
                     }
                     else if(element_value < Settings.min_matrix_size) {   // Check if we exceeded the max number of columns allowed
-                        console.warn(`Column (id: ${type_id}) size (${element_value}) is smaller than min allowed (${Settings.min_matrix_size}).\nResetting size to: ${Settings.min_matrix_size}.`);
+                        console.warn(`id: ${type_id} size (${element_value}) is smaller than min allowed (${Settings.min_matrix_size}).\nResetting size to: ${Settings.min_matrix_size}.`);
                         element_value = Settings.min_matrix_size;
                     }
                     if(type_id === Settings.row_id) {     // Are we adding rows?
-                        Settings.row_value = element_value;   
+                        Settings.row_value = Number(element_value); // Convert to number since strings behave weird with logical operators
                     }
                     else if(type_id === Settings.column_id) {    // Are we adding columns?
-                        Settings.column_value = element_value;   
+                        Settings.column_value = Number(element_value);  
                     }
                     else {  // The input id does not match the id of neither rows nor columns
                         throw new Error(`Got string ID '${type_id}' which is not defined in scope '${listener_type}'.`);
@@ -312,44 +309,66 @@ function restoreTable(rows, columns, prev_i, prev_j) {
     let temp_arr = TBL_PERSISTENT.slice();  // Copy the array to a temp array
     TBL_PERSISTENT = createArray(rows, columns); // Overwrite the old array with a new
 
-    // console.log(`got r = ${rows} :: c = ${columns}`);
-    // console.log(`SPLICE TEMP ARR = [${temp_arr}]`);
-    // console.log(`Array created: [${tbl_persistent}]`);
-    // console.log(`before     ROW: ${rows} COLUM: ${columns} prev_i: ${prev_i} prev_j: ${prev_j} CURRENT_I: ${CURRENT_I} CURRENT_J ${CURRENT_J}`);
-
-    if(rows < prev_i) {  // If the prev array's rows are larger than the current, go up to the current
-        /* 
-        This if statement has an EPIC bruh moment -> (rows < prev_i) => (10 < 9 = true)
-        Thus, prev_i goes from 8 -> 10 in one jump which causes the for-loops down below to access the array out of bounds (array[i] is undefined)
-        Atm. it doesn't seem to cause major trouble (except 'TypeError: undefined') but it's something to keep in mind
-        */
-
-        // console.log(`CHANGING: if(${rows} > ${prev_i}) = ${rows > prev_i}`);
-        prev_i = rows;    
+    if(rows < prev_i) {  // If the prev array's rows are larger than the current, go down to the current
+        prev_i = rows;
     } 
-    else if(columns < prev_j) {  // If the prev array's columns are larger than the current, go up to the current
-        prev_j = columns;    // Here, JS thinks logic should be followed again (BRUH)
+    else if(columns < prev_j) {  // If the prev array's columns are larger than the current, go down to the current
+        prev_j = columns;
     }
-    // console.log(`after      ROW: ${rows} COLUM: ${columns} prev_i: ${prev_i} prev_j: ${prev_j} CURRENT_I: ${CURRENT_I} CURRENT_J ${CURRENT_J}`);
-    // console.log("--------------");
     try {
         for(let i = 0; i < prev_i; i++) {  // Nested for-loops to access two-dimensional arrays
             for(let j = 0; j < prev_j; j++) {
                 if(temp_arr[i][j] !== undefined && temp_arr[i][j] !== "") { // Only merge array indices containing something
                     TBL_PERSISTENT[i][j] = temp_arr[i][j];  // Merge the old table's values with the new
-                    console.log(`i: ${i} j: ${j}`);
-                    console.log(`Array merged: [${TBL_PERSISTENT}]`);
+                    // console.log(`i: ${i} j: ${j}`);
+                    // console.log(`Array merged: [${TBL_PERSISTENT}]`);
                     let cell = document.getElementById(`${i+1},${j+1}`);    // Add 1 to match matrix indices
                     if(cell !== null) { // Prevent accessing a cell that doesn't exist
                         cell.value = TBL_PERSISTENT[i][j];  // Populate the new table input cells with the old table values
                     }
-    
                 }
             }
         }
     } catch (error) {
-        // Catch the TypeError made by the if-statement 
-        console.warn(error);
+        console.error(error);
+    }
+}
+
+function copyTable() {
+    if(ARR_TBL_PERSISTENT.length > 0) {
+        if(JSON.stringify(TBL_PERSISTENT) !== ARR_TBL_PERSISTENT[ARR_TBL_PERSISTENT.length-1]) {
+            ARR_TBL_PERSISTENT.push(JSON.stringify(TBL_PERSISTENT));    // Make it a JSON object to prevent the 2d table array from being messed up in the container array  
+        }
+        else {
+            console.warn(`Previous matrix snapshot is identical to the current - abort copy`);
+        }
+    }
+    else {
+        ARR_TBL_PERSISTENT.push(JSON.stringify(TBL_PERSISTENT));
+    }
+}
+
+function rewindTable() {
+    if(ARR_TBL_PERSISTENT.length > 0) {
+        TBL_PERSISTENT = JSON.parse(ARR_TBL_PERSISTENT.slice(ARR_TBL_PERSISTENT.length-1, ARR_TBL_PERSISTENT.length));
+        ARR_TBL_PERSISTENT.pop();
+        try {
+            for(let i = 0; i < CURRENT_I; i++) {  // Nested for-loops to access two-dimensional arrays
+                for(let j = 0; j < CURRENT_J; j++) {
+                    if(TBL_PERSISTENT[i][j] !== undefined) {
+                        let cell = document.getElementById(`${i+1},${j+1}`);    // Add 1 to match matrix indices
+                        if(cell !== null) { // Prevent accessing a cell that doesn't exist
+                            cell.value = TBL_PERSISTENT[i][j];  // Populate the new table input cells with the old table values
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    else {
+        console.warn(`Array underflow!: Array has length ${ARR_TBL_PERSISTENT.length}`);
     }
 }
 
@@ -362,19 +381,23 @@ function addTableButtons() {
         lock_button_id: "lockbutton",
         lock_button_value: "Lock",
         lock_button_type: "button",
-        lock_Table: function() { lockTable(); },    // We can have functions as keys in objects by wrapping them in a function
+        lock_Table: function() { lockTable(); resetTable(); },    // We can have functions as keys in objects by wrapping them in a function
         unlock_button_id: "unlockbutton",
         unlock_button_value: "Unlock",
         unlock_button_type: "button",
         unlock_Table: function() { unlockTable(); },
-        reset_button_id: "resetbutton",
-        reset_button_value: "Reset matrix size",
-        reset_button_type: "button",
-        reset_Table: function() { resetTable(); },   // Is this feature necessary?
+        // reset_button_id: "resetbutton",
+        // reset_button_value: "Reset matrix size",
+        // reset_button_type: "button",
+        // reset_Table: function() { },   // Is this feature necessary?
         clear_button_id: "clearbutton",
         clear_button_value: "Clear matrix",
         clear_button_type: "button",
-        clear_Table: function() { clearTable(); }
+        clear_Table: function() { clearTable(); },
+        rewind_button_id: "rewindbutton",
+        rewind_button_value: "Go back",
+        rewind_button_type: "button",
+        rewind_Table: function() { rewindTable(); }
     };
    
     const Input = {
@@ -382,14 +405,16 @@ function addTableButtons() {
         tbl: document.getElementById("matrix"),
         lock_button: document.createElement("input"),
         unlock_button: document.createElement("input"),
-        reset_button: document.createElement("input"),
-        clear_button: document.createElement("input")
+        // reset_button: document.createElement("input"),
+        clear_button: document.createElement("input"),
+        rewind_button: document.createElement("input")
     };
 
     addButtonAttributes("lock", Input, ButtonSettings);
     addButtonAttributes("unlock", Input, ButtonSettings);
-    addButtonAttributes("reset", Input, ButtonSettings);
+    // addButtonAttributes("reset", Input, ButtonSettings);
     addButtonAttributes("clear", Input, ButtonSettings);
+    addButtonAttributes("rewind", Input, ButtonSettings);
 }
 /* 
 Helper function to addTableButtons that adds attributes to the buttons and places them after the table
@@ -409,10 +434,12 @@ Helper function for addTableButtons that sets all cells in the table to read onl
 function lockTable(){
     const tbl = document.getElementById("matrix");
     const table_rows = tbl.querySelectorAll("input");
-    for(let i = 0; i < table_rows.length; i++){ 
-        table_rows[i].setAttribute("readonly","true");
+    if(table_rows[0].readonly !== "true" ) {
+        for(let i = 0; i < table_rows.length; i++){ 
+            table_rows[i].setAttribute("readonly","true");
+        }
+        console.warn("Table is now LOCKED");
     }
-    console.warn("Table is now LOCKED");
 }
 
 /* 
@@ -429,7 +456,8 @@ function unlockTable(){
 
 function resetTable() {
 // Is this feature necessary?
-console.warn("Is this feature necessary?")
+copyTable();
+// console.warn("Is this feature necessary?")
 }
 
 function clearTable() {
