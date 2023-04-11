@@ -577,3 +577,6 @@ function highlightPermissions(element, value){
 
 //Running The Program
 getTableSize();
+
+
+module.exports.createArray = createArray; // Export function to test suite 
