@@ -10,53 +10,67 @@ Variable:   "N/A"        / variable_case
 *****************************************
 */
 
-let TBL_PERSISTENT,
-    CURRENT_I,
-    CURRENT_J; // Maybe ship i and j with the array? (TBL_PERSISTENT)
+let CURRENT_TBL,
+    ARR_CURRENT_TBL = new Array(); // Array used to contain the copies of matrices that have been changed - ensures user can go back to previous iteration of matrix 
 
-// Courtesy of https://stackoverflow.com/questions/15505225/inject-css-stylesheet-as-string-using-javascript/63936671#63936671
-// Helper function for 'window.onload' method
-function loadStyle(src) {
-    return new Promise(function (resolve, reject) {
-        let link = document.createElement('link');
-        link.href = src;
-        link.rel = 'stylesheet';
+const SETTINGS = new function() { // A number of functions need to access non-writable values as well as update writable values - this object is therefore global. 
+   this.READONLY_SETTINGS = new function() {
+        this.TBL_SETTINGS = new function() {
+            this.table_id = "gaussian_elimination_matrix"; 
+            this.max_input_length = 8;
+            this.placeholder = "0";
+            this.row_id = "row";        // This id refers to the input box, not the matrix
+            this.column_id = "column";  // This id refers to the input box, not the matrix
+            this.type = "number"        // This refers to the input box, not the matrix
+            this.max_matrix_size = 15;  // Ensure that matrix is small enough to be read by human users 
+            this.min_matrix_size = 2;
+            this.title = `Input desired row size - max ${this.max_matrix_size}`;
+        }
+        this.BUTTON_SETTINGS = new function() {
+            this.lock_button_id: "lockbutton";
+            this.lock_button_value: "Lock";
+            this.lock_button_type: "button";
+            this.lock_Table: function() { lockTable(); resetTable(); };    // We can have functions as keys in objects by wrapping them in a function
+            this.unlock_button_id: "unlockbutton";
+            this.unlock_button_value: "Unlock";
+            this.unlock_button_type: "button";
+            this.unlock_Table: function() { unlockTable(); };
+            this.reset_button_id: "resetbutton";
+            this.reset_button_value: "Reset matrix size";
+            this.reset_button_type: "button";
+            this.reset_Table: function() { };   // Is this feature necessary?
+            this.clear_button_id: "clearbutton";
+            this.clear_button_value: "Clear matrix";
+            this.clear_button_type: "button";
+            this.clear_Table: function() { clearTable(); };
+            this.rewind_button_id: "rewindbutton";
+            this.rewind_button_value: "Go back";
+            this.rewind_button_type: "button";
+            this.rewind_Table: function() { rewindTable(); };
+        }
+    }
+    this.WRITABLE = new function() {
+        this.row_value = 2;
+        this.column_value = 2;
+    }
+};
 
-        link.onload = () => resolve(link);
-        link.onerror = () => reject(new Error(`Style load error for ${src}`));
+Object.freeze(SETTINGS.READONLY_SETTINGS);  // Make the "readonly_settings" readonly
 
-        document.head.append(link);
-    });
-}
-
-/* 
-This calls loadStyle when the page is loading to apply CSS styles to the HTML
-To add more CSS styles, simply uncomment a '.then' and provide the path to the file (or add another '.then' if all are used)
-*/
-window.onload = function () {
-    loadStyle("../styles/simple.css")
-        // .then(() => loadStyle(""))
-        //.then(() => loadStyle("css/icomoon.css"))
-        .then(() => {
-            console.log('All styles are loaded!');
-        }).catch(err => console.error(err));
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/* 
-Creates a 2D array and fills it with "" (otherwise it got filled with columns - litterally)
-Takes two integers, rows and columns
-Returns a 2D array
-*/
-function createArray(rows, columns) {
-    let arr = new Array(rows);
-    for (let i = 0; i < rows; i++) {
-      arr[i] = new Array(columns);
-      for (let j = 0; j < columns; j++) {
-        arr[i][j] = "";
+/**
+ * Creates a 2D array and fills it with empty strings, "". 
+ * 
+ * This prevents unintended behaviour where cells are filled with the value of a single cell upon array creation. 
+ * @param {integer} row_value 
+ * @param {integer} column_value 
+ * @returns {array} 2D array
+ */
+function createArray(row_value, column_value) {
+    let arr = new Array(row_value);
+    for (let i = 0; i < row_value; i++) {
+      arr[i] = new Array(column_value);
+      for (let j = 0; j < column_value; j++) {
+        arr[i][j] = ""; // Prevent unintended side effects of array creation 
       }
     }
     return arr;
@@ -67,123 +81,118 @@ Function that creates a ${rows} times ${columns} table - aka. the matrix
 Takes two integers as input.
 Additionally, it creates buttons to lock/unlock the table
 */
-function createTable(rows, columns) {
-    try { // If the matrix's size is smaller than 1 then ABORT
-        if(rows < 1 || columns < 1) {
-            throw new Error(`Matrix size must be larger than 0 (Got row = ${rows}, column = ${columns}).`);
+/**
+ * Creates the matrix used for Gaussian Elimination
+ * 
+ * Additionally, it creates buttons to interact with the matrix
+ * @param {integer} row_value 
+ * @param {integer} column_value 
+ * @returns 
+ */
+function createTable(row_value, column_value) {
+    try { // Ensure matrix is defined i.e. of dim greater than 1x1 (A matrix of -1 size, for instance).
+        if(row_value < SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.min_matrix_size || 
+            column_value < SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.min_matrix_size) {
+            throw new Error(`Matrix size must be larger than or equal to ${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.min_matrix_size}\n
+            (Got row size = ${row_value}, column size = ${column_value}).`);
         }
     } catch (error) {
         console.error(error);
         return;
     }
 
-    // Object to store variables for the table - basically it's settings
-    let IniTableSettings = {
-        table_id: "matrix",
-        max_input_length: 8,
-        placeholder: "0"
-    };
-
-    const body = document.body,
+    // Ensure that table element is created and can be found by id 
+    const body = document.body, 
     tbl = document.createElement('table');
-    tbl.id = IniTableSettings.table_id;
+    tbl.id = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id;
+    
+    // Ensure that each row is inserted and can be found by id 
+    for (let i = 0; i < row_value; i++) {   
+        const tr = tbl.insertRow(); // Note: predefined method for inserting row in table
+        tr.id = `${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}_${i}`;
+        // initDrag(tr); // Make rows draggable - Decomment when draganddrop.js import is done correctly 
 
-    /*************************/
-    for (let i = 1; i <= rows; i++) {   
-        const tr = tbl.insertRow();
-
-        initDrag(tr); // Make rows draggable
-
-        for (let j = 1; j <= columns; j++) { 
+        for (let j = 0; j < column_value; j++) { 
             let td = tr.insertCell(); 
             
+            // Create input elements to the matrix and set applicable attributes
             const td_input = document.createElement('input');
-            // td_input.required = ""; // Make each cell element required so user cannot submit an empty matrix
-            td_input.placeholder = IniTableSettings.placeholder;
-            td_input.maxLength = IniTableSettings.max_input_length;
-            td_input.id = `${i},${j}`;  // The ID is indexed from 1 - keep that in mind when working with the table arrays
+            td_input.placeholder = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.placeholder;
+            td_input.maxLength = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_input_length;
+            td_input.id = `${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}_${i},${j}`;  // The ID is indexed from 0 in order to be used with array indices
 
-            createEventListener(td_input, "click", "null");
-            createEventListener(td_input, "tbl_focusout", "null");
+            createEventListener(td_input, "click");
+            createEventListener(td_input, "tbl_change");
 
             td_input.classList.add("tblCells");  // Apply the CSS class defined in the CSS file
             td.appendChild(td_input);
-
-            // const math_format = document.createElement('math');
-            // math_format.style.width = TS.cell_width;
-            // td.appendChild(math_format);
-
             }
         }
-    CURRENT_I = rows;  // Add the current table size to the CURRENT global variables
-    CURRENT_J = columns;
-    tbl.classList.add("tbl");   // Apply CSS
+    tbl.classList.add("tbl");   // Add class to ensure CSS-styling can be applied correctly
     body.appendChild(tbl);
     addTableButtons();
-}
+} 
 
 /* 
 Function that deletes the table created by createTable - aka. the matrix
 Additionally, it deletes the buttons created by createTable to make sure they aren't jumbled around
 element.remove() is also a valid option to delete elements
 */
-function deleteTable() {
-    deleteElement("matrix");
-    deleteElement("lockbutton");
-    deleteElement("unlockbutton");
-    deleteElement("resetbutton");
-    deleteElement("clearbutton");
-}
 
+/**
+ * Remove all cells that are associated with current table 
+ */
+function deleteTable() {
+    deleteElement(`${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}`);
+    deleteElement(`${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.lock_button_id}`);
+    deleteElement(`${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.unlock_button_id}`);
+    deleteElement(`${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.reset_button_id}`);
+    deleteElement(`${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.clear_button_id}`);
+    deleteElement(`${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.rewind_button_id}`);
+}
+// ---- REFACTOR HERE ----- //
 /* 
 Function that creates two input fields to let the user change the size of the matrix
 Additionally, it initializes the table (matrix) by calling createTable
 */
 function getTableSize() {
-    let TableSettings = new function() {  // Object created by a constructor function to store variables for the table - basically it's settings
-        this.row_id = "row";       // This id refers to the input box, not the matrix
-        this.column_id = "column";   // This id refers to the input box, not the matrix
-        this.type = "number"
-        this.row_value = 2;
-        this.column_value = 2;
-        this.max_matrix_size = 10;
-        this.min_matrix_size = 2;
-        this.title = `Input desired row size - max ${this.max_matrix_size}`;
-    };
-
-    TBL_PERSISTENT = createArray(TableSettings.row_value, TableSettings.column_value); // Initialize the array to hold the table values
+    
+    CURRENT_TBL = createArray(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value); // Initialize the array to hold the table values
 
     const body = document.body;
-    const Input = {
+    const Input = { // Object to add attributes with a variable. This compresses the code to Input.id (instead of having to write e.g., row.id & column.id)
         row: document.createElement('input'),
         column: document.createElement('input')
     };
     const cdot_span = document.createElement("span");  // A 'span' works correct with CSS, a 'div' does not 
     const cdot = document.createTextNode(' x ');    // This is just to see the input boxes as "${rows} x ${columns}"
     cdot_span.appendChild(cdot); // In order to apply CSS to a TextNode it has to be a child of an element, e.g. 'span'
-    cdot_span.classList.add("tbl", "inputbox");  // Add CSS
+    cdot_span.classList.add("tbl", "inputbox");  // Add to class to ensure correct CSS-styling 
 
-    // Adds attributes to row and column elements
-    add_Attributes("row", Input, TableSettings);   // Do NOT use TS.row_id as a variable instead of "row" (equivalent for columns). That could cause a serious issue with the definition in the 'Input' object
-    add_Attributes("column", Input, TableSettings);
+    // Adds attributes to row and column elements.
+    // Do NOT use the global row_id here instead of "row" (equivalent for columns). 
+    // That could cause a serious issue with the definition of 'row' and 'column' in the 'Input' object
+    add_Attributes("row", Input);
+    add_Attributes("column", Input);
 
     body.appendChild(Input.row);    // When done editing the element, add it to the html body. This is crucial for stuff like getElementById
     body.appendChild(Input.column);
     body.insertBefore(cdot_span, Input.column);  // insertBefore can be used to insert an element before another element (this way you can place it whereever in the code - as opposed to appendChild) 
 
     // Make eventlisteners for row and column elements
-    createEventListener(TableSettings.row_id, "tblsize_input", TableSettings);
-    createEventListener(TableSettings.column_id, "tblsize_input", TableSettings);
-    createEventListener(TableSettings.row_id, "click", TableSettings);
-    createEventListener(TableSettings.column_id, "click", TableSettings);
+    createEventListener(SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.row_id, "tblsize_change");
+    createEventListener(SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.column_id, "tblsize_change");
+    createEventListener(SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.row_id, "click");
+    createEventListener(SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.column_id, "click");
 
-    createTable(TableSettings.row_value, TableSettings.column_value);  // Initialize table at page load since we don't trigger the eventlisteners there
+    // Initialize table at page load since we don't trigger the eventlisteners there
+    createTable(Number(SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.row_value), Number(SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.column_value));
 }
 
 /* 
 Helper function that adds attributes to get_TableSize
 */
-function add_Attributes(type, Input, TableSettings) {
+function add_Attributes(type, Input) {
     // [`${type}`] Makes it possible to use a variable to access properties of an object
     Input[`${type}`].id = TableSettings[`${type}_id`];
     Input[`${type}`].title = TableSettings.title;
@@ -201,19 +210,19 @@ Takes 3 inputs where:
     Object: 'Settings' can be used as a settings/info package, i.e. in getTableSize 'Settings' contains settings for the table
             If such a thing is not needed, simply call the function with "null" as third parameter (with "")
 */
-function createEventListener(type_id, listener_type, Settings) {
+function createEventListener(type_id, listener_type, TBL_SETTINGS.non_writable_settings) {
     try {   // This way ALL errors are caught in this function (and you can throw errors like there's no tomorrow)
         let element,
         element_value = 0;
         try {
-            if(type_id === null || type_id === undefined) {
+            if(!type_id) {
                 throw new Error(`Cannot add EventListener '${listener_type}' to ID '${type_id}': Must not be ${type_id}.`);
             }
-            else if(listener_type === null || listener_type === undefined) {
+            else if(!listener_type) {
                 throw new Error(`Cannot add EventListener '${listener_type}' to ID '${type_id}': Must not be ${listener_type}.`);
             }
-            else if(Settings === null || Settings === undefined) {
-                throw new Error(`Cannot add EventListener '${listener_type}' to ID '${type_id}': Settings is ${Settings}.`);
+            else if(!TBL_SETTINGS.non_writable_settings) {
+                throw new Error(`Cannot add EventListener '${listener_type}' to ID '${type_id}': Settings is ${TBL_SETTINGS.non_writable_settings}.`);
             }
         } catch (error) {
             console.error(error);
@@ -228,14 +237,14 @@ function createEventListener(type_id, listener_type, Settings) {
         }
         else {  // type_id is NOT an object but the actual id
             element = document.getElementById(type_id);
-            if(element === null || element === undefined) {
+            if(!element) {
                 throw new Error(`getElementById returned ${element} with ID ${type_id}. Was the ID mistyped or does it not exist?`);
             }
         }
     
         switch(listener_type) {
-            case "tbl_focusout": {
-                element.addEventListener("focusout", (event) => {
+            case "tbl_change": {
+                element.addEventListener("change", (event) => {
                     const cell_id = event.target.id;
                     console.log(`target value = ${event.target.value}`);
                     let cell_value = event.target.value;
@@ -243,49 +252,49 @@ function createEventListener(type_id, listener_type, Settings) {
                     event.target.value = san_cell_value;
     
                     if(san_cell_value !== "") {     // Empty strings are no fun :(
-                        const i = cell_id.match(/\d+(?=\,)/)-1;     // Subtract 1 to match array indices
-                        const j = cell_id.match(/\d+$(?!\,)/)-1;
+                        const i = cell_id.match(/\d+(?=\,)/);
+                        const j = cell_id.match(/\d+$(?!\,)/);
                         
                         console.log(`ID is ${cell_id} ::: i = ${i} :::: j = ${j}`);     // Testing
                         
-                        if(TBL_PERSISTENT[i][j] !== san_cell_value) {    // Duplicate strings are quite lame too
-                            TBL_PERSISTENT[i][j] = san_cell_value;  // Store cell value in array
+                        if(CURRENT_TBL[i][j] !== san_cell_value) {    // Duplicate strings are quite lame too
+                            CURRENT_TBL[i][j] = Number(san_cell_value);  // Store cell value in array
     
                             // Detailed info about the matrix - console edition
-                            console.log(`Array: [${TBL_PERSISTENT}] :::: Value stored: '${TBL_PERSISTENT[i][j]}'`);
-                            console.table(TBL_PERSISTENT);
+                            console.log(`Array: [${CURRENT_TBL}] :::: Value stored: '${CURRENT_TBL[i][j]}'`);
+                            console.table(CURRENT_TBL);
                         }  
                     }
                 });   
                 break;
             }
-            case "tblsize_input": {
-                element.addEventListener("input", async (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
-                    await sleep(100);   // This is to prevent the value from being updated immediately after they're typed in. Otherwise, e.g. '56' is interpreted as '5' which is processed and then as '5'+'6' = '56'
+            case "tblsize_change": {
+                element.addEventListener("change", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
                     element_value = event.target.value;
-                    if(element_value > Settings.max_matrix_size) {    // Check if we exceeded the max number of rows allowed
-                        console.warn(`Row (id: ${type_id}) size (${element_value}) is larger than max allowed (${Settings.max_matrix_size}).\nResetting size to: ${Settings.max_matrix_size}.`);
-                        element_value = Settings.max_matrix_size;
+                    let prev_row = TBL_SETTINGS.writable_settings.row_value; // Copy the CURRENT's somewhere else since they'll be overwritten by createTable (Might come up with a better solution, but it works as is)
+                    let prev_column = TBL_SETTINGS.writable_settings.column_value;
+                
+                    if(element_value > TBL_SETTINGS.non_writable_settings.max_matrix_size) {    // Check if we exceeded the max number of rows allowed
+                        console.warn(`id: ${type_id} size (${element_value}) is larger than max allowed (${TBL_SETTINGS.non_writable_settings.max_matrix_size}).\nResetting size to: ${TBL_SETTINGS.non_writable_settings.max_matrix_size}.`);
+                        element_value = TBL_SETTINGS.non_writable_settings.max_matrix_size;
                     }
-                    else if(element_value < Settings.min_matrix_size) {   // Check if we exceeded the max number of columns allowed
-                        console.warn(`Colum (id: ${type_id}) size (${element_value}) is smaller than min allowed (${Settings.min_matrix_size}).\nResetting size to: ${Settings.min_matrix_size}.`);
-                        element_value = Settings.min_matrix_size;
+                    else if(element_value < TBL_SETTINGS.non_writable_settings.min_matrix_size) {   // Check if we exceeded the max number of columns allowed
+                        console.warn(`id: ${type_id} size (${element_value}) is smaller than min allowed (${TBL_SETTINGS.non_writable_settings.min_matrix_size}).\nResetting size to: ${TBL_SETTINGS.non_writable_settings.min_matrix_size}.`);
+                        element_value = TBL_SETTINGS.non_writable_settings.min_matrix_size;
                     }
-                    if(type_id === Settings.row_id) {     // Are we adding rows?
-                        Settings.row_value = element_value;   
+                    if(type_id === TBL_SETTINGS.non_writable_settings.row_id) {     // Are we adding rows?
+                        TBL_SETTINGS.non_writable_settings.row_value = Number(element_value); // Convert to number since strings behave weird with logical operators
                     }
-                    else if(type_id === Settings.column_id) {    // Are we adding columns?
-                        Settings.column_value = element_value;   
+                    else if(type_id === TBL_SETTINGS.non_writable_settings.column_id) {    // Are we adding columns?
+                        TBL_SETTINGS.non_writable_settings.column_value = Number(element_value);  
                     }
                     else {  // The input id does not match the id of neither rows nor columns
                         throw new Error(`Got string ID '${type_id}' which is not defined in scope '${listener_type}'.`);
                     }
                     document.getElementById(type_id).value = element_value;   // Update the value shown in the input field
-                    deleteTable();
-                    let prev_i = CURRENT_I; // Copy the CURRENT's somewhere else since they'll be overwritten by createTable (Might come up with a better solution, but it works as is)
-                    let prev_j = CURRENT_J;
-                    createTable(Settings.row_value, Settings.column_value);
-                    restoreTable(Settings.row_value, Settings.column_value, prev_i, prev_j);
+                    deleteTable(TBL_SETTINGS.non_writable_settings);
+                    createTable(TBL_SETTINGS.non_writable_settings.row_value, TBL_SETTINGS.non_writable_settings.column_value);
+                    restoreTable(TBL_SETTINGS.non_writable_settings.row_value, TBL_SETTINGS.non_writable_settings.column_value, prev_row, prev_column);
                 });   
                 break;
             }
@@ -308,48 +317,70 @@ Function that populates the new table with the old one's values
 Takes two integers, rows and columns, which are the sizes of the newly created table
 The two other options, prev_i and prev_j, are integers as well. They're the rows and columns from the previous table
 */
-function restoreTable(rows, columns, prev_i, prev_j) {
-    let temp_arr = TBL_PERSISTENT.slice();  // Copy the array to a temp array
-    TBL_PERSISTENT = createArray(rows, columns); // Overwrite the old array with a new
+function restoreTable(current_row_size, current_column_size, prev_row_size, prev_column_size) {
+    let temp_arr = CURRENT_TBL.slice();  // Copy the array to a temp array
+    CURRENT_TBL = createArray(current_row_size, current_column_size); // Overwrite the old array with a new
 
-    // console.log(`got r = ${rows} :: c = ${columns}`);
-    // console.log(`SPLICE TEMP ARR = [${temp_arr}]`);
-    // console.log(`Array created: [${tbl_persistent}]`);
-    // console.log(`before     ROW: ${rows} COLUM: ${columns} prev_i: ${prev_i} prev_j: ${prev_j} CURRENT_I: ${CURRENT_I} CURRENT_J ${CURRENT_J}`);
-
-    if(rows < prev_i) {  // If the prev array's rows are larger than the current, go up to the current
-        /* 
-        This if statement has an EPIC bruh moment -> (rows < prev_i) => (10 < 9 = true)
-        Thus, prev_i goes from 8 -> 10 in one jump which causes the for-loops down below to access the array out of bounds (array[i] is undefined)
-        Atm. it doesn't seem to cause major trouble (except 'TypeError: undefined') but it's something to keep in mind
-        */
-
-        // console.log(`CHANGING: if(${rows} > ${prev_i}) = ${rows > prev_i}`);
-        prev_i = rows;    
+    if(current_row_size < prev_row_size) {  // If the prev array's rows are larger than the current, go down to the current
+        prev_row_size = current_row_size;
     } 
-    else if(columns < prev_j) {  // If the prev array's columns are larger than the current, go up to the current
-        prev_j = columns;    // Here, JS thinks logic should be followed again (BRUH)
+    else if(current_column_size < prev_column_size) {  // If the prev array's columns are larger than the current, go down to the current
+        prev_column_size = current_column_size;
     }
-    // console.log(`after      ROW: ${rows} COLUM: ${columns} prev_i: ${prev_i} prev_j: ${prev_j} CURRENT_I: ${CURRENT_I} CURRENT_J ${CURRENT_J}`);
-    // console.log("--------------");
     try {
-        for(let i = 0; i < prev_i; i++) {  // Nested for-loops to access two-dimensional arrays
-            for(let j = 0; j < prev_j; j++) {
+        for(let i = 0; i < prev_row_size; i++) {  // Nested for-loops to access two-dimensional arrays
+            for(let j = 0; j < prev_column_size; j++) {
                 if(temp_arr[i][j] !== undefined && temp_arr[i][j] !== "") { // Only merge array indices containing something
-                    TBL_PERSISTENT[i][j] = temp_arr[i][j];  // Merge the old table's values with the new
-                    console.log(`i: ${i} j: ${j}`);
-                    console.log(`Array merged: [${TBL_PERSISTENT}]`);
-                    let cell = document.getElementById(`${i+1},${j+1}`);    // Add 1 to match matrix indices
+                    CURRENT_TBL[i][j] = temp_arr[i][j];  // Merge the old table's values with the new
+                    // console.log(`i: ${i} j: ${j}`);
+                    // console.log(`Array merged: [${TBL_PERSISTENT}]`);
+                    let cell = document.getElementById(`${i},${j}`);    // Add 1 to match matrix indices
                     if(cell !== null) { // Prevent accessing a cell that doesn't exist
-                        cell.value = TBL_PERSISTENT[i][j];  // Populate the new table input cells with the old table values
+                        cell.value = CURRENT_TBL[i][j];  // Populate the new table input cells with the old table values
                     }
-    
                 }
             }
         }
     } catch (error) {
-        // Catch the TypeError made by the if-statement 
-        console.warn(error);
+        console.error(error);
+    }
+}
+
+function copyTable() {
+    if(ARR_CURRENT_TBL.length > 0) {
+        if(JSON.stringify(CURRENT_TBL) !== ARR_CURRENT_TBL[ARR_CURRENT_TBL.length-1]) {
+            ARR_CURRENT_TBL.push(JSON.stringify(CURRENT_TBL));    // Make it a JSON object to prevent the 2d table array from being messed up in the container array  
+        }
+        else {
+            console.warn(`Previous matrix snapshot is identical to the current - abort copy`);
+        }
+    }
+    else {
+        ARR_CURRENT_TBL.push(JSON.stringify(CURRENT_TBL));
+    }
+}
+
+function rewindTable() {
+    if(ARR_CURRENT_TBL.length > 0) {
+        CURRENT_TBL = JSON.parse(ARR_CURRENT_TBL.slice(ARR_CURRENT_TBL.length-1, ARR_CURRENT_TBL.length));
+        ARR_CURRENT_TBL.pop();
+        try {
+            for(let i = 0; i < CURRENT_I; i++) {  // Nested for-loops to access two-dimensional arrays
+                for(let j = 0; j < CURRENT_J; j++) {
+                    if(CURRENT_TBL[i][j] !== undefined) {
+                        let cell = document.getElementById(`${i},${j}`);
+                        if(cell !== null) { // Prevent accessing a cell that doesn't exist
+                            cell.value = CURRENT_TBL[i][j];  // Populate the new table input cells with the old table values
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    else {
+        console.warn(`Array underflow!: Array has length ${ARR_CURRENT_TBL.length}`);
     }
 }
 
@@ -357,12 +388,13 @@ function restoreTable(rows, columns, prev_i, prev_j) {
 Function that creates buttons to interact with the table (but NOT those to change it's size)
 Does so via an eventlistener
 */
-function addTableButtons() {
+function addTableButtons(Settings) {
+    /*
     let ButtonSettings = {
         lock_button_id: "lockbutton",
         lock_button_value: "Lock",
         lock_button_type: "button",
-        lock_Table: function() { lockTable(); },    // We can have functions as keys in objects by wrapping them in a function
+        lock_Table: function() { lockTable(); resetTable(); },    // We can have functions as keys in objects by wrapping them in a function
         unlock_button_id: "unlockbutton",
         unlock_button_value: "Unlock",
         unlock_button_type: "button",
@@ -370,26 +402,32 @@ function addTableButtons() {
         reset_button_id: "resetbutton",
         reset_button_value: "Reset matrix size",
         reset_button_type: "button",
-        reset_Table: function() { resetTable(); },   // Is this feature necessary?
+        reset_Table: function() { },   // Is this feature necessary?
         clear_button_id: "clearbutton",
         clear_button_value: "Clear matrix",
         clear_button_type: "button",
-        clear_Table: function() { clearTable(); }
+        clear_Table: function() { clearTable(); },
+        rewind_button_id: "rewindbutton",
+        rewind_button_value: "Go back",
+        rewind_button_type: "button",
+        rewind_Table: function() { rewindTable(); }
     };
-   
+   */
     const Input = {
         body: document.body,
-        tbl: document.getElementById("matrix"),
+        tbl: document.getElementById(`${Settings.table_id}`),
         lock_button: document.createElement("input"),
         unlock_button: document.createElement("input"),
-        reset_button: document.createElement("input"),
-        clear_button: document.createElement("input")
+        // reset_button: document.createElement("input"),
+        clear_button: document.createElement("input"),
+        rewind_button: document.createElement("input")
     };
 
     addButtonAttributes("lock", Input, ButtonSettings);
     addButtonAttributes("unlock", Input, ButtonSettings);
-    addButtonAttributes("reset", Input, ButtonSettings);
+    // addButtonAttributes("reset", Input, ButtonSettings);
     addButtonAttributes("clear", Input, ButtonSettings);
+    addButtonAttributes("rewind", Input, ButtonSettings);
 }
 /* 
 Helper function to addTableButtons that adds attributes to the buttons and places them after the table
@@ -409,10 +447,12 @@ Helper function for addTableButtons that sets all cells in the table to read onl
 function lockTable(){
     const tbl = document.getElementById("matrix");
     const table_rows = tbl.querySelectorAll("input");
-    for(let i = 0; i < table_rows.length; i++){ 
-        table_rows[i].setAttribute("readonly","true");
-    }
-    console.warn("Table is now LOCKED");
+    // if(table_rows[0].readonly !== "true" ) {
+        for(let i = 0; i < table_rows.length; i++){ 
+            table_rows[i].setAttribute("readonly","true");
+        }
+        console.warn("Table is now LOCKED");
+    // }
 }
 
 /* 
@@ -429,17 +469,18 @@ function unlockTable(){
 
 function resetTable() {
 // Is this feature necessary?
-console.warn("Is this feature necessary?")
+copyTable();
+// console.warn("Is this feature necessary?")
 }
 
 function clearTable() {
     try {
         for(let i = 0; i < CURRENT_I; i++) {  // Nested for-loops to access two-dimensional arrays
             for(let j = 0; j < CURRENT_J; j++) {
-                TBL_PERSISTENT[i][j] = "";  // Clear the table array
+                CURRENT_TBL[i][j] = "";  // Clear the table array
                 let cell = document.getElementById(`${i+1},${j+1}`);    // Add 1 to match matrix indices
                 if(cell !== null) { // Prevent accessing a cell that doesn't exist
-                    cell.value = TBL_PERSISTENT[i][j];  // Populate the table input cells with "" (empty string)
+                    cell.value = CURRENT_TBL[i][j];  // Populate the table input cells with "" (empty string)
                 }
             }
         }
@@ -465,19 +506,15 @@ Returns a string with wanted characters
 */
 function sanitize(str){
     str=str
-  .replace(/&/g, "")
-  .replace(/</g, "")
-  .replace(/>/g, "")
-  .replace(/"/g, "")
-  .replace(/'/g, "")
-  .replace(/`/g, "")
+//   .replace(/&/g, "")
+//   .replace(/</g, "")
+//   .replace(/>/g, "")
+//   .replace(/"/g, "")
+//   .replace(/'/g, "")
+//   .replace(/`/g, "")
   .replace(/[^0-9]/g, "")
   return str.trim();
 }
 
-
 //Running The Program
 getTableSize();
-
-
-module.exports.createArray = createArray; // Export function to test suite
