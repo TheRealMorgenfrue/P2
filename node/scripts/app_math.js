@@ -111,10 +111,22 @@ function backSubstitution(equations) {
         x[i] = (b[i] - sum) / A[i][i]; // Calculates variable by dividing last element of the equation by the diagonal element
     }
     for(let i = 0; i < x.length; i++) { // Rounds solutions to 4 decimals (4 is arbitrary)
-        if(isNaN(x[i])) return NaN; // Should maybe return something else
+        if(isNaN(x[i])) return NaN; // Returns NaN if the system in inconsistent
         x[i] = roundTo(x[i],4);
     }
     return x;
+}
+
+function check_multiple_solutions(equations) {
+    for(let row of equations) {
+        let variable = 0;
+        for(let i = 0; i < row.length - 1; i++) {
+            if(row[i] !== 0) {
+                variable = 1;
+                break;
+            }
+        }
+    }
 }
 
 /**
@@ -135,7 +147,7 @@ function roundTo(n, digits) {
 
 /**
  * This function returns true if the matrix M it is given is upper triangular i.e. all entries below the diagonal are 0, otherwise it returns false
- * @param {Array of arrays of numbers} M 
+ * @param {Array of arrays of numbers} M
  * @returns {boolean}
  */
 function isUpperTriangular(M){
@@ -153,16 +165,16 @@ function isUpperTriangular(M){
  * This function returns true if the matrix M it is given is in row echelon form, otherwise it returns false.
  * Can be used to check for a correct solution to a Gaussian Elimination-problem i.e. if all the rules have
  * been followed and the result is in row echelon form, it is a correct solution.
- * 
- * Row echelon form has rows of only zeros at the bottom of the matrix and the leading entry 
+ *
+ * Row echelon form has rows of only zeros at the bottom of the matrix and the leading entry
  * (the leftmost non-zero entry) in all rows to the right of the leading entry of any above rows.
- * @param {Array of arrays of numbers} M 
+ * @param {Array of arrays of numbers} M
  * @returns {boolean}
  */
 function isRowEchelonForm(M){
     let leadingEntryIndex = -1;
     let emptyRow = false;
-    for (let i = 0; i < M.length; i++) { 
+    for (let i = 0; i < M.length; i++) {
         for (let j = 0; j < M[i].length; j++) {
             if(M[i][j] !== 0){
                 if(leadingEntryIndex >= j || emptyRow){
@@ -188,4 +200,4 @@ function scaleArray(array, scalar){
     return Array.from(array, (x) => x*scalar);
 }
 
-export {gaussianElimination, backSubstitution} // Export function to test suite (brackets matter, see drag.test.js)
+export {gaussianElimination, backSubstitution} // Export function(s) to test suite (brackets matter, see drag.test.js)

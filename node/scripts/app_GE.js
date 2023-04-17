@@ -9,7 +9,7 @@ Primitives:   "N/A"        / variable_case
 
 *****************************************
 */
-import initDrag from "./draganddrop.js";
+import {initDrag} from "./draganddrop.js";
 
 let CURRENT_TBL,
     ARR_CURRENT_TBL = new Array(); // Array used to contain the copies of matrices that have been changed - ensures user can go back to previous iteration of matrix 
@@ -489,4 +489,4 @@ function sanitize(str){
 //Running The Program
 initTable();
 
-export {createArray}; // Export function to test suite (brackets matter, see drag.test.js)
+export {createArray}; // Export function(s) to test suite (brackets matter, see drag.test.js)

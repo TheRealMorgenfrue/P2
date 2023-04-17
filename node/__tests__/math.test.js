@@ -27,3 +27,10 @@ test('backSubstitution has minimal rounding', () => {
     gaussianElimination(small_valued_matrix);
     expect(backSubstitution(small_valued_matrix)).toEqual([1,0,0,4])
 });
+test('backSubstitution for under-determined', () => {
+    let small_valued_matrix = [
+        [1,1,0,1],
+        [0,1,1,2]]
+    gaussianElimination(small_valued_matrix);
+    expect(backSubstitution(small_valued_matrix)).toEqual([-1,2,0])
+});
