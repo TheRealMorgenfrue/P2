@@ -9,11 +9,12 @@ the events we are working with are
 all events have an attribute accessed with event.detail that contains a reference to a copy of the dragged element
 */
 
-/* 
-Function that makes an element draggable
-Takes an event as input (e.g. from an EventListener)
-Must be called by the function initDrag
-*/
+/**
+ * This function makes an element draggable when used in a click-eventListener.
+ * 
+ * It is NOT designed for use outside the initDrag- and disableDrag-functions!
+ * @param {MouseEvent} event 
+ */
 function dragFunctionality(event){
     //set the drag target and fire an event on it when dragging begins after cloning it. We use CustomEvent so we can pass info on the cloned element in event.detail
     const dragTarget = event.currentTarget;
@@ -67,31 +68,40 @@ function dragFunctionality(event){
     }, {capture: true, once: true});
 }
 
-/* 
-Function that initialises the drag functionality on a given element by calling dragFunctionality
-Takes an element as input
-*/
+
+/**
+ * Initialises drag functionality on a given element by calling dragFunctionality when the element receives a click-event.
+ * @param {HTMLelement} element is the HTML element that should be made draggable.
+ */
 function initDrag(element){
     element.addEventListener("click", dragFunctionality)
 }
 
-/* 
-Function that removes drag functionality from a given element by calling deleting the associated eventListener
-*/
+/**
+ * This function removes drag functionality from a given element by deleting the associated eventListener that was added by initDrag.
+ * @param {HTMLelement} element is the HTML element that should no longer be draggable.
+ */
 function disableDrag(element){
     element.removeEventListener("click", dragFunctionality)
 }
 
-/*
-Function that controls the highlighting of an element with the mouse.
-Several values can be entered as strings:
-. none
-. auto
-. text
-. all
-. contain
-Read about their behavior on https://developer.mozilla.org/en-US/docs/Web/CSS/user-select
-*/
+/**
+ * This function controls the highlighting of an element with the mouse. Compatible with most common browsers.
+ * @param {HTMLelement} element is the HTML element whose highlighting should be affected.
+ * @param {String} value can be one of the following strings:
+ * 
+ * "none"
+ * 
+ * "auto"
+ * 
+ * "text"
+ * 
+ * "all"
+ * 
+ * "contain"
+ * 
+ * Read about their behavior here: https://developer.mozilla.org/en-US/docs/Web/CSS/user-select
+ */
 function highlightPermissions(element, value){
     try{
         if(value !== "none" && value !== "auto" && value !== "text" && value !== "all" && value !== "contain"){
