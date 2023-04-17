@@ -9,6 +9,7 @@ Variable:   "N/A"        / variable_case
 
 *****************************************
 */
+import initDrag from "./draganddrop.js";
 
 let TBL_PERSISTENT,
     CURRENT_I,
@@ -391,7 +392,7 @@ function addTableButtons() {
     addButtonAttributes("reset", Input, ButtonSettings);
     addButtonAttributes("clear", Input, ButtonSettings);
 }
-/* 
+/*
 Helper function to addTableButtons that adds attributes to the buttons and places them after the table
 */
 function addButtonAttributes(type, Input, ButtonSettings) {
@@ -480,4 +481,4 @@ function sanitize(str){
 getTableSize();
 
 
-module.exports.createArray = createArray; // Export function to test suite
+export {createArray}; // Export function to test suite (brackets matter, see drag.test.js)
