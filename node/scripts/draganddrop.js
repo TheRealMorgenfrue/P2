@@ -1,4 +1,5 @@
-/************ Drag'n Drop *************** 
+'use strict'
+/************ Drag'n Drop ***************
 the functions in this tag build on the from-scratch drag and drop-functionality from the second script tag
 this is an attempt to standardise them and make them work for any element by using custom events
 the events we are working with are
@@ -104,3 +105,5 @@ function highlightPermissions(element, value){
         console.error(error);
     }
 }
+
+export default initDrag;
