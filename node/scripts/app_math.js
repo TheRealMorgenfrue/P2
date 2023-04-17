@@ -132,4 +132,60 @@ function roundTo(n, digits) {
     let test = (Math.round(n) / scalar); // Rounds number (n) and divides it by the scalar to obtain the rounded value
     return +(test.toFixed(digits)); // Returns rounded value, fixed to the specified number of decimal places
 }
+
+/**
+ * This function returns true if the matrix M it is given is upper triangular i.e. all entries below the diagonal are 0, otherwise it returns false
+ * @param {Array of arrays of numbers} M 
+ * @returns {boolean}
+ */
+function isUpperTriangular(M){
+    for (let i = 0; i < M.length; i++) {
+        for (let j = 0; j < i; j++) {
+            if(M[i][j] !== 0){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * This function returns true if the matrix M it is given is in row echelon form, otherwise it returns false.
+ * Can be used to check for a correct solution to a Gaussian Elimination-problem i.e. if all the rules have
+ * been followed and the result is in row echelon form, it is a correct solution.
+ * 
+ * Row echelon form has rows of only zeros at the bottom of the matrix and the leading entry 
+ * (the leftmost non-zero entry) in all rows to the right of the leading entry of any above rows.
+ * @param {Array of arrays of numbers} M 
+ * @returns {boolean}
+ */
+function isRowEchelonForm(M){
+    let leadingEntryIndex = -1;
+    let emptyRow = false;
+    for (let i = 0; i < M.length; i++) { 
+        for (let j = 0; j < M[i].length; j++) {
+            if(M[i][j] !== 0){
+                if(leadingEntryIndex >= j || emptyRow){
+                    return false;
+                } else {
+                    leadingEntryIndex = j;
+                    break;
+                }
+            }
+        }
+        emptyRow = true;
+    }
+    return true;
+}
+
+/**
+ * Returns a scaled array of elements by multiplying every element in an input-array with a given number,
+ * essentially performing a scalar-vector multiplication. Does not overwrite the original array.
+ * @param {Array} array one-dimensional array of numbers
+ * @param {Number} scalar to be used for multiplying with every element
+ */
+function scaleArray(array, scalar){
+    return Array.from(array, (x) => x*scalar);
+}
+
 export {gaussianElimination, backSubstitution} // Export function to test suite (brackets matter, see drag.test.js)
