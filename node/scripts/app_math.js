@@ -133,31 +133,6 @@ function roundTo(n, digits) {
     return +(test.toFixed(digits)); // Returns rounded value, fixed to the specified number of decimal places
 }
 
-
-// Just for testing
-/*
-console.log(rowToEquationHTML(document.querySelector("tr")));
-
-let rows = document.querySelectorAll("tr");
-let i = 0;
-let equations = [];
-for(let j of rows){
-    equations[i] = rowToEquationArray(j);
-    i++;
-}
-for(let j of equations) {
-    console.log(j);
-}
-console.log();
-gaussianElimination(equations);
-for(let j of equations) {
-    console.log(j);
-}
-console.log();
-
-console.log(backSubstitution(equations));
- */
-
 /**
  * This function returns true if the matrix M it is given is upper triangular i.e. all entries below the diagonal are 0, otherwise it returns false
  * @param {Array of arrays of numbers} M 
