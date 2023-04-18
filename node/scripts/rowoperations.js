@@ -1,3 +1,6 @@
+import "../scripts/app_GE" // Used for button attributes 
+import "../scripts/positioning" // Used for positioning buttons 
+
 /**
  * This function takes a table and a row-element for said table and finds its base-0 index as if the table was an array of arrays.
  * If an index is found, it is returned as an integer, but if no index is found, the function returns a null-value.
@@ -84,4 +87,45 @@ function swapTableRows(table, rowA, rowB, tableArray){
         console.error(error);
     }
 }
+/**
+ * This function implements row addtion and subtraction for matrices. 
+ * It manipulates the 2D array which forms the underlying representation of the HTML-table. 
+ * Note that rowA is subtracted/added to rowB 
+ * @param {HTMLelement} table - html representation of the current table 
+ * @param {HTMLelement} rowA - html representation of the rowA
+ * @param {HTMLelement} rowB - html representaion of rowB  
+ * @param {Array} tableArray - 2D array that represents the backend version of the matrix 
+ */
 
+function addRows(table, rowA, rowB, tableArray){
+    // Find row in table array that corresponds to html table
+    row1 = tableArray[searchForRowIndex(table, rowA)];
+    row2 = tableArray[searchForRowIndex(table, rowB)];
+
+    // Ensure that operation is always valid by checking length of both rows 
+    try{
+        if(row1.length !== row2.length){
+            throw new Error;
+        }
+        // Note that this loop changes the values of tableArray and not its copy 
+        for(let i = 0; i < rowA.length; i++){
+            row1[i] += row2[i];
+        }
+    }
+    catch(error){
+        console.log(`Rows not of same length; Cannot perform ${operation}`);
+    }
+
+}
+
+/**
+ * 
+ * @param {HTMLelement} row - row element that we want to add a scale button to  
+ */
+function addScaleButton(row){
+    let ScaleButton = document.createElement("input");
+    row.appendChild(ScaleButton); // Buttons is given aparent so it can be attached to the left 
+    attachToParent(ScaleButton, true); // Design specifies that buttons should be added on left side 
+}
+
+addScaleButton(getElementbyId(""))
