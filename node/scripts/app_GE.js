@@ -10,8 +10,8 @@ Primitives:   "N/A"        / variable_case
 */
 import initDrag from "./draganddrop.js";
 
-let CURRENT_TBL,
-    ARR_CURRENT_TBL = new Array(); // Array used to contain the copies of matrices that have been changed - ensures user can go back to previous iteration of matrix 
+let CURRENT_TABLE,
+    ARRAY_CURRENT_TABLE = new Array(); // Array used to contain the copies of matrices that have been changed - ensures user can go back to previous iteration of matrix 
 
 const SETTINGS = new function() { // A number of functions need to access non-writable values as well as update writable values - this object is therefore global. 
    this.READONLY_SETTINGS = new function() {
@@ -58,7 +58,7 @@ Object.freeze(SETTINGS.READONLY_SETTINGS);  // Make the "readonly_settings" read
  */
 function initTable() {
     // Initialize the array to hold the table values
-    CURRENT_TBL = createArray(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
+    CURRENT_TABLE = createArray(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
     
     // Initialize table at page load since we don't trigger the eventlisteners there
     createTable(Number(SETTINGS.WRITABLE.row_value), Number(SETTINGS.WRITABLE.column_value));
@@ -106,33 +106,33 @@ function createTable(row_value, column_value) {
 
     // Ensure that table element is created and can be found by id 
     const body = document.body, 
-    tbl = document.createElement('table');
-    tbl.id = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id;
+    table = document.createElement('table');
+    table.id = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id;
     
     // Ensure that each row is inserted and can be found by id 
     for (let i = 0; i < row_value; i++) {   
-        const tr = tbl.insertRow(); // Note: predefined method for inserting row in table
-        tr.id = `${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}_${i}`;
+        const table_row = table.insertRow(); // Note: predefined method for inserting row in table
+        table_row.id = `${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}_${i}`;
         // initDrag(tr); // Make rows draggable - Decomment when draganddrop.js import is done correctly 
 
         for (let j = 0; j < column_value; j++) { 
-            let td = tr.insertCell(); 
+            let table_data = table_row.insertCell(); 
             
             // Create input elements to the matrix and set applicable attributes
-            const td_input = document.createElement('input');
-            td_input.placeholder = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.placeholder;
-            td_input.maxLength = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_input_length;
-            td_input.id = `${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}_${i},${j}`;  // The ID is indexed from 0 in order to be used with array indices
+            const table_data_input = document.createElement('input');
+            table_data_input.placeholder = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.placeholder;
+            table_data_input.maxLength = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_input_length;
+            table_data_input.id = `${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}_${i},${j}`;  // The ID is indexed from 0 in order to be used with array indices
 
-            createEventListener(td_input, "click");
-            createEventListener(td_input, "tbl_change");
+            createEventListener(table_data_input, "click");
+            createEventListener(table_data_input, "tbl_change");
 
-            td_input.classList.add("tblCells");  // Apply the CSS class defined in the CSS file
-            td.appendChild(td_input);
+            table_data_input.classList.add("tblCells");  // Apply the CSS class defined in the CSS file
+            table_data.appendChild(table_data_input);
             }
         }
-    tbl.classList.add("tbl");   // Add class to ensure CSS-styling can be applied correctly
-    body.appendChild(tbl);
+    table.classList.add("tbl");   // Add class to ensure CSS-styling can be applied correctly
+    body.appendChild(table);
     addTableButtons();
 } 
 /**
@@ -231,21 +231,21 @@ function createEventListener(type_id, listener_type) {
                     const cell_id = event.target.id;
                     console.log(`target value = ${event.target.value}`);
                     let cell_value = event.target.value;
-                    let san_cell_value = sanitize(cell_value);
-                    event.target.value = san_cell_value;
+                    let sanitized_cell_value = sanitize(cell_value);
+                    event.target.value = sanitized_cell_value;
     
-                    if(san_cell_value !== "") { // Sanitize only when cell value is non-empty 
+                    if(sanitized_cell_value !== "") { // Sanitize only when cell value is non-empty 
                         const i = cell_id.match(/\d+(?=\,)/);
                         const j = cell_id.match(/\d+$(?!\,)/);
                         
                         console.log(`ID is ${cell_id} ::: i = ${i} :::: j = ${j}`);     // Testing
                         
-                        if(CURRENT_TBL[i][j] !== san_cell_value) {    // Only store the cell value in the 2D array if it is not there already
-                            CURRENT_TBL[i][j] = Number(san_cell_value);  // Store cell value in array
+                        if(CURRENT_TABLE[i][j] !== sanitized_cell_value) {    // Only store the cell value in the 2D array if it is not there already
+                            CURRENT_TABLE[i][j] = Number(sanitized_cell_value);  // Store cell value in array
     
                             // Show detailed info about the matrix
-                            console.log(`Array: [${CURRENT_TBL}] :::: Value stored: '${CURRENT_TBL[i][j]}'`);
-                            console.table(CURRENT_TBL);
+                            console.log(`Array: [${CURRENT_TABLE}] :::: Value stored: '${CURRENT_TABLE[i][j]}'`);
+                            console.table(CURRENT_TABLE);
                         }  
                     }
                     copyTable();
@@ -306,8 +306,8 @@ function createEventListener(type_id, listener_type) {
  * @returns 
  */
 function restoreTable(current_row_size, current_column_size, prev_row_size, prev_column_size) {
-    let temp_arr = CURRENT_TBL.slice();  // Copy the array to a temp array
-    CURRENT_TBL = createArray(current_row_size, current_column_size); // Overwrite the old array with a new
+    let temp_array = CURRENT_TABLE.slice();  // Copy the array to a temp array
+    CURRENT_TABLE = createArray(current_row_size, current_column_size); // Overwrite the old array with a new
 
     if(current_row_size < prev_row_size) {  // If the prev array's rows are larger than the current, go down to the current
         prev_row_size = current_row_size;
@@ -318,13 +318,13 @@ function restoreTable(current_row_size, current_column_size, prev_row_size, prev
     try {
         for(let i = 0; i < prev_row_size; i++) {  // Nested for-loops to access two-dimensional arrays
             for(let j = 0; j < prev_column_size; j++) {
-                if(temp_arr[i][j] !== undefined && temp_arr[i][j] !== "") { // Only merge array indices containing something
-                    CURRENT_TBL[i][j] = temp_arr[i][j];  // Merge the old table's values with the new
+                if(temp_array[i][j] !== undefined && temp_array[i][j] !== "") { // Only merge array indices containing something
+                    CURRENT_TABLE[i][j] = temp_array[i][j];  // Merge the old table's values with the new
                     console.log(`i: ${i} j: ${j}`);
-                    console.log(`Array merged: [${CURRENT_TBL}]`);
+                    console.log(`Array merged: [${CURRENT_TABLE}]`);
                     let cell = document.getElementById(`${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}_${i},${j}`);
                     if(cell !== null) { // Prevent accessing a cell that doesn't exist
-                        cell.value = CURRENT_TBL[i][j];  // Populate the new table input cells with the old table values
+                        cell.value = CURRENT_TABLE[i][j];  // Populate the new table input cells with the old table values
                     }
                 }
             }
@@ -338,31 +338,31 @@ function restoreTable(current_row_size, current_column_size, prev_row_size, prev
  * Copies the current table object in the case that changes have been made to it 
  */
 function copyTable() {
-    if(ARR_CURRENT_TBL.length > 0) {
-        if(JSON.stringify(CURRENT_TBL) !== ARR_CURRENT_TBL[ARR_CURRENT_TBL.length-1]) {
-            ARR_CURRENT_TBL.push(JSON.stringify(CURRENT_TBL));    // Make it a JSON object to prevent the 2d table array from copied as 3d array in container array  
+    if(ARRAY_CURRENT_TABLE.length > 0) {
+        if(JSON.stringify(CURRENT_TABLE) !== ARRAY_CURRENT_TABLE[ARRAY_CURRENT_TABLE.length-1]) {
+            ARRAY_CURRENT_TABLE.push(JSON.stringify(CURRENT_TABLE));    // Make it a JSON object to prevent the 2d table array from copied as 3d array in container array  
         }
         else {
             console.warn(`Previous matrix snapshot is identical to the current - abort copy`);
         }
     }
     else {
-        ARR_CURRENT_TBL.push(JSON.stringify(CURRENT_TBL));
+        ARRAY_CURRENT_TABLE.push(JSON.stringify(CURRENT_TABLE));
     }
 }
 /**
  * Helper function that reverts the values of table object to match those before change event was dispatched - i.e. a cell was changed
  */
 function rewindTable() {
-    if(ARR_CURRENT_TBL.length > 0) {
-        CURRENT_TBL = JSON.parse(ARR_CURRENT_TBL.pop());
+    if(ARRAY_CURRENT_TABLE.length > 0) {
+        CURRENT_TABLE = JSON.parse(ARRAY_CURRENT_TABLE.pop());
         try {
             for(let i = 0; i < SETTINGS.WRITABLE.row_value; i++) {  // Nested for-loops to access two-dimensional arrays
                 for(let j = 0; j < SETTINGS.WRITABLE.column_value; j++) {
-                    if(CURRENT_TBL[i][j] !== undefined) {
+                    if(CURRENT_TABLE[i][j] !== undefined) {
                         let cell = document.getElementById(`${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}_${i},${j}`);
                         if(cell !== null) { // Prevent accessing a cell that doesn't exist
-                            cell.value = CURRENT_TBL[i][j];  // Populate the new table input cells with the old table values
+                            cell.value = CURRENT_TABLE[i][j];  // Populate the new table input cells with the old table values
                         }
                     }
                 }
@@ -372,7 +372,7 @@ function rewindTable() {
         }
     }
     else {
-        console.warn(`Array underflow!: Array has length ${ARR_CURRENT_TBL.length}`);
+        console.warn(`Array underflow!: Array has length ${ARRAY_CURRENT_TABLE.length}`);
     }
 }
 /**
@@ -447,10 +447,10 @@ function clearTable() {
     try {
         for(let i = 0; i < SETTINGS.WRITABLE.row_value; i++) {  // Nested for-loops to access two-dimensional arrays
             for(let j = 0; j < SETTINGS.WRITABLE.column_value; j++) {
-                CURRENT_TBL[i][j] = "";  // Clear the table array
+                CURRENT_TABLE[i][j] = "";  // Clear the table array
                 let cell = document.getElementById(`${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}_${i},${j}`);
                 if(cell !== null) { // Prevent accessing a cell that doesn't exist
-                    cell.value = CURRENT_TBL[i][j];  // Populate the table input cells with "" (empty string)
+                    cell.value = CURRENT_TABLE[i][j];  // Populate the table input cells with "" (empty string)
                 }
             }
         }
