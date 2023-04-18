@@ -117,16 +117,27 @@ function backSubstitution(equations) {
     return x;
 }
 
-function check_multiple_solutions(equations) {
-    for(let row of equations) {
-        let variable = 0;
-        for(let i = 0; i < row.length - 1; i++) {
-            if(row[i] !== 0) {
-                variable = 1;
-                break;
-            }
+/**
+ * Checks if the given system of equations has solutions after Gaussian Elimination has been applied
+ * @param {*[[]]} equations 2D array of numbers representing equation matrix
+ * @returns {boolean} true if multiple or unique solution(s), false otherwise
+ */
+function hasSolutions(equations) {
+    // Check for singular matrix (row with all zeroes except the last element)
+    for (let i = 0; i < equations.length; i++) {
+        let row = equations[i];
+        let allZeroes = row.slice(0, -1).every((val) => val === 0);
+
+        if (allZeroes && row[row.length - 1] !== 0) {
+            // Inconsistent system, no solutions
+            return false;
+        } else if (allZeroes) {
+            // Row with all zeroes indicates multiple solutions or infinite solutions
+            return true;
         }
     }
+    // No rows with all zeroes, unique solution
+    return true;
 }
 
 /**
@@ -200,4 +211,4 @@ function scaleArray(array, scalar){
     return Array.from(array, (x) => x*scalar);
 }
 
-export {gaussianElimination, backSubstitution} // Export function(s) to test suite (brackets matter, see drag.test.js)
+export {gaussianElimination, backSubstitution, hasSolutions} // Export function(s) to test suite (brackets matter, see drag.test.js)
