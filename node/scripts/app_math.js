@@ -185,6 +185,7 @@ function isRowEchelonForm(M){
  * essentially performing a scalar-vector multiplication. Does not overwrite the original array.
  * @param {Array} array one-dimensional array of numbers
  * @param {Number} scalar to be used for multiplying with every element
+ * @returns {Array} array scaled by the given scalar
  */
 function scaleArray(array, scalar){
     return Array.from(array, (x) => x*scalar);

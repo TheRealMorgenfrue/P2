@@ -3,6 +3,7 @@
  * If an index is found, it is returned as an integer, but if no index is found, the function returns a null-value.
  * @param {HTMLelement} table is an HTML-element of type "table" or "tbody".
  * @param {HTMLelement} row is an HTML-element of type "tr".
+ * @returns {Number} the base-0 index of the row with respect to the table- or tbody-element.
  */
 function searchForRowIndex(table, row){
     const rowList = table.querySelectorAll("tr");
@@ -17,8 +18,8 @@ function searchForRowIndex(table, row){
 /**
  * This function is a (probably) faster version of searchForRowIndex and uses RegEx to sift through the ID of a given element.
  * Note that this function only works if the ID of the row contains its base-0 index terminated by a "_"-character at the end!
- * 
- * @param {HTMLelement} row 
+ * @param {HTMLelement} row an HTML-element of type "tr" with an ID where the last sequence of digits that correspond to its base-0 index is held after an underscore (_).
+ * @returns {Number} the string of digits at the end of the element's ID, or null if there are none.
  */
 function extractRowIndex(row){
     const idMatch = (row.id.match(/\d+$(?!\_)/));
@@ -32,6 +33,7 @@ function extractRowIndex(row){
 /**
  * This function swaps two rows in an HTML-table and in an array of arrays representing it
  * when given the table element and the two row-elements.
+ * This function does not make any changes to cells!!
  * @param {HTMLelement} table is the HTML table- or tbody-element where the swap takes place
  * @param {HTMLelement} rowA is the first row element.
  * @param {HTMLelement} rowB is the second row element, which should trade places with the first.
