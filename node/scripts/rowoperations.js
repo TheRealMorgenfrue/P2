@@ -129,3 +129,60 @@ function addScaleButton(row){
 }
 
 addScaleButton(getElementbyId(""))
+
+/**
+ * Updates a table given as the first argument with the data from the second argument, an array of arrays.
+ * The ith row in the table uses the ith element from the array of arrays and copies one entry from the subarray into every table cell.
+ * 
+ * The third argument is optional and controls which rows of the table should be updated. If excluded, every row is updated.
+ * 
+ * The fourth argument is also optional and can be used to select specific elements within each table cell. It must be a valid CSS selector string.
+ * 
+ * Remember to sanitize the data in tableArray!
+ * @param {HTMLelement} table is an HTML table-lement or HTML tbody-element.
+ * @param {Array} tableArray is an array of arrays representing the data that should be placed in the table.
+ * @param {Array} options is a set of integers specifying the base-0 index of the rows that should be updated.
+ * @param {String} query is an optional CSS selector string used to identify elements within the table cells.
+ * If excluded, every row in the table will be updated. Both positive and negative values are allowed.
+ */
+function updateTableFromArray(table, tableArray, options, query){
+    //get an iterable list of rows in the table
+    let rows = table.querySelectorAll("tr");
+
+    //check if there are any specific rows to update and trim the row list if there is
+    if(options instanceof Array || options instanceof Set){  //could also use isArray() for this check, but then a Set would not work as input
+
+        //create a new array and add the elements from the original array
+        //indexed by the numbers in the options-array note the use of .at(),
+        //which allows the use of negative integers and counts from the back of the array instead of the front
+        const trimmedRows = new Array;
+        options.forEach(element => {
+            trimmedRows.push(tableArray.at(element));
+        });
+        //overwrite rows with the trimmed version
+        rows = trimmedRows;
+    }
+
+    //now that we know which rows to work on, we get the elements in each row and write new values in them.
+    //since querySelectorAll returns an iterable object, we can use the callback for forEach's index-argument
+    //as it would correspond to the value representing that cell in the array of arrays.
+    //but first we need to check if we shoud include the extra query:
+    if(query.length > 0){
+        rows.forEach((row, i) => {
+            row.querySelectorAll("td").forEach((cell, j) => {
+                cell.querySelector(query).innerHTML = tableArray[i][j];
+            })
+    });
+    } else {
+        rows.forEach((row, i) => {
+            row.querySelectorAll("td").forEach((cell, j) => {
+                cell.innerHTML = tableArray[i][j];
+            })
+    });
+    }
+    //note: We use .innerHTML to set the data in each cell. This adds flexibility to what we can put in the table
+    //through the tableArray i.e. any HTML-code we want, ignoring if the parent element needs .value or .innerText etc.
+    //to set its data ordinarily, but the data might need sanitizing first. We assume another function has done that
+    //before this function is run.
+}
+
