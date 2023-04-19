@@ -8,7 +8,7 @@ Primitives:   "N/A"        / variable_case
 
 *****************************************
 */
-import initDrag from "./draganddrop.js";
+// import initDrag from "./draganddrop.js";
 
 let CURRENT_TABLE,
     ARRAY_CURRENT_TABLE = new Array(); // Array used to contain the copies of matrices that have been changed - ensures user can go back to previous iteration of matrix 
@@ -70,26 +70,26 @@ function initTable() {
  * Creates a 2D array and fills it with empty strings, "". 
  * 
  * This prevents unintended behaviour where cells are filled with the value of a single cell upon array creation. 
- * @param {integer} row_value 
- * @param {integer} column_value 
+ * @param {number} row_value 
+ * @param {number} column_value 
  * @returns {array} 2D array
  */
 function createArray(row_value, column_value) {
-    let arr = new Array(row_value);
+    let array = new Array(row_value);
     for (let i = 0; i < row_value; i++) {
-      arr[i] = new Array(column_value);
+      array[i] = new Array(column_value);
       for (let j = 0; j < column_value; j++) {
-        arr[i][j] = ""; // Prevent unintended side effects of array creation 
+        array[i][j] = ""; // Prevent unintended side effects of array creation 
       }
     }
-    return arr;
+    return array;
 }
 /**
  * Creates the matrix used for Gaussian Elimination
  * 
  * Additionally, it creates buttons to interact with the matrix
- * @param {integer} row_value 
- * @param {integer} column_value 
+ * @param {number} row_value 
+ * @param {number} column_value 
  * @returns 
  */
 function createTable(row_value, column_value) {
@@ -320,8 +320,8 @@ function restoreTable(current_row_size, current_column_size, prev_row_size, prev
             for(let j = 0; j < prev_column_size; j++) {
                 if(temp_array[i][j] !== undefined && temp_array[i][j] !== "") { // Only merge array indices containing something
                     CURRENT_TABLE[i][j] = temp_array[i][j];  // Merge the old table's values with the new
-                    console.log(`i: ${i} j: ${j}`);
-                    console.log(`Array merged: [${CURRENT_TABLE}]`);
+                    // console.log(`i: ${i} j: ${j}`);
+                    // console.log(`Array merged: [${CURRENT_TABLE}]`);
                     let cell = document.getElementById(`${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id}_${i},${j}`);
                     if(cell !== null) { // Prevent accessing a cell that doesn't exist
                         cell.value = CURRENT_TABLE[i][j];  // Populate the new table input cells with the old table values
@@ -413,7 +413,7 @@ function lockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id);
     const table_rows = tbl.querySelectorAll("input");
     // This function sets read only to all elements in table, which means that only the first row has to be checked for the readonly attribtue
-    if(table_rows[0].readonly !== "true") {
+    if(table_rows[0].getAttribute("readonly") !== "true") {
         table_rows.forEach(element => {
             element.setAttribute("readonly", "true");
         });
@@ -488,4 +488,4 @@ function sanitize(str){
 //Running The Program
 initTable();
 
-export {createArray}; // Export function to test suite (brackets matter, see drag.test.js)
+// export {createArray}; // Export function to test suite (brackets matter, see drag.test.js)

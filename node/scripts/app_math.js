@@ -135,7 +135,7 @@ function roundTo(n, digits) {
 
 /**
  * This function returns true if the matrix M it is given is upper triangular i.e. all entries below the diagonal are 0, otherwise it returns false
- * @param {Array of arrays of numbers} M 
+ * @param {Array} M is an array of arrays representing a matrix.
  * @returns {boolean}
  */
 function isUpperTriangular(M){
@@ -156,7 +156,7 @@ function isUpperTriangular(M){
  * 
  * Row echelon form has rows of only zeros at the bottom of the matrix and the leading entry 
  * (the leftmost non-zero entry) in all rows to the right of the leading entry of any above rows.
- * @param {Array of arrays of numbers} M 
+ * @param {Array} M is an array of arrays representing a matrix.
  * @returns {boolean}
  */
 function isRowEchelonForm(M){
@@ -189,4 +189,4 @@ function scaleArray(array, scalar){
     return Array.from(array, (x) => x*scalar);
 }
 
-export {gaussianElimination, backSubstitution} // Export function to test suite (brackets matter, see drag.test.js)
+// export {gaussianElimination, backSubstitution} // Export function to test suite (brackets matter, see drag.test.js)

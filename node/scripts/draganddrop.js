@@ -116,4 +116,4 @@ function highlightPermissions(element, value){
     }
 }
 
-export default initDrag;
+// export default initDrag;
