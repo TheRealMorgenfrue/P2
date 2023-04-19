@@ -212,4 +212,4 @@ function scaleArray(array, scalar){
     return Array.from(array, (x) => x*scalar);
 }
 
-export {gaussianElimination, backSubstitution, hasSolutions} // Export function(s) to test suite (brackets matter, see drag.test.js)
+export {gaussianElimination, backSubstitution, hasSolutions, swapRows} // Export function(s) to test suite (brackets matter, see drag.test.js)

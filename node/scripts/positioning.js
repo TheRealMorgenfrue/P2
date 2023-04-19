@@ -60,3 +60,8 @@ function attachToParent(element, left){
     element.style.top = `${y}px`;
     console.log(`Final coordinates are (${x}, ${y})`);
 }
+
+// Get coordinates of a mouse click event to debug functions
+document.addEventListener("click", event => {console.log(event.pageX, event.pageY)});
+console.log("Hello");
+export {attachToParent}
