@@ -1,6 +1,6 @@
-import "../scripts/app_GE" // Used for button attributes 
-import "../scripts/positioning" // Used for positioning buttons 
-
+'use strict'
+import {attachToParent} from "../scripts/positioning.js" // Used for positioning buttons 
+import {swapRows} from "../scripts/app_math.js"
 /**
  * This function takes a table and a row-element for said table and finds its base-0 index as if the table was an array of arrays.
  * If an index is found, it is returned as an integer, but if no index is found, the function returns a null-value.
@@ -119,16 +119,26 @@ function addRows(table, rowA, rowB, tableArray){
 }
 
 /**
- * 
+ * This function adds a scale buttton to a row and moves this button to the left side of this row
  * @param {HTMLelement} row - row element that we want to add a scale button to  
  */
 function addScaleButton(row){
-    let ScaleButton = document.createElement("input");
-    row.appendChild(ScaleButton); // Buttons is given aparent so it can be attached to the left 
-    attachToParent(ScaleButton, true); // Design specifies that buttons should be added on left side 
+    let ScaleButton = document.createElement("div");
+    ScaleButton.innerHTML = "It's another div";
+    ScaleButton.style.backgroundColor = "red";
+    ScaleButton.style.width = "100px";
+    row.style.backgroundColor = "blue";
+    row.style.border = "solid";
+    row.appendChild(ScaleButton); // Buttons is given a parent so it can be attached to the left 
+    attachToParent(ScaleButton, false); // Design specifies that buttons should be added on left side 
 }
+// TEST AREA, IF FOUND, PLEASE REMOVE!
+function my_function(){
+    let rows = document.querySelectorAll("tr");
+    rows.forEach((element) => {addScaleButton(element)});
+}
+my_function();
 
-addScaleButton(getElementbyId(""))
 
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
