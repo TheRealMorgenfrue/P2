@@ -27,10 +27,8 @@
   width: 120px;
   margin-left: 10px;
 }
-
+/*This class controls styling of the scaling buttons on the matrix, which should appear non-visible until the row is hovered over*/
 .scaleButton {
-  background-color: red;
-  width: 100px;
-  /* background-color: blue; */
-  /* border: solid; */
+  visibility: visible;
+  color: blueviolet;
 }

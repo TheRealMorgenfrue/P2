@@ -17,7 +17,6 @@ function searchForRowIndex(table, row){
     });
     return null;
 }
-
 /**
  * This function is a (probably) faster version of searchForRowIndex and uses RegEx to sift through the ID of a given element.
  * Note that this function only works if the ID of the row contains its base-0 index terminated by a "_"-character at the end!
@@ -32,7 +31,6 @@ function extractRowIndex(row){
         return null;
     }
 }
-
 /**
  * This function swaps two rows in an HTML-table and in an array of arrays representing it
  * when given the table element and the two row-elements.
@@ -72,50 +70,94 @@ function swapTableRows(table, rowA, rowB, tableArray){
 /**
  * This function implements row addtion and subtraction for matrices. 
  * It manipulates the 2D array which forms the underlying representation of the HTML-table. 
- * Note that rowA is subtracted/added to rowB 
+ * Note that rowA is subtracted/added to rowB without changing rowA 
  * @param {HTMLelement} table - html representation of the current table 
- * @param {HTMLelement} rowA - html representation of the rowA
- * @param {HTMLelement} rowB - html representaion of rowB  
+ * @param {HTMLelement} rowA - html representation of the rowA of type "tr"
+ * @param {HTMLelement} rowB - html representaion of rowB  of type "tr"
  * @param {Array} tableArray - 2D array that represents the backend version of the matrix 
  */
-
 function addRows(table, rowA, rowB, tableArray){
-    // Find row in table array that corresponds to html table
-    row1 = tableArray[searchForRowIndex(table, rowA)];
-    row2 = tableArray[searchForRowIndex(table, rowB)];
-
     // Ensure that operation is always valid by checking length of both rows 
     try{
-        if(row1.length !== row2.length){
-            throw new Error;
+        // Find index of rows to add
+        const indexA = searchForRowIndex(table, rowA),
+        indexB = searchForRowIndex(table, rowB);
+         
+        if(indexA === null || indexB === null){ // Rows index may not be found
+            throw new Error("One or both row indexes were not found");
+        }
+        let row1 = tableArray[indexA];
+        let row2 = tableArray[indexB];
+        if(row1.length !== row2.length){ //Rows may not be of same length
+            throw new Error("Rows are not of the same length and cannot be added");
         }
         // Note that this loop changes the values of tableArray and not its copy 
         for(let i = 0; i < rowA.length; i++){
-            row1[i] += row2[i];
+            row2[i] += row1[i];
         }
+        updateTableFromArray(table,tableArray,[indexB],"input");
     }
     catch(error){
-        console.log(`Rows not of same length; Cannot perform ${operation}`);
+        console.log(`${error.message}`);
     }
-
 }
+/**
+ * This function scales a row in the underlying array representation of the html matrix by a scalar if row can be found 
+ * @param {HTMLelement} table - html element representing the matrix 
+ * @param {HTMLelement} row - the row to be scaled by a scalar
+ * @param {number} scalar - a scalar i.e. a number that a row is scaled by
+ * @param {Array} tableArray  - 2D-array representation of the html element table 
+ */
+function scaleRow(table,row,scalar,tableArray){
+    try{
+        row_to_scale = tableArray[searchForRowIndex(table, row)];
+        if(row_to_scale === undefined){
+            throw new Error("Row cannot be found");
+        }
+        row_to_scale.forEach(element => (element *= scalar));
+    }
+    catch(error){
+        console.log(`${error.message}`);
+    }
+}
+/* TODO: Mads 
+* Ensure that the scale button is sanitized so only integer scalars are allowed 
+* Make scale button scale row in tableArray and update the table using updateTableFromArray
+*/
 /**
  * This function adds a scale buttton to a row and moves this button to the left side of this row
  * @param {HTMLelement} row - row element that we want to add a scale button to  
  */
 function addScaleButton(row){
-    let ScaleButton = document.createElement("div");
-    ScaleButton.innerHTML = "It's another div";
+    let ScaleButton = document.createElement("input");
     ScaleButton.classList.add("scaleButton");
     row.appendChild(ScaleButton); // Buttons is given a parent so it can be attached to the left 
     attachToParent(ScaleButton, false); // Design specifies that buttons should be added on left side 
 }
-// TEST AREA, IF FOUND, PLEASE REMOVE!
+/**
+ * This function adds a scale button to every row in the html representatio of the matrix. 
+ * It uses addScaleButton as a simple helper function to add each button in a simple for loop
+ */
 function addAllScaleButtons(){
     let rows = document.querySelectorAll("tr");
     rows.forEach((element) => {addScaleButton(element)});
 }
-
+/**
+ * This function hides a html element when an event is fired 
+ * This function is to be used in paralel with hideOnHover 
+ * @param {event} event 
+ */
+function showOnHover(event){
+    event.target.style.visiblity = "visible";
+}
+/**
+ * This function makes a html element visible when an event is fired 
+ * This function supplements showOnHover
+ * @param {event} event 
+ */
+function hideOnHover(event){
+    event.target.style.visiblity = "hidden";
+}
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
  * The ith row in the table uses the ith element from the array of arrays and copies one entry from the subarray into every table cell.
