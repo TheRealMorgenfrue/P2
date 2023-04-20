@@ -22,7 +22,7 @@ function rowToEquationHTML (row) {
 
 /**
  * @param {HTMLElement} row
- * @returns {*[]} Array of table row elements as numbers
+ * @returns {Array} Array of table row elements as numbers
  */
 function rowToEquationArray (row) {
     let equation_arr = row.querySelectorAll("td");
@@ -41,7 +41,7 @@ function rowToEquationArray (row) {
  * Uses partial pivoting, a method to reduce round off errors
  * Info about partial pivoting: https://web.mit.edu/10.001/Web/Course_Notes/GaussElimPivoting.html -
  * https://math.libretexts.org/Bookshelves/Applied_Mathematics/Numerical_Methods_(Chasnov)/03%3A_System_of_Equations/3.03%3A_Partial_Pivoting
- * @param {*[[]]} equations 2D array of numbers representing equation matrix
+ * @param {Array} equations 2D array of numbers representing equation matrix
  */
 function gaussianElimination (equations) {
     let row = 0; // Pivot row
@@ -76,7 +76,7 @@ function gaussianElimination (equations) {
  * Swaps rows of equations in-place
  * @param {number} row1 array index
  * @param {number} row2 array index
- * @param {*[[]]} equations 2D array
+ * @param {Array} equations 2D array
  */
 function swapRows (row1, row2, equations) {
     let temp = equations[row1];
@@ -86,8 +86,8 @@ function swapRows (row1, row2, equations) {
 
 /**
  * Based on https://gist.github.com/codecontemplator/6b3db07a29e435940ffc, finds solutions to upper triangular matrix by back-substitution
- * @param {*[[]]} equations 2D array of numbers representing equation matrix
- * @returns {any[]|number} returns array of solutions to system of equations or NaN if none are found
+ * @param {Array} equations 2D array of numbers representing equation matrix
+ * @returns {Array|number} returns array of solutions to system of equations or NaN if none are found
  */
 function backSubstitution(equations) {
     let A = new Array(equations.length); // Creates an array for coefficient matrix
@@ -119,7 +119,7 @@ function backSubstitution(equations) {
 
 /**
  * Checks if the given system of equations has solutions after Gaussian Elimination has been applied
- * @param {*[[]]} equations 2D array of numbers representing equation matrix
+ * @param {Array} equations 2D array of numbers representing equation matrix
  * @returns {boolean} true if multiple or unique solution(s), false otherwise
  */
 function hasSolutions(equations) {

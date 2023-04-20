@@ -9,9 +9,6 @@
   },
   "dependencies": {
     "jest-environment-jsdom": "^29.5.0",
-    "puppeteer": "^19.8.5"
-  },
-  "jest": {
-    "testEnvironment": "jsdom"
+    "puppeteer": "^19.9.1"
   }
 }
