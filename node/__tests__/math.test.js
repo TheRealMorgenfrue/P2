@@ -1,4 +1,4 @@
-import {gaussianElimination, backSubstitution, hasSolutions} from "../scripts/app_math.js";
+import {gaussianElimination, hasSolutions, isRowEchelonForm, isUpperTriangular} from "../scripts/app_math.js";
 
 test('consistent matrix with unique solution: hasSolutions returns true', () => {
     let consistent_matrix = [
@@ -46,51 +46,76 @@ test('under-determined matrix with multiple solutions: hasSolutions returns true
     expect(hasSolutions(wide_matrix)).toEqual(true)
 });
 
-/*
-// Tests using back-substitution that are probably unnecessary
-test('backSubstitution returns solution for solvable matrix with equal number of equations and variables', () => {
-    let consistent_matrix = [
-        [1,2,1,-1,5],
-        [3,2,4,4,16],
-        [4,4,3,4,22],
-        [2,0,1,5,15]]
-    gaussianElimination(consistent_matrix);
-    expect(backSubstitution(consistent_matrix)).toEqual([16,-6,-2,-3]);
-});
-test('backSubstitution returns NaN when given an inconsistent system of equations', () => {
-    let inconsistent_matrix = [
+test('Checks if isRowEchelon correctly identifies matrices', () => {
+    let matrix1 = [
+        [0,0,0],
+        [0,1,0],
+        [0,0,1]
+    ]
+    let matrix2 = [
         [1,1,1],
-        [1,0,-1],
-        [1,-1,0]]
-    gaussianElimination(inconsistent_matrix);
-    expect(backSubstitution(inconsistent_matrix)).toEqual(NaN);
+        [0,0,0],
+        [0,0,1]
+    ]
+    let matrix3 = [
+        [1,0,0,0],
+        [1,1,0,0],
+        [1,0,1,0]
+    ]
+    let matrix4 = [
+        [1,0,0,0],
+        [0,1,0,0],
+        [0,0,1,0]
+    ]
+    let matrix5 = [
+        [1,1,1,1],
+        [0,0,1,1],
+        [0,0,0,0]
+    ]
+    let matrix6 = [[1]];
+    let matrix7 = [[0]];
+    expect(isRowEchelonForm(matrix1)).toBe(false);
+    expect(isRowEchelonForm(matrix2)).toBe(false);
+    expect(isRowEchelonForm(matrix3)).toBe(false);
+    expect(isRowEchelonForm(matrix4)).toBe(true);
+    expect(isRowEchelonForm(matrix5)).toBe(true);
+    expect(isRowEchelonForm(matrix6)).toBe(true);
+    expect(isRowEchelonForm(matrix7)).toBe(true);
+});
 
-});
-
-test('backSubstitution returns NaN when given an overdetermined system', () => {
-    let over_determined_matrix = [
+test('Checks if isUpperTriangular correctly identifies matrices', () => {
+    let matrix1 = [
+        [0,0,0],
+        [0,1,0],
+        [0,0,1]
+    ]
+    let matrix2 = [
         [1,1,1],
-        [1,1,1],
-        [1,1,1],
-        [1,1,1]]
-    gaussianElimination(over_determined_matrix);
-    expect(backSubstitution(over_determined_matrix)).toEqual(NaN);
+        [0,0,0],
+        [0,0,1]
+    ]
+    let matrix3 = [
+        [1,0,0,0],
+        [1,1,0,0],
+        [1,0,1,0]
+    ]
+    let matrix4 = [
+        [1,0,0,0],
+        [0,1,0,0],
+        [0,0,1,0]
+    ]
+    let matrix5 = [
+        [1,1,1,1],
+        [0,0,1,1],
+        [1,0,0,0]
+    ]
+    let matrix6 = [[1]];
+    let matrix7 = [[0]];
+    expect(isUpperTriangular(matrix1)).toBe(true);
+    expect(isUpperTriangular(matrix2)).toBe(true);
+    expect(isUpperTriangular(matrix3)).toBe(false);
+    expect(isUpperTriangular(matrix4)).toBe(true);
+    expect(isUpperTriangular(matrix5)).toBe(false);
+    expect(isUpperTriangular(matrix6)).toBe(true);
+    expect(isUpperTriangular(matrix7)).toBe(true);
 });
-
-test('backSubstitution has minimal rounding', () => {
-    let small_valued_matrix = [
-        [0.02,0.01,0,0,0.02],
-        [1,2,1,0,1],
-        [0,1,2,1,4],
-        [0,0,100,200,800]]
-    gaussianElimination(small_valued_matrix);
-    expect(backSubstitution(small_valued_matrix)).toEqual([1,0,0,4])
-});
-test('backSubstitution for under-determined gives one out of infinite solutions', () => {
-    let small_valued_matrix = [
-        [1,1,0,1],
-        [0,1,1,2]]
-    gaussianElimination(small_valued_matrix);
-    expect(backSubstitution(small_valued_matrix)).toEqual([-1,2,0])
-});
- */

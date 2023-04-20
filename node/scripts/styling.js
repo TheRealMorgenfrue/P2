@@ -24,11 +24,21 @@ function loadStyle(src) {
  * 
  * To add more CSS styles, simply uncomment a '.then' and provide the path to the file (or add another '.then' if all are used)
  */
-window.onload = function () {
+// document.onDOMContentLoaded = function() {
+//     loadStyle("../styles/simple.css")
+//         // .then(() => loadStyle(""))
+//         //.then(() => loadStyle("css/icomoon.css"))
+//         .then(() => {
+//             console.log('All styles are loaded!');
+//         }).catch(err => console.error(err));
+// };
+
+
+window.addEventListener("DOMContentLoaded", (event) => {
     loadStyle("../styles/simple.css")
         // .then(() => loadStyle(""))
         //.then(() => loadStyle("css/icomoon.css"))
         .then(() => {
             console.log('All styles are loaded!');
         }).catch(err => console.error(err));
-}
+});

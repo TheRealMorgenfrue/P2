@@ -17,7 +17,6 @@ function searchForRowIndex(table, row){
     });
     return null;
 }
-
 /**
  * This function is a (probably) faster version of searchForRowIndex and uses RegEx to sift through the ID of a given element.
  * Note that this function only works if the ID of the row contains its base-0 index terminated by a "_"-character at the end!
@@ -32,7 +31,6 @@ function extractRowIndex(row){
         return null;
     }
 }
-
 /**
  * This function swaps two rows in an HTML-table and in an array of arrays representing it
  * when given the table element and the two row-elements.
@@ -62,27 +60,9 @@ function swapTableRows(table, rowA, rowB, tableArray){
         }
 
         //with the array elements swapped, we move on to swapping the rows in the HTML-table.
-        //first, we find the siblings that come after rowA and rowB.
-        //note that nextSibling returns null if the node it is called on is the last sibling
-        const siblingA = rowA.nextSibling(),
-              siblingB = rowB.nextSibling();
-        
-        //there are two distinct cases to consider here:
-        // 1 the two rows are adjacent in the sibling list
-        // 2 the two rows are separated by at least one other row in the sibling list
-        //we can identify what case we are dealing with by checking if siblingA or siblingB is rowB or rowA respectively
-        if(siblingA === rowB){
-            //case 1: if rowA's sibling is rowB, place rowB before rowA to swap them
-            insertBefore(rowB, rowA);
-        } else if(siblingB === rowA){
-            //same as above, but in reverse
-            insertBefore(rowA, rowB);
-        } else {
-            //case 2: if none of the above if-statements trigger, we simply place each row before the other's sibling
-            //this works even if a sibling is null, as insertBefore interprets null as the end of the sibling list and will insert the node there
-            insertBefore(rowA, siblingB);
-            insertBefore(rowB, siblingA);
-        }
+        //we use updateTableFromArray for this task
+        updateTableFromArray(table, tableArray, [indexA, indexB])
+
     } catch(error) {
         console.error(error);
     }
@@ -96,7 +76,6 @@ function swapTableRows(table, rowA, rowB, tableArray){
  * @param {HTMLelement} rowB - html representaion of rowB  of type "tr"
  * @param {Array} tableArray - 2D array that represents the backend version of the matrix 
  */
-
 function addRows(table, rowA, rowB, tableArray){
     // Ensure that operation is always valid by checking length of both rows 
     try{
@@ -122,7 +101,6 @@ function addRows(table, rowA, rowB, tableArray){
         console.log(`${error.message}`);
     }
 }
-
 /**
  * This function scales a row in the underlying array representation of the html matrix by a scalar if row can be found 
  * @param {HTMLelement} table - html element representing the matrix 
@@ -142,12 +120,10 @@ function scaleRow(table,row,scalar,tableArray){
         console.log(`${error.message}`);
     }
 }
-
 /* TODO: Mads 
 * Ensure that the scale button is sanitized so only integer scalars are allowed 
 * Make scale button scale row in tableArray and update the table using updateTableFromArray
 */
-
 /**
  * This function adds a scale buttton to a row and moves this button to the left side of this row
  * @param {HTMLelement} row - row element that we want to add a scale button to  
@@ -182,15 +158,6 @@ function showOnHover(event){
 function hideOnHover(event){
     event.target.style.visiblity = "hidden";
 }
-
-/* Window.onload is used to ensure that CSS is loaded before scale buttons are attached. 
-* Otherwise, the bounding rectangles around each row is assign px-values that are not correct  
-*/
-window.onload = function(){ // REMOVE when we add "DOMCONTENTLOADER" document as event listener i.e. when we apply the logic of only calling a function when the page is loaded to the entire document. 
-    addAllScaleButtons();
-}
-
-
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
  * The ith row in the table uses the ith element from the array of arrays and copies one entry from the subarray into every table cell.
@@ -246,4 +213,27 @@ function updateTableFromArray(table, tableArray, options, query){
     //to set its data ordinarily, but the data might need sanitizing first. We assume another function has done that
     //before this function is run.
 }
-
+        /*THE FOLLOWING IS DEPRECATED CODE FROM swapTableRows, USED IN PLACE OF updateTableFromArray
+        //first, we find the siblings that come after rowA and rowB.
+        //note that nextSibling returns null if the node it is called on is the last sibling
+        const siblingA = rowA.nextSibling(),
+              siblingB = rowB.nextSibling();
+        
+        //there are two distinct cases to consider here:
+        // 1 the two rows are adjacent in the sibling list
+        // 2 the two rows are separated by at least one other row in the sibling list
+        //we can identify what case we are dealing with by checking if siblingA or siblingB is rowB or rowA respectively
+        if(siblingA === rowB){
+            //case 1: if rowA's sibling is rowB, place rowB before rowA to swap them
+            insertBefore(rowB, rowA);
+        } else if(siblingB === rowA){
+            //same as above, but in reverse
+            insertBefore(rowA, rowB);
+        } else {
+            //case 2: if none of the above if-statements trigger, we simply place each row before the other's sibling
+            //this works even if a sibling is null, as insertBefore interprets null as the end of the sibling list and will insert the node there
+            insertBefore(rowA, siblingB);
+            insertBefore(rowB, siblingA);
+        }
+        */
+export {addAllScaleButtons};
