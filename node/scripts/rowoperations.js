@@ -131,10 +131,13 @@ function scaleRow(table,row,scalar,tableArray){
 function addScaleButton(row){
     let ScaleButton = document.createElement("input");
     ScaleButton.classList.add("scaleButton");
+    ScaleButton.addEventListener("mouseenter", showOnMouseEnter);
+    ScaleButton.addEventListener("mouseleave", hideOnMouseLeave);
     row.appendChild(ScaleButton); // Buttons is given a parent so it can be attached to the left 
     attachToParent(ScaleButton, false); // Design specifies that buttons should be added on left side 
+
 }
-/**
+/** 
  * This function adds a scale button to every row in the html representatio of the matrix. 
  * It uses addScaleButton as a simple helper function to add each button in a simple for loop
  */
@@ -143,20 +146,24 @@ function addAllScaleButtons(){
     rows.forEach((element) => {addScaleButton(element)});
 }
 /**
- * This function hides a html element when an event is fired 
+ * This function hides a html element when an event is fired.
+ * It is supposed to show the scale button when a user hovers over them after it has been hidden initially 
  * This function is to be used in paralel with hideOnHover 
  * @param {event} event 
  */
-function showOnHover(event){
+function showOnMouseEnter(event){
     event.target.style.visiblity = "visible";
 }
 /**
- * This function makes a html element visible when an event is fired 
+ * This function hides a html element when an event is fired 
+ * It is supposed to hide the scale button when a user hovers over them after it has been hidden initially 
  * This function supplements showOnHover
  * @param {event} event 
  */
-function hideOnHover(event){
+function hideOnMouseLeave(event){
+    console.log(`mouseover event fired at ${event.target}\n`);
     event.target.style.visiblity = "hidden";
+    event.stopImmediatePropagation();
 }
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
