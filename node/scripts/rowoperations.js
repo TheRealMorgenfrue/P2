@@ -99,7 +99,6 @@ function addRows(table, rowA, rowB, tableArray){
     }
 
 }
-
 /**
  * This function adds a scale buttton to a row and moves this button to the left side of this row
  * @param {HTMLelement} row - row element that we want to add a scale button to  
@@ -107,20 +106,15 @@ function addRows(table, rowA, rowB, tableArray){
 function addScaleButton(row){
     let ScaleButton = document.createElement("div");
     ScaleButton.innerHTML = "It's another div";
-    ScaleButton.style.backgroundColor = "red";
-    ScaleButton.style.width = "100px";
-    row.style.backgroundColor = "blue";
-    row.style.border = "solid";
+    ScaleButton.classList.add("scaleButton");
     row.appendChild(ScaleButton); // Buttons is given a parent so it can be attached to the left 
     attachToParent(ScaleButton, false); // Design specifies that buttons should be added on left side 
 }
 // TEST AREA, IF FOUND, PLEASE REMOVE!
-function my_function(){
+function addAllScaleButtons(){
     let rows = document.querySelectorAll("tr");
     rows.forEach((element) => {addScaleButton(element)});
 }
-my_function();
-
 
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
@@ -200,3 +194,4 @@ function updateTableFromArray(table, tableArray, options, query){
             insertBefore(rowB, siblingA);
         }
         */
+export {addAllScaleButtons};

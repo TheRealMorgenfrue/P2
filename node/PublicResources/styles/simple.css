@@ -27,3 +27,10 @@
   width: 120px;
   margin-left: 10px;
 }
+
+.scaleButton {
+  background-color: red;
+  width: 100px;
+  /* background-color: blue; */
+  /* border: solid; */
+}

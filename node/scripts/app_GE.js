@@ -9,9 +9,10 @@ Primitives:   "N/A"        / variable_case
 *****************************************
 */
 import {initDrag} from "./draganddrop.js";
+import {addAllScaleButtons} from "./rowoperations.js";
 
 let CURRENT_TABLE,
-    ARRAY_CURRENT_TABLE = new Array(); // Array used to contain the copies of matrices that have been changed - ensures user can go back to previous iteration of matrix 
+    ARRAY_CURRENT_TABLE = new Array(0); // Array used to contain the copies of matrices that have been changed - ensures user can go back to previous iteration of matrix 
 
 const SETTINGS = new function() { // A number of functions need to access non-writable values as well as update writable values - this object is therefore global. 
    this.READONLY_SETTINGS = new function() {
@@ -42,12 +43,14 @@ const SETTINGS = new function() { // A number of functions need to access non-wr
             this.rewind_button_id = "rewindbutton";
             this.rewind_button_value = "Go back";
             this.rewind_button_type = "button";
-            this.rewind_Table = function() { rewindTable(); };
+            this.rewind_Table = function() { rewindTable(1); };
         }
     }
     this.WRITABLE = new function() {
         this.row_value = 2;
         this.column_value = 2;
+        this.prev_row_value = 2;
+        this.prev_column_value = 2;
     }
 };
 
@@ -59,6 +62,9 @@ Object.freeze(SETTINGS.READONLY_SETTINGS);  // Make the "readonly_settings" read
 function initTable() {
     // Initialize the array to hold the table values
     CURRENT_TABLE = createArray(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
+
+    // Initialise the holding array so that index 0 contains the initial CURRENT_TABLE
+    ARRAY_CURRENT_TABLE.push(JSON.stringify(CURRENT_TABLE));
     
     // Initialize table at page load since we don't trigger the eventlisteners there
     createTable(Number(SETTINGS.WRITABLE.row_value), Number(SETTINGS.WRITABLE.column_value));
@@ -70,26 +76,26 @@ function initTable() {
  * Creates a 2D array and fills it with empty strings, "". 
  * 
  * This prevents unintended behaviour where cells are filled with the value of a single cell upon array creation. 
- * @param {integer} row_value 
- * @param {integer} column_value 
+ * @param {number} row_value 
+ * @param {number} column_value 
  * @returns {array} 2D array
  */
 function createArray(row_value, column_value) {
-    let arr = new Array(row_value);
+    let array = new Array(row_value);
     for (let i = 0; i < row_value; i++) {
-      arr[i] = new Array(column_value);
+      array[i] = new Array(column_value);
       for (let j = 0; j < column_value; j++) {
-        arr[i][j] = ""; // Prevent unintended side effects of array creation 
+        array[i][j] = ""; // Prevent unintended side effects of array creation 
       }
     }
-    return arr;
+    return array;
 }
 /**
  * Creates the matrix used for Gaussian Elimination
  * 
  * Additionally, it creates buttons to interact with the matrix
- * @param {integer} row_value 
- * @param {integer} column_value 
+ * @param {number} row_value 
+ * @param {number} column_value 
  * @returns 
  */
 function createTable(row_value, column_value) {
@@ -108,6 +114,7 @@ function createTable(row_value, column_value) {
     const body = document.body, 
     table = document.createElement('table');
     table.id = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id;
+    
     
     // Ensure that each row is inserted and can be found by id 
     for (let i = 0; i < row_value; i++) {   
@@ -255,9 +262,9 @@ function createEventListener(type_id, listener_type) {
             case "tblsize_change": {
                 element.addEventListener("change", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
                     element_value = event.target.value;
-                    let prev_row = SETTINGS.WRITABLE.row_value; // Copy the global values somewhere else since they'll be overwritten by createTable
-                    let prev_column = SETTINGS.WRITABLE.column_value;
-                
+                    SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value; // Update our prev values
+                    SETTINGS.WRITABLE.prev_column_value = SETTINGS.WRITABLE.column_value;
+
                     if(element_value > SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_matrix_size) {    // Check if we exceeded the max number of rows allowed
                         console.warn(`id: ${type_id} size (${element_value}) is larger than max allowed (${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_matrix_size}).\nResetting size to: ${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_matrix_size}.`);
                         element_value = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_matrix_size;
@@ -278,7 +285,7 @@ function createEventListener(type_id, listener_type) {
                     document.getElementById(type_id).value = element_value; // Update the value shown in the input field
                     deleteTable();
                     createTable(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
-                    restoreTable(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value, prev_row, prev_column);
+                    restoreTable();
                 });   
                 break;
             }
@@ -299,25 +306,22 @@ function createEventListener(type_id, listener_type) {
 }
 /**
  * Function that ensures elements are kept in correct cell values after row size has been increased or decreased 
- * @param {number} current_row_size 
- * @param {number} current_column_size 
- * @param {number} prev_row_size 
- * @param {number} prev_column_size 
  * @returns 
  */
-function restoreTable(current_row_size, current_column_size, prev_row_size, prev_column_size) {
+function restoreTable() {
     let temp_array = CURRENT_TABLE.slice();  // Copy the array to a temp array
-    CURRENT_TABLE = createArray(current_row_size, current_column_size); // Overwrite the old array with a new
-
-    if(current_row_size < prev_row_size) {  // If the prev array's rows are larger than the current, go down to the current
-        prev_row_size = current_row_size;
+    CURRENT_TABLE = createArray(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value); // Overwrite the old array with a new
+    console.log(`prev_row: ${ SETTINGS.WRITABLE.prev_row_value}, prev column: ${ SETTINGS.WRITABLE.prev_column_value}`);
+    if(SETTINGS.WRITABLE.row_value < SETTINGS.WRITABLE.prev_row_value) {  // If the prev array's rows are larger than the current, go down to the current
+        SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value;
     } 
-    else if(current_column_size < prev_column_size) {  // If the prev array's columns are larger than the current, go down to the current
-        prev_column_size = current_column_size;
+    else if(SETTINGS.WRITABLE.column_value < SETTINGS.WRITABLE.prev_column_value) {  // If the prev array's columns are larger than the current, go down to the current
+        SETTINGS.WRITABLE.prev_column_value = SETTINGS.WRITABLE.column_value;
     }
+
     try {
-        for(let i = 0; i < prev_row_size; i++) {  // Nested for-loops to access two-dimensional arrays
-            for(let j = 0; j < prev_column_size; j++) {
+        for(let i = 0; i < SETTINGS.WRITABLE.prev_row_value; i++) {  // Nested for-loops to access two-dimensional arrays
+            for(let j = 0; j < SETTINGS.WRITABLE.prev_column_value; j++) {
                 if(temp_array[i][j] !== undefined && temp_array[i][j] !== "") { // Only merge array indices containing something
                     CURRENT_TABLE[i][j] = temp_array[i][j];  // Merge the old table's values with the new
                     console.log(`i: ${i} j: ${j}`);
@@ -340,7 +344,7 @@ function restoreTable(current_row_size, current_column_size, prev_row_size, prev
 function copyTable() {
     if(ARRAY_CURRENT_TABLE.length > 0) {
         if(JSON.stringify(CURRENT_TABLE) !== ARRAY_CURRENT_TABLE[ARRAY_CURRENT_TABLE.length-1]) {
-            ARRAY_CURRENT_TABLE.push(JSON.stringify(CURRENT_TABLE));    // Make it a JSON object to prevent the 2d table array from copied as 3d array in container array  
+            ARRAY_CURRENT_TABLE.push(JSON.stringify(CURRENT_TABLE));    // Make it a JSON object to prevent the 2d table array from being copied as a 3d array when retrieving it from the container array  
         }
         else {
             console.warn(`Previous matrix snapshot is identical to the current - abort copy`);
@@ -349,13 +353,28 @@ function copyTable() {
     else {
         ARRAY_CURRENT_TABLE.push(JSON.stringify(CURRENT_TABLE));
     }
+    console.table(ARRAY_CURRENT_TABLE);
 }
 /**
  * Helper function that reverts the values of table object to match those before change event was dispatched - i.e. a cell was changed
  */
-function rewindTable() {
+function rewindTable(rewind_count) {
+    rewind_count = Number(rewind_count);
+    let tbl_length = Number(ARRAY_CURRENT_TABLE.length);
+
+
+
     if(ARRAY_CURRENT_TABLE.length > 0) {
+        // Reverts the matrix state "rewind_count" times by removing "rewind_count" elements starting from the end of the array
+        if(rewind_count < tbl_length) {
+            ARRAY_CURRENT_TABLE.splice(ARRAY_CURRENT_TABLE.length-rewind_count, rewind_count);
+            console.log(`${rewind_count} < ${tbl_length} = ${rewind_count < tbl_length}`);
+        }
+        console.table(ARRAY_CURRENT_TABLE);
         CURRENT_TABLE = JSON.parse(ARRAY_CURRENT_TABLE.pop());
+        console.table(ARRAY_CURRENT_TABLE);
+
+
         try {
             for(let i = 0; i < SETTINGS.WRITABLE.row_value; i++) {  // Nested for-loops to access two-dimensional arrays
                 for(let j = 0; j < SETTINGS.WRITABLE.column_value; j++) {
@@ -413,11 +432,12 @@ function lockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id);
     const table_rows = tbl.querySelectorAll("input");
     // This function sets read only to all elements in table, which means that only the first row has to be checked for the readonly attribtue
-    if(table_rows[0].readonly !== "true") {
+    if(table_rows[0].getAttribute("readonly") !== "true") {
         table_rows.forEach(element => {
             element.setAttribute("readonly", "true");
         });
         console.log("Table is now locked");
+        addAllScaleButtons();
     }
     else {
         console.warn("Table is already locked");
@@ -484,8 +504,14 @@ function sanitize(str){
   .replace(/[^0-9]/g, "")
   return str.trim();
 }
+// initTable();
 
-//Running The Program
-initTable();
+// //Running The Program
+window.addEventListener("load", (event) => {
+    console.log("HELLO THERE");
+    initTable();
+});
 
+
+// console.log("999999999999999 THERE");
 export {createArray}; // Export function(s) to test suite (brackets matter, see drag.test.js)
