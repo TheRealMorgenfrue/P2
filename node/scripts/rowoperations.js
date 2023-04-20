@@ -62,27 +62,9 @@ function swapTableRows(table, rowA, rowB, tableArray){
         }
 
         //with the array elements swapped, we move on to swapping the rows in the HTML-table.
-        //first, we find the siblings that come after rowA and rowB.
-        //note that nextSibling returns null if the node it is called on is the last sibling
-        const siblingA = rowA.nextSibling(),
-              siblingB = rowB.nextSibling();
-        
-        //there are two distinct cases to consider here:
-        // 1 the two rows are adjacent in the sibling list
-        // 2 the two rows are separated by at least one other row in the sibling list
-        //we can identify what case we are dealing with by checking if siblingA or siblingB is rowB or rowA respectively
-        if(siblingA === rowB){
-            //case 1: if rowA's sibling is rowB, place rowB before rowA to swap them
-            insertBefore(rowB, rowA);
-        } else if(siblingB === rowA){
-            //same as above, but in reverse
-            insertBefore(rowA, rowB);
-        } else {
-            //case 2: if none of the above if-statements trigger, we simply place each row before the other's sibling
-            //this works even if a sibling is null, as insertBefore interprets null as the end of the sibling list and will insert the node there
-            insertBefore(rowA, siblingB);
-            insertBefore(rowB, siblingA);
-        }
+        //we use updateTableFromArray for this task
+        updateTableFromArray(table, tableArray, [indexA, indexB])
+
     } catch(error) {
         console.error(error);
     }
@@ -189,5 +171,27 @@ function updateTableFromArray(table, tableArray, options, query){
     //to set its data ordinarily, but the data might need sanitizing first. We assume another function has done that
     //before this function is run.
 }
-
+        /*THE FOLLOWING IS DEPRECATED CODE FROM swapTableRows, USED IN PLACE OF updateTableFromArray
+        //first, we find the siblings that come after rowA and rowB.
+        //note that nextSibling returns null if the node it is called on is the last sibling
+        const siblingA = rowA.nextSibling(),
+              siblingB = rowB.nextSibling();
+        
+        //there are two distinct cases to consider here:
+        // 1 the two rows are adjacent in the sibling list
+        // 2 the two rows are separated by at least one other row in the sibling list
+        //we can identify what case we are dealing with by checking if siblingA or siblingB is rowB or rowA respectively
+        if(siblingA === rowB){
+            //case 1: if rowA's sibling is rowB, place rowB before rowA to swap them
+            insertBefore(rowB, rowA);
+        } else if(siblingB === rowA){
+            //same as above, but in reverse
+            insertBefore(rowA, rowB);
+        } else {
+            //case 2: if none of the above if-statements trigger, we simply place each row before the other's sibling
+            //this works even if a sibling is null, as insertBefore interprets null as the end of the sibling list and will insert the node there
+            insertBefore(rowA, siblingB);
+            insertBefore(rowB, siblingA);
+        }
+        */
 export {addAllScaleButtons};
