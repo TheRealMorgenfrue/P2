@@ -22,7 +22,7 @@ function rowToEquationHTML (row) {
 
 /**
  * @param {HTMLElement} row
- * @returns {*[]} Array of table row elements as numbers
+ * @returns {Array} Array of table row elements as numbers
  */
 function rowToEquationArray (row) {
     let equation_arr = row.querySelectorAll("td");
@@ -41,7 +41,7 @@ function rowToEquationArray (row) {
  * Uses partial pivoting, a method to reduce round off errors
  * Info about partial pivoting: https://web.mit.edu/10.001/Web/Course_Notes/GaussElimPivoting.html -
  * https://math.libretexts.org/Bookshelves/Applied_Mathematics/Numerical_Methods_(Chasnov)/03%3A_System_of_Equations/3.03%3A_Partial_Pivoting
- * @param {*[[]]} equations 2D array of numbers representing equation matrix
+ * @param {Array} equations 2D array of numbers representing equation matrix
  */
 function gaussianElimination (equations) {
     let row = 0; // Pivot row
@@ -76,7 +76,7 @@ function gaussianElimination (equations) {
  * Swaps rows of equations in-place
  * @param {number} row1 array index
  * @param {number} row2 array index
- * @param {*[[]]} equations 2D array
+ * @param {Array} equations 2D array
  */
 function swapRows (row1, row2, equations) {
     let temp = equations[row1];
@@ -86,8 +86,8 @@ function swapRows (row1, row2, equations) {
 
 /**
  * Based on https://gist.github.com/codecontemplator/6b3db07a29e435940ffc, finds solutions to upper triangular matrix by back-substitution
- * @param {*[[]]} equations 2D array of numbers representing equation matrix
- * @returns {any[]|number} returns array of solutions to system of equations or NaN if none are found
+ * @param {Array} equations 2D array of numbers representing equation matrix
+ * @returns {Array|number} returns array of solutions to system of equations or NaN if none are found
  */
 function backSubstitution(equations) {
     let A = new Array(equations.length); // Creates an array for coefficient matrix
@@ -111,10 +111,33 @@ function backSubstitution(equations) {
         x[i] = (b[i] - sum) / A[i][i]; // Calculates variable by dividing last element of the equation by the diagonal element
     }
     for(let i = 0; i < x.length; i++) { // Rounds solutions to 4 decimals (4 is arbitrary)
-        if(isNaN(x[i])) return NaN; // Should maybe return something else
+        if(isNaN(x[i])) return NaN; // Returns NaN if the system in inconsistent
         x[i] = roundTo(x[i],4);
     }
     return x;
+}
+
+/**
+ * Checks if the given system of equations has solutions after Gaussian Elimination has been applied
+ * @param {Array} equations 2D array of numbers representing equation matrix
+ * @returns {boolean} true if multiple or unique solution(s), false otherwise
+ */
+function hasSolutions(equations) {
+    // Check for singular matrix (row with all zeroes except the last element)
+    for (let i = 0; i < equations.length; i++) {
+        let row = equations[i];
+        let allZeroes = row.slice(0, -1).every((val) => val === 0);
+
+        if (allZeroes && row[row.length - 1] !== 0) {
+            // Inconsistent system, no solutions
+            return false;
+        } else if (allZeroes) {
+            // Row with all zeroes indicates multiple solutions or infinite solutions
+            return true;
+        }
+    }
+    // No rows with all zeroes, unique solution
+    return true;
 }
 
 /**
@@ -135,7 +158,7 @@ function roundTo(n, digits) {
 
 /**
  * This function returns true if the matrix M it is given is upper triangular i.e. all entries below the diagonal are 0, otherwise it returns false
- * @param {Array of arrays of numbers} M 
+ * @param {Array of arrays of numbers} M
  * @returns {boolean}
  */
 function isUpperTriangular(M){
@@ -153,16 +176,16 @@ function isUpperTriangular(M){
  * This function returns true if the matrix M it is given is in row echelon form, otherwise it returns false.
  * Can be used to check for a correct solution to a Gaussian Elimination-problem i.e. if all the rules have
  * been followed and the result is in row echelon form, it is a correct solution.
- * 
- * Row echelon form has rows of only zeros at the bottom of the matrix and the leading entry 
+ *
+ * Row echelon form has rows of only zeros at the bottom of the matrix and the leading entry
  * (the leftmost non-zero entry) in all rows to the right of the leading entry of any above rows.
- * @param {Array of arrays of numbers} M 
+ * @param {Array of arrays of numbers} M
  * @returns {boolean}
  */
 function isRowEchelonForm(M){
     let leadingEntryIndex = -1;
     let emptyRow = false;
-    for (let i = 0; i < M.length; i++) { 
+    for (let i = 0; i < M.length; i++) {
         for (let j = 0; j < M[i].length; j++) {
             if(M[i][j] !== 0){
                 if(leadingEntryIndex >= j || emptyRow){
@@ -189,4 +212,4 @@ function scaleArray(array, scalar){
     return Array.from(array, (x) => x*scalar);
 }
 
-export {gaussianElimination, backSubstitution} // Export function to test suite (brackets matter, see drag.test.js)
+export {gaussianElimination, backSubstitution, hasSolutions, swapRows} // Export function(s) to test suite (brackets matter, see drag.test.js)
