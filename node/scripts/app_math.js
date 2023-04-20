@@ -186,6 +186,9 @@ function isRowEchelonForm(M){
     let leadingEntryIndex = -1;
     let emptyRow = false;
     for (let i = 0; i < M.length; i++) {
+        if(M[i].every(value => value === 0)){
+            emptyRow = true;
+        }
         for (let j = 0; j < M[i].length; j++) {
             if(M[i][j] !== 0){
                 if(leadingEntryIndex >= j || emptyRow){
@@ -196,7 +199,6 @@ function isRowEchelonForm(M){
                 }
             }
         }
-        emptyRow = true;
     }
     return true;
 }
@@ -212,4 +214,4 @@ function scaleArray(array, scalar){
     return Array.from(array, (x) => x*scalar);
 }
 
-export {gaussianElimination, backSubstitution, hasSolutions, swapRows} // Export function(s) to test suite (brackets matter, see drag.test.js)
+export {gaussianElimination, backSubstitution, hasSolutions, swapRows, isRowEchelonForm, isUpperTriangular} // Export function(s) to test suite (brackets matter, see drag.test.js)
