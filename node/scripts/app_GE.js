@@ -9,6 +9,7 @@ Primitives:   "N/A"        / variable_case
 *****************************************
 */
 import {initDrag} from "./draganddrop.js";
+import {addAllScaleButtons} from "./rowoperations.js";
 
 let CURRENT_TABLE,
     ARRAY_CURRENT_TABLE = new Array(0); // Array used to contain the copies of matrices that have been changed - ensures user can go back to previous iteration of matrix 
@@ -48,8 +49,8 @@ const SETTINGS = new function() { // A number of functions need to access non-wr
     this.WRITABLE = new function() {
         this.row_value = 2;
         this.column_value = 2;
-        this.prev_row_value = this.row_value;
-        this.prev_column_value = this.column_value;
+        this.prev_row_value = 2;
+        this.prev_column_value = 2;
     }
 };
 
@@ -113,6 +114,7 @@ function createTable(row_value, column_value) {
     const body = document.body, 
     table = document.createElement('table');
     table.id = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.table_id;
+    
     
     // Ensure that each row is inserted and can be found by id 
     for (let i = 0; i < row_value; i++) {   
@@ -260,7 +262,9 @@ function createEventListener(type_id, listener_type) {
             case "tblsize_change": {
                 element.addEventListener("change", (event) => {     // Creates a new table with a new size when changing values (and deletes the old table)
                     element_value = event.target.value;
-                
+                    SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value; // Update our prev values
+                    SETTINGS.WRITABLE.prev_column_value = SETTINGS.WRITABLE.column_value;
+
                     if(element_value > SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_matrix_size) {    // Check if we exceeded the max number of rows allowed
                         console.warn(`id: ${type_id} size (${element_value}) is larger than max allowed (${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_matrix_size}).\nResetting size to: ${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_matrix_size}.`);
                         element_value = SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.max_matrix_size;
@@ -281,10 +285,6 @@ function createEventListener(type_id, listener_type) {
                     document.getElementById(type_id).value = element_value; // Update the value shown in the input field
                     deleteTable();
                     createTable(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
-
-                    SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value; // Update our prev values
-                    SETTINGS.WRITABLE.prev_column_value = SETTINGS.WRITABLE.column_value;
-
                     restoreTable();
                 });   
                 break;
@@ -311,13 +311,14 @@ function createEventListener(type_id, listener_type) {
 function restoreTable() {
     let temp_array = CURRENT_TABLE.slice();  // Copy the array to a temp array
     CURRENT_TABLE = createArray(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value); // Overwrite the old array with a new
-
+    console.log(`prev_row: ${ SETTINGS.WRITABLE.prev_row_value}, prev column: ${ SETTINGS.WRITABLE.prev_column_value}`);
     if(SETTINGS.WRITABLE.row_value < SETTINGS.WRITABLE.prev_row_value) {  // If the prev array's rows are larger than the current, go down to the current
         SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value;
     } 
     else if(SETTINGS.WRITABLE.column_value < SETTINGS.WRITABLE.prev_column_value) {  // If the prev array's columns are larger than the current, go down to the current
         SETTINGS.WRITABLE.prev_column_value = SETTINGS.WRITABLE.column_value;
     }
+
     try {
         for(let i = 0; i < SETTINGS.WRITABLE.prev_row_value; i++) {  // Nested for-loops to access two-dimensional arrays
             for(let j = 0; j < SETTINGS.WRITABLE.prev_column_value; j++) {
@@ -436,6 +437,7 @@ function lockTable() {
             element.setAttribute("readonly", "true");
         });
         console.log("Table is now locked");
+        addAllScaleButtons();
     }
     else {
         console.warn("Table is already locked");
@@ -502,8 +504,14 @@ function sanitize(str){
   .replace(/[^0-9]/g, "")
   return str.trim();
 }
+// initTable();
 
-//Running The Program
-initTable();
+// //Running The Program
+window.addEventListener("load", (event) => {
+    console.log("HELLO THERE");
+    initTable();
+});
 
+
+// console.log("999999999999999 THERE");
 export {createArray}; // Export function(s) to test suite (brackets matter, see drag.test.js)
