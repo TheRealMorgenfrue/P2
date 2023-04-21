@@ -10,6 +10,7 @@ Primitives:   "N/A"        / variable_case
 */
 import {initDrag} from "./draganddrop.js";
 import {addAllScaleButtons} from "./rowoperations.js";
+import {updateTableFromArray} from "./rowoperations.js";
 
 let CURRENT_TABLE,
     ARRAY_CURRENT_TABLE = new Array(0); // Array used to contain the copies of matrices that have been changed - ensures user can go back to previous iteration of matrix 
@@ -99,7 +100,7 @@ function createArray(row_value, column_value) {
  * @returns 
  */
 function createTable(row_value, column_value) {
-    try { // Ensure matrix is defined, i.e. of dimension greater than 1x1 (A matrix of size -1, for instance, is invalid).
+    try { // Ensure matrix is defined, i.e. of dimension greater than or equal to allowed (A matrix of size -1, for instance, is invalid).
         if(row_value < SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.min_matrix_size || 
             column_value < SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.min_matrix_size) {
             throw new Error(`Matrix size must be larger than or equal to ${SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.min_matrix_size}\n
@@ -304,6 +305,18 @@ function createEventListener(type_id, listener_type) {
         return;        
     }
 }
+
+function updateTableDimensions() {
+    SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value; // Update our prev values
+    SETTINGS.WRITABLE.prev_column_value = SETTINGS.WRITABLE.column_value;
+
+    document.getElementById(SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.row_id).value = SETTINGS.WRITABLE.row_value; // Update the value shown in the input field
+    document.getElementById(SETTINGS.READONLY_SETTINGS.TBL_SETTINGS.column_id).value = SETTINGS.WRITABLE.column_value;
+    deleteTable();
+    createTable(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
+    restoreTable();
+}
+
 /**
  * Function that ensures elements are kept in correct cell values after row size has been increased or decreased 
  * @returns 
@@ -359,22 +372,23 @@ function copyTable() {
  * Helper function that reverts the values of table object to match those before change event was dispatched - i.e. a cell was changed
  */
 function rewindTable(rewind_count) {
-    rewind_count = Number(rewind_count);
-    let tbl_length = Number(ARRAY_CURRENT_TABLE.length);
+    rewind_count = Number(rewind_count); // Typecasting it to a number just in case
 
-
-
+    // Make sure the array actually contains something
     if(ARRAY_CURRENT_TABLE.length > 0) {
-        // Reverts the matrix state "rewind_count" times by removing "rewind_count" elements starting from the end of the array
-        if(rewind_count < tbl_length) {
+        // Check if the   
+        if(rewind_count < ARRAY_CURRENT_TABLE.length) {
+            // Go back "rewind_count" times in the holding array amd remove all succeeding elements
             ARRAY_CURRENT_TABLE.splice(ARRAY_CURRENT_TABLE.length-rewind_count, rewind_count);
-            console.log(`${rewind_count} < ${tbl_length} = ${rewind_count < tbl_length}`);
+            // Read the current last index. Array.pop() is not used here, since we don't want to delete the last element (as it contains the current table values) 
+            CURRENT_TABLE = JSON.parse(ARRAY_CURRENT_TABLE.slice(ARRAY_CURRENT_TABLE.length-rewind_count));
+            // Testing 
+            console.table(ARRAY_CURRENT_TABLE);
+            console.table(CURRENT_TABLE);
         }
-        console.table(ARRAY_CURRENT_TABLE);
-        CURRENT_TABLE = JSON.parse(ARRAY_CURRENT_TABLE.pop());
-        console.table(ARRAY_CURRENT_TABLE);
-
-
+        else {
+            console.warn(`Array has length ${ARRAY_CURRENT_TABLE.length}. Going back ${rewind_count} would cause the array to underflow`);
+        }
         try {
             for(let i = 0; i < SETTINGS.WRITABLE.row_value; i++) {  // Nested for-loops to access two-dimensional arrays
                 for(let j = 0; j < SETTINGS.WRITABLE.column_value; j++) {
@@ -386,6 +400,11 @@ function rewindTable(rewind_count) {
                     }
                 }
             }
+            console.log(`LENGTH: ${CURRENT_TABLE.length},${CURRENT_TABLE[0].length}`);
+            SETTINGS.WRITABLE.row_value = CURRENT_TABLE.length;
+            SETTINGS.WRITABLE.column_value = CURRENT_TABLE[0].length;
+            updateTableDimensions();
+
         } catch (error) {
             console.error(error);
         }
@@ -508,10 +527,7 @@ function sanitize(str){
 
 // //Running The Program
 window.addEventListener("load", (event) => {
-    console.log("HELLO THERE");
     initTable();
 });
 
-
-// console.log("999999999999999 THERE");
 export {createArray}; // Export function(s) to test suite (brackets matter, see drag.test.js)
