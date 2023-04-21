@@ -1,6 +1,7 @@
 'use strict'
 import {attachToParent} from "../scripts/positioning.js" // Used for positioning buttons 
 import {swapRows} from "../scripts/app_math.js"
+//import {sanitize} from "../scripts/app_GE.js" // Used for scale button input 
 /**
  * This function takes a table and a row-element for said table and finds its base-0 index as if the table was an array of arrays.
  * If an index is found, it is returned as an integer, but if no index is found, the function returns a null-value.
@@ -121,7 +122,7 @@ function scaleRow(table,row,scalar,tableArray){
     }
 }
 /* TODO: Mads 
-* Ensure that the scale button is sanitized so only integer scalars are allowed 
+* Instead of showing and not showing the scale button, implement logic that instead moves a single button when the row is moused over instead of showing and hiding the button 
 * Make scale button scale row in tableArray and update the table using updateTableFromArray
 */
 /**
@@ -131,11 +132,10 @@ function scaleRow(table,row,scalar,tableArray){
 function addScaleButton(row){
     let ScaleButton = document.createElement("input");
     ScaleButton.classList.add("scaleButton");
-    ScaleButton.addEventListener("mouseenter", showOnMouseEnter);
-    ScaleButton.addEventListener("mouseleave", hideOnMouseLeave);
+    ScaleButton.addEventListener("mouseleave", hideButton);
+    ScaleButton.addEventListener("mouseenter", showButton);
     row.appendChild(ScaleButton); // Buttons is given a parent so it can be attached to the left 
-    attachToParent(ScaleButton, false); // Design specifies that buttons should be added on left side 
-
+    attachToParent(ScaleButton, true); // Design specifies that buttons should be added on left side 
 }
 /** 
  * This function adds a scale button to every row in the html representatio of the matrix. 
@@ -151,8 +151,9 @@ function addAllScaleButtons(){
  * This function is to be used in paralel with hideOnHover 
  * @param {event} event 
  */
-function showOnMouseEnter(event){
-    event.target.style.visiblity = "visible";
+function moveButton(event){
+    console.log(`show event fired at ${event.target}\n`);
+    event.currentTarget.style = "visible";
 }
 /**
  * This function hides a html element when an event is fired 
@@ -160,10 +161,9 @@ function showOnMouseEnter(event){
  * This function supplements showOnHover
  * @param {event} event 
  */
-function hideOnMouseLeave(event){
-    console.log(`mouseover event fired at ${event.target}\n`);
-    event.target.style.visiblity = "hidden";
-    event.stopImmediatePropagation();
+function hideButton(event){
+    console.log(`hide event fired at ${event.target}\n`);
+    event.currentTarget.style = "hidden";
 }
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.

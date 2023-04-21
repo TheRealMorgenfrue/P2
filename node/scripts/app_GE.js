@@ -494,15 +494,20 @@ function deleteElement(id) {
  * @returns {string} Where all undesired characters have been removed 
  */
 function sanitize(str){
-    str=str
+    let negation_operator = "";
+    // Keep any negative scalars in input 
+    if(str[0] === "-"){
+        negation_operator = "-";
+    };
+    str = str
+    .replace(/[^0-9]/g, "").trim();
 //   .replace(/&/g, "")
 //   .replace(/</g, "")
 //   .replace(/>/g, "")
 //   .replace(/"/g, "")
 //   .replace(/'/g, "")
 //   .replace(/`/g, "")
-  .replace(/[^0-9]/g, "")
-  return str.trim();
+    return `${negation_operator}`+ `${str}`;
 }
 // initTable();
 

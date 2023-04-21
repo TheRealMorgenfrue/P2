@@ -11,7 +11,7 @@
 /* This class controls stuff for the entire table. Thus, every element that relies on the table's position must also have this class */
 .tbl {
   position: relative;
-  left: 2%;
+  left: 45px;
 }
 /* This class controls stuff in the table cells, e.g. the matrix cells */
 .tblCells {
@@ -29,8 +29,8 @@
 }
 /*This class controls styling of the scaling buttons on the matrix, which should appear non-visible until the row is hovered over*/
 .scaleButton {
-  width: 120px;
-  margin-left: 10px;
-  visibility: hidden;
+  width: 40px;
+  margin-left: 1px;
+  visibility: visible;
   background-color: blueviolet;
 }
