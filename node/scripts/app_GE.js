@@ -455,10 +455,11 @@ function rewindTable(rewind_count) {
             console.warn(`Array has length ${ARRAY_CURRENT_TABLE.length}. Going back ${rewind_count} would cause the array to underflow`);
         }
         // Update the values of the current table's dimensions
-        SETTINGS.WRITABLE.row_value = CURRENT_TABLE.length;
-        SETTINGS.WRITABLE.column_value = CURRENT_TABLE[0].length;
+        SETTINGS.WRITABLE.row_value = CURRENT_TABLE.length; // Gets row length by accessing the outer array, e.g. what's marked with '' in a 2x2 array: ['[0,1],[0,1]']
+        SETTINGS.WRITABLE.column_value = CURRENT_TABLE[0].length; // Gets column length by accessing the inner array, e.g. what's marked with '' in a 2x2 array: [['0,1'],[0,1]]
 
-        // Update the values of the previous table's dimensions - these are the identical since the retrieved matrix instance is a previous of all matrices made after it
+        // Update the values of the previous table's dimensions 
+        // These are identical to the current dimensions since the retrieved matrix instance is a previous of all matrices made after it
         SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value; 
         SETTINGS.WRITABLE.prev_column_value = SETTINGS.WRITABLE.column_value;
         
