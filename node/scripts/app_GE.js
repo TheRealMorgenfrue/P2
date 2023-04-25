@@ -85,11 +85,11 @@ function initTable() {
     getTableSize();
 }
 /**
- * Creates a 2D array and fills it with empty strings. 
+ * Creates a 2D array and fills it with empty strings.
  * 
  * This makes it easier to check for empty values later on.
  * @param {number} row_value 
- * @param {number} column_value  
+ * @param {number} column_value
  * @returns {array} 2D array
  */
 function createArray(row_value, column_value) {
@@ -362,7 +362,7 @@ function updateTableDimensions() {
 }
 /**
  * Ensures elements are kept in the correct cells after row/column size has been altered.
- * 
+ *
  * If called with true, all table cells are filled. Otherwise only the cells from the previous dimensions are filled
  * @param {true} fill_all Optional
  * @returns 
@@ -382,11 +382,13 @@ function restoreTable(fill_all) {
 
     // Copy the backend array to a temp array
     let temp_array = CURRENT_TABLE.slice();
+
     // Overwrite the backend array with a new, empty array
     CURRENT_TABLE = createArray(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
 
     // If the dimensions of the previous table is larger than the dimensions of the current table, go down to the current table's dimensions
     // This prevents accessing the array out of bounds when merging the old backend array with the new backend array
+
     if(SETTINGS.WRITABLE.row_value < SETTINGS.WRITABLE.prev_row_value) {   
         SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value;
         console.log(`IF RVAL ${SETTINGS.WRITABLE.prev_row_value}`);
@@ -659,6 +661,9 @@ function sanitize(str){
     return `${negation_operator}`+ `${str}`;
 }
 
+/**
+ * Generates matrix with size of current table filled with random values and updates the current table with those values
+ */
 function randomize_Table() {
     CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
     restoreTable(true);

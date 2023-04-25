@@ -120,9 +120,10 @@ function backSubstitution(equations) {
 /**
  * Checks if the given system of equations has solutions after Gaussian Elimination has been applied
  * @param {Array} equations 2D array of numbers representing equation matrix
- * @returns {boolean} true if multiple or unique solution(s), false otherwise
+ * @returns {Object} contains boolean for solvable and string for number of solutions
  */
 function hasSolutions(equations) {
+    const solution = new Object();
     // Check for singular matrix (row with all zeroes except the last element)
     for (let i = 0; i < equations.length; i++) {
         let row = equations[i];
@@ -130,14 +131,20 @@ function hasSolutions(equations) {
 
         if (allZeroes && row[row.length - 1] !== 0) {
             // Inconsistent system, no solutions
-            return false;
+            solution.consistent = false;
+            solution.solutions = "none";
+            return solution;
         } else if (allZeroes) {
             // Row with all zeroes indicates infinite solutions
-            return true;
+            solution.consistent = true;
+            solution.solutions = "infinite";
+            return solution;
         }
     }
     // No rows with all zeroes, unique solution
-    return true;
+    solution.consistent = true;
+    solution.solutions = "unique";
+    return solution;
 }
 
 /**
