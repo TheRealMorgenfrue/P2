@@ -242,9 +242,10 @@ function generateEquation(rows, columns) {
             equations[i][j] = getRandomInt(-9,10);
         }
     }
+    console.table(equations);
     return equations;
 }
 
 export {gaussianElimination, backSubstitution, hasSolutions,
-    swapRows, isRowEchelonForm, isUpperTriangular, generateEquation};
+    swapRows, isRowEchelonForm, isUpperTriangular, generateEquation, getRandomInt};
 // Export function(s) to test suite (brackets matter, see drag.test.js)

@@ -9,8 +9,7 @@ Primitives:   "N/A"        / variable_case
 *****************************************
 */
 import {initDrag} from "./draganddrop.js";
-import {addAllScaleButtons} from "./rowoperations.js";
-import {updateTableFromArray} from "./rowoperations.js";
+import {addAllScaleButtons, updateTableFromArray} from "./rowoperations.js";
 import {generateEquation} from "./app_math.js";
 
 let CURRENT_TABLE;
@@ -86,11 +85,11 @@ function initTable() {
     getTableSize();
 }
 /**
- * Creates a 2D array and fills it with empty strings, "". 
+ * Creates a 2D array and fills it with empty strings. 
  * 
- * This makes it easier to check for empty values later on
+ * This makes it easier to check for empty values later on.
  * @param {number} row_value 
- * @param {number} column_value 
+ * @param {number} column_value  
  * @returns {array} 2D array
  */
 function createArray(row_value, column_value) {
@@ -98,7 +97,7 @@ function createArray(row_value, column_value) {
     for (let i = 0; i < row_value; i++) {
       array[i] = new Array(column_value);
       for (let j = 0; j < column_value; j++) {
-        array[i][j] = ""; // Simplify checking for empty cells later on
+        array[i][j] = "";
       }
     }
     return array;
@@ -362,30 +361,51 @@ function updateTableDimensions() {
     restoreTable();
 }
 /**
- * Ensures elements are kept in the correct cells after row/column size has been altered
+ * Ensures elements are kept in the correct cells after row/column size has been altered.
+ * 
+ * If called with true, all table cells are filled. Otherwise only the cells from the previous dimensions are filled
+ * @param {true} fill_all Optional
  * @returns 
  */
-function restoreTable() {
+function restoreTable(fill_all) {
+    let filling_row_value, filling_column_value;
+    if(fill_all === true) {
+        filling_row_value = SETTINGS.WRITABLE.row_value;
+        filling_column_value = SETTINGS.WRITABLE.column_value;
+    }
+    else {
+        filling_row_value = SETTINGS.WRITABLE.prev_row_value;
+        filling_column_value = SETTINGS.WRITABLE.prev_column_value;
+    }
+
+
+
     // Copy the backend array to a temp array
     let temp_array = CURRENT_TABLE.slice();
-
     // Overwrite the backend array with a new, empty array
     CURRENT_TABLE = createArray(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
 
     // If the dimensions of the previous table is larger than the dimensions of the current table, go down to the current table's dimensions
     // This prevents accessing the array out of bounds when merging the old backend array with the new backend array
-
     if(SETTINGS.WRITABLE.row_value < SETTINGS.WRITABLE.prev_row_value) {   
         SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value;
+        console.log(`IF RVAL ${SETTINGS.WRITABLE.prev_row_value}`);
     }
     else if(SETTINGS.WRITABLE.column_value < SETTINGS.WRITABLE.prev_column_value) {  
         SETTINGS.WRITABLE.prev_column_value = SETTINGS.WRITABLE.column_value;
+        console.log(`IF CVAL ${SETTINGS.WRITABLE.prev_column_value}`);
     }
+
+    console.log(`PREV RVAL ${SETTINGS.WRITABLE.prev_row_value}`);
+    console.log(`PREV CVAL ${SETTINGS.WRITABLE.prev_column_value}`);
+    console.log(`CUR RVAL ${SETTINGS.WRITABLE.row_value}`);
+    console.log(`CUR CCVAL ${SETTINGS.WRITABLE.column_value}`);
     // Catch potential errors related to accidentally accessing the array out of bounds
     try { 
         // Nested for-loops to access two-dimensional arrays
-        for(let i = 0; i < SETTINGS.WRITABLE.row_value; i++) {
-            for(let j = 0; j < SETTINGS.WRITABLE.column_value; j++) {
+        // Using the prev values since we're only interested in the values in the previous old backend array
+        for(let i = 0; i < filling_row_value; i++) {
+            for(let j = 0; j < filling_column_value; j++) {
 
                 // Only merge array indices containing something
                 if(temp_array[i][j] !== undefined && temp_array[i][j] !== "") {
@@ -641,7 +661,7 @@ function sanitize(str){
 
 function randomize_Table() {
     CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
-    restoreTable();
+    restoreTable(true);
 }
 
 // Running The Program
