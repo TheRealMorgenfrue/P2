@@ -243,4 +243,4 @@ function updateTableFromArray(table, tableArray, options, query){
             insertBefore(rowB, siblingA);
         }
         */
-export {addAllScaleButtons};
+export {addAllScaleButtons, updateTableFromArray};
