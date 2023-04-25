@@ -377,9 +377,6 @@ function restoreTable(fill_all) {
         filling_row_value = SETTINGS.WRITABLE.prev_row_value;
         filling_column_value = SETTINGS.WRITABLE.prev_column_value;
     }
-
-
-
     // Copy the backend array to a temp array
     let temp_array = CURRENT_TABLE.slice();
     // Overwrite the backend array with a new, empty array
@@ -389,17 +386,12 @@ function restoreTable(fill_all) {
     // This prevents accessing the array out of bounds when merging the old backend array with the new backend array
     if(SETTINGS.WRITABLE.row_value < SETTINGS.WRITABLE.prev_row_value) {   
         SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value;
-        console.log(`IF RVAL ${SETTINGS.WRITABLE.prev_row_value}`);
+        filling_row_value = SETTINGS.WRITABLE.row_value;
     }
     else if(SETTINGS.WRITABLE.column_value < SETTINGS.WRITABLE.prev_column_value) {  
         SETTINGS.WRITABLE.prev_column_value = SETTINGS.WRITABLE.column_value;
-        console.log(`IF CVAL ${SETTINGS.WRITABLE.prev_column_value}`);
+        filling_column_value = SETTINGS.WRITABLE.column_value;
     }
-
-    console.log(`PREV RVAL ${SETTINGS.WRITABLE.prev_row_value}`);
-    console.log(`PREV CVAL ${SETTINGS.WRITABLE.prev_column_value}`);
-    console.log(`CUR RVAL ${SETTINGS.WRITABLE.row_value}`);
-    console.log(`CUR CCVAL ${SETTINGS.WRITABLE.column_value}`);
     // Catch potential errors related to accidentally accessing the array out of bounds
     try { 
         // Nested for-loops to access two-dimensional arrays
