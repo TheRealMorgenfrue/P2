@@ -9,7 +9,7 @@ Primitives:   "N/A"        / variable_case
 *****************************************
 */
 import {initDrag} from "./draganddrop.js";
-import {addAllScaleButtons, updateTableFromArray} from "./rowoperations.js";
+import {addScaleButton, updateTableFromArray} from "./rowoperations.js";
 import {generateEquation} from "./app_math.js";
 
 let CURRENT_TABLE;
@@ -572,7 +572,7 @@ function lockTable() {
             element.setAttribute("readonly", "true");
         });
         console.log("Table is now locked");
-        addAllScaleButtons();
+        addScaleButton();
     }
     else {
         console.warn("Table is already locked");

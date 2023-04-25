@@ -1,4 +1,5 @@
 'use strict'
+import {sanitize} from "../scripts/app_GE"
 import {attachToParent} from "../scripts/positioning.js" // Used for positioning buttons 
 import {swapRows} from "../scripts/app_math.js"
 //import {sanitize} from "../scripts/app_GE.js" // Used for scale button input 
@@ -121,50 +122,50 @@ function scaleRow(table,row,scalar,tableArray){
         console.log(`${error.message}`);
     }
 }
-/* TODO: Mads 
-* Instead of showing and not showing the scale button, implement logic that instead moves a single button when the row is moused over instead of showing and hiding the button 
-* Make scale button scale row in tableArray and update the table using updateTableFromArray
-*/
+/* TODO: Mads
+* Make row  */
+
 /**
- * This function adds a scale buttton to a row and moves this button to the left side of this row
- * @param {HTMLelement} row - row element that we want to add a scale button to  
+ * Function adds a scale button to a table that can be moved  arounnd. 
+ * It attaches a the button to the first row of the table.
+ * Note: it enures that the first row of the table is defined before adding a button. 
+ * @param {HTMLelement} table - html representation of the table  
  */
-function addScaleButton(row){
-    let ScaleButton = document.createElement("input");
-    ScaleButton.classList.add("scaleButton");
-    ScaleButton.addEventListener("mouseleave", hideButton);
-    ScaleButton.addEventListener("mouseenter", showButton);
-    row.appendChild(ScaleButton); // Buttons is given a parent so it can be attached to the left 
-    attachToParent(ScaleButton, true); // Design specifies that buttons should be added on left side 
-}
-/** 
- * This function adds a scale button to every row in the html representatio of the matrix. 
- * It uses addScaleButton as a simple helper function to add each button in a simple for loop
- */
-function addAllScaleButtons(){
-    let rows = document.querySelectorAll("tr");
-    rows.forEach((element) => {addScaleButton(element)});
+function addScaleButton(table){
+    try{
+        let ScaleButton = document.createElement("input");
+        ScaleButton.classList.add("scaleButton"); // Ensure that scale button can be hidden with css styling 
+        ScaleButton.id = "scale_button_id";
+        ScaleButton.type = "number"; // Ensure that scalar is a number
+        let first_row = table.querySelector("tr");
+        // Check whether table is defined
+        if(first_row === undefined){
+            throw new Error("The table is empty");
+        }
+       first_row.appendChild(ScaleButton); // Buttons is given a parent so it can be attached to the left
+       attachToParent(ScaleButton, false); // Design specifies that buttons should be added on left side 
+    }
+    catch(error){
+        console.error(error);
+    }
 }
 /**
- * This function hides a html element when an event is fired.
- * It is supposed to show the scale button when a user hovers over them after it has been hidden initially 
- * This function is to be used in paralel with hideOnHover 
- * @param {event} event 
+ * This function moves the scale button from one row to another. 
+ * It also ensures that the button is made visible since it is hidden by css styling.  
+ * @param {event} event - event that targets a row
  */
 function moveButton(event){
-    console.log(`show event fired at ${event.target}\n`);
-    event.currentTarget.style = "visible";
-}
-/**
- * This function hides a html element when an event is fired 
- * It is supposed to hide the scale button when a user hovers over them after it has been hidden initially 
- * This function supplements showOnHover
- * @param {event} event 
- */
-function hideButton(event){
-    console.log(`hide event fired at ${event.target}\n`);
-    event.currentTarget.style = "hidden";
-}
+    let target_row = event.currentTarget;
+    let scaleButton = document.getElementById("scale_button_id");
+    // The first time the scalebutton is attached, it is hidden - ensure that it is shown on mouse move
+    if(scaleButton.style.visibility === "hidden"){ 
+        scaleButton.style.visibility = "visible";
+    }
+    scaleButton.value = "1"; // Ensure that row is not scaled if user does not input a scalar value
+    target_row.appendChild(scaleButton);
+    attachToParent(ScaleButton, false);
+    }
+
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
  * The ith row in the table uses the ith element from the array of arrays and copies one entry from the subarray into every table cell.
@@ -255,4 +256,4 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
             insertBefore(rowB, siblingA);
         }
         */
-export {addAllScaleButtons, updateTableFromArray};
+export {addScaleButton, updateTableFromArray};
