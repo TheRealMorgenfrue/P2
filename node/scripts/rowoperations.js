@@ -26,7 +26,7 @@ function searchForRowIndex(table, row){
  */
 function extractRowIndex(row){
     const idMatch = (row.id.match(/\d+$(?!\_)/));
-    if(idMatch.length > 0){
+    if(idMatch.length >= 0){
         return Number(idMatch);
     } else {
         return null;
@@ -173,14 +173,17 @@ function hideButton(event){
  * 
  * The fourth argument is also optional and can be used to select specific elements within each table cell. It must be a valid CSS selector string.
  * 
+ * The fifth argument specifies which attribute of a cell's target element to change. The default is innerHTML.
+ * 
  * Remember to sanitize the data in tableArray!
  * @param {HTMLelement} table is an HTML table-lement or HTML tbody-element.
  * @param {Array} tableArray is an array of arrays representing the data that should be placed in the table.
  * @param {Array} options is a set of integers specifying the base-0 index of the rows that should be updated.
- * @param {String} query is an optional CSS selector string used to identify elements within the table cells.
  * If excluded, every row in the table will be updated. Both positive and negative values are allowed.
+ * @param {String} query is an optional CSS selector string used to identify elements within the table cells.
+ * @param {String} attribute is a specific attribute of the target element to modify instead of its innerHTML. Passed as a string like "value" and used with element.setAttribute.
  */
-function updateTableFromArray(table, tableArray, options, query){
+function updateTableFromArray(table, tableArray, options, query, attribute){
     //get an iterable list of rows in the table
     let rows = table.querySelectorAll("tr");
 
@@ -198,28 +201,37 @@ function updateTableFromArray(table, tableArray, options, query){
         rows = trimmedRows;
     }
 
+    if(!attribute || attribute.length < 0){
+        attribute = "innerHTML";
+    }
+
     //now that we know which rows to work on, we get the elements in each row and write new values in them.
-    //since querySelectorAll returns an iterable object, we can use the callback for forEach's index-argument
+    //since querySelectorAll returns an iterable object, we can use the index-argument in forEach's callback
     //as it would correspond to the value representing that cell in the array of arrays.
     //but first we need to check if we shoud include the extra query:
     if(query.length > 0){
         rows.forEach((row, i) => {
             row.querySelectorAll("td").forEach((cell, j) => {
-                cell.querySelector(query).innerHTML = tableArray[i][j];
+                cell.querySelector(query).setAttribute(attribute, tableArray[i][j]);
             })
     });
     } else {
         rows.forEach((row, i) => {
             row.querySelectorAll("td").forEach((cell, j) => {
-                cell.innerHTML = tableArray[i][j];
+                cell.setAttribute(attribute, tableArray[i][j]);
             })
     });
     }
-    //note: We use .innerHTML to set the data in each cell. This adds flexibility to what we can put in the table
-    //through the tableArray i.e. any HTML-code we want, ignoring if the parent element needs .value or .innerText etc.
-    //to set its data ordinarily, but the data might need sanitizing first. We assume another function has done that
-    //before this function is run.
+    //note: We use .innerHTML as our default attribute to set in each cell. This adds flexibility to what we can put in the table
+    //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.
+    //The data we set might need sanitizing first. We assume another function has done that before this function is run.
 }
+
+
+
+
+
+
         /*THE FOLLOWING IS DEPRECATED CODE FROM swapTableRows, USED IN PLACE OF updateTableFromArray
         //first, we find the siblings that come after rowA and rowB.
         //note that nextSibling returns null if the node it is called on is the last sibling
