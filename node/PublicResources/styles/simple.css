@@ -28,9 +28,8 @@
   margin-left: 10px;
 }
 
-.scaleButton {
+.scalarInput {
   width: 40px;
   margin-left: 1px;
   visibility: hidden;
-  background-color: blueviolet;
 }

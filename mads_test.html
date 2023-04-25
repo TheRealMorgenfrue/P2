@@ -10,36 +10,58 @@
         <tr id="table 1 row 2" draggable="true"><td>21</td><td>22</td></tr>
     </table>
     <script>
-    function addScaleButton(table){
+    function addScalarInput(table){
     try{
-        let ScaleButton = document.createElement("input");
-        ScaleButton.type = "number";
-        ScaleButton.classList.add("scaleButton");
-        ScaleButton.id = "scale_button_id";
+        let scalar_input = document.createElement("input");
+        scalar_input.type = "number";
+        scalar_input.classList.add("scalar_input");
+        scalar_input.id = "scalar_input_id";
         let first_row = table.querySelector("tr");
         if(first_row === undefined){
             throw new Error("The table is empty");
         }
-       first_row.appendChild(ScaleButton); // Buttons is given a parent so it can be attached to the left
-       //attachToParent(ScaleButton, false); // Design specifies that buttons should be added on left side 
+       first_row.appendChild(scalar_input); // Buttons is given a parent so it can be attached to the left
+       //attachToParent(ScaleButton, false); // Design specifies that buttons should be added on left side
+       rows  = document.querySelectorAll("tr"); 
+       rows.forEach(element => {element.addEventListener("mouseover", moveElementToRow.bind(event,"1",scalar_input.id))}); 
+
     }
     catch(error){
         console.error(error);
     }
-    
 }
-    function moveButton(event){
+    function moveElementToRow(event, id, default_value){
     let target_row = event.currentTarget;
-    let scaleButton = document.getElementById("scale_button_id");
-    scaleButton.value = "1";
-    target_row.appendChild(scaleButton);
+    console.log(id);
+    let target_element = document.getElementById(id);
+    if(default_value){
+        target_element.value = default_value;
+    }
+    target_row.appendChild(target_element);
     //attachToParent(ScaleButton, false);
     }
 
+    function addScaleButton(input_box){
+        scale_button = document.createElement("button");
+        input_box.appendChild(scale_button);
+    }
+
+    function scaleRow(table,row,scalar,tableArray){
+    try{
+        row_to_scale = tableArray[searchForRowIndex(table, row)];
+        if(row_to_scale === undefined){
+            throw new Error("Row cannot be found");
+        }
+        row_to_scale.forEach(element => (element *= scalar));
+    }
+    catch(error){
+        console.log(`${error.message}`);
+    }
+}
+
     table = document.getElementById("table_1");
-    addScaleButton(table);
-    rows  = document.querySelectorAll("tr"); 
-    rows.forEach(element => {element.addEventListener("mouseover", moveButton)});
+    addScalarInput(table);
+  
     </script>
     <script>
     function attachToParent(element, left){
