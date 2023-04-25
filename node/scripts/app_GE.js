@@ -666,7 +666,7 @@ function sanitize(str){
  */
 function randomize_Table() {
     CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
-    restoreTable();
+    restoreTable(true);
 }
 
 // Running The Program
