@@ -11,6 +11,7 @@ Primitives:   "N/A"        / variable_case
 import {initDrag} from "./draganddrop.js";
 import {addAllScaleButtons} from "./rowoperations.js";
 import {updateTableFromArray} from "./rowoperations.js";
+import {generateEquation} from "./app_math.js";
 
 let CURRENT_TABLE;
 // CURRENT_TABLE is an array of arrays (2D array). It is global since it'll be used across all functions 
@@ -52,6 +53,10 @@ const SETTINGS = new function() {
             this.rewind_button_value = "Go back";
             this.rewind_button_type = "button";
             this.rewind_Table = function() { rewindTable(1); };
+            this.randomize_button_id = "randomizebutton";
+            this.randomize_button_value = "Randomize";
+            this.randomize_button_type = "button";
+            this.randomize_Table = function() { randomize_Table(); };
         }
     }
     this.WRITABLE = new function() {
@@ -159,6 +164,7 @@ function deleteTable() {
     deleteElement(`${SETTINGS.READONLY_SETTINGS.BUTTON_SETTINGS.unlock_button_id}`);
     deleteElement(`${SETTINGS.READONLY_SETTINGS.BUTTON_SETTINGS.clear_button_id}`);
     deleteElement(`${SETTINGS.READONLY_SETTINGS.BUTTON_SETTINGS.rewind_button_id}`);
+    deleteElement(`${SETTINGS.READONLY_SETTINGS.BUTTON_SETTINGS.randomize_button_id}`);
 }
 /**
  * Create two input buttons separated by an "x" string.
@@ -368,6 +374,7 @@ function restoreTable() {
 
     // If the dimensions of the previous table is larger than the dimensions of the current table, go down to the current table's dimensions
     // This prevents accessing the array out of bounds when merging the old backend array with the new backend array
+
     if(SETTINGS.WRITABLE.row_value < SETTINGS.WRITABLE.prev_row_value) {   
         SETTINGS.WRITABLE.prev_row_value = SETTINGS.WRITABLE.row_value;
     }
@@ -377,8 +384,8 @@ function restoreTable() {
     // Catch potential errors related to accidentally accessing the array out of bounds
     try { 
         // Nested for-loops to access two-dimensional arrays
-        for(let i = 0; i < SETTINGS.WRITABLE.prev_row_value; i++) {
-            for(let j = 0; j < SETTINGS.WRITABLE.prev_column_value; j++) {
+        for(let i = 0; i < SETTINGS.WRITABLE.row_value; i++) {
+            for(let j = 0; j < SETTINGS.WRITABLE.column_value; j++) {
 
                 // Only merge array indices containing something
                 if(temp_array[i][j] !== undefined && temp_array[i][j] !== "") {
@@ -509,7 +516,8 @@ function addTableButtons() {
         lock_button: document.createElement("input"),
         unlock_button: document.createElement("input"),
         clear_button: document.createElement("input"),
-        rewind_button: document.createElement("input")
+        rewind_button: document.createElement("input"),
+        randomize_button: document.createElement("input")
     };
 
     // Do NOT use the global id for the buttons here. 
@@ -518,6 +526,7 @@ function addTableButtons() {
     addButtonAttributes("unlock", Input);   
     addButtonAttributes("clear", Input);
     addButtonAttributes("rewind", Input);
+    addButtonAttributes("randomize", Input);
 }
 /**
  * Helper function to addTableButtons() that adds attributes/event listeners to the buttons and places them after the table 
@@ -628,6 +637,11 @@ function sanitize(str){
 //   .replace(/'/g, "")
 //   .replace(/`/g, "")
     return `${negation_operator}`+ `${str}`;
+}
+
+function randomize_Table() {
+    CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
+    restoreTable();
 }
 
 // Running The Program

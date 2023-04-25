@@ -1,4 +1,4 @@
-import {gaussianElimination, hasSolutions, isRowEchelonForm, isUpperTriangular} from "../scripts/app_math.js";
+import {gaussianElimination, hasSolutions, isRowEchelonForm, isUpperTriangular, generateEquation} from "../scripts/app_math.js";
 
 test('consistent matrix with unique solution: hasSolutions returns true', () => {
     let consistent_matrix = [
@@ -38,6 +38,7 @@ test('matrix with small digits, to show partial pivot: hasSolutions returns true
     gaussianElimination(small_valued_matrix);
     expect(hasSolutions(small_valued_matrix)).toEqual(true)
 });
+
 test('under-determined matrix with multiple solutions: hasSolutions returns true', () => {
     let wide_matrix = [
         [1,1,0,1],
