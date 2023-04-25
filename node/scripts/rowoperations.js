@@ -69,7 +69,7 @@ function swapTableRows(table, rowA, rowB, tableArray){
     }
 }
 /**
- * This function implements row addtion and subtraction for matrices. 
+ * This function implements row addition and subtraction for matrices. 
  * It manipulates the 2D array which forms the underlying representation of the HTML-table. 
  * Note that rowA is subtracted/added to rowB without changing rowA 
  * @param {HTMLelement} table - html representation of the current table 
@@ -89,7 +89,7 @@ function addRows(table, rowA, rowB, tableArray){
         }
         let row1 = tableArray[indexA];
         let row2 = tableArray[indexB];
-        if(row1.length !== row2.length){ //Rows may not be of same length
+        if(row1.length !== row2.length){ // Rows may not be of same length
             throw new Error("Rows are not of the same length and cannot be added");
         }
         // Note that this loop changes the values of tableArray and not its copy 
