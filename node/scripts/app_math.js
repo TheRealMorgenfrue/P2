@@ -132,7 +132,7 @@ function hasSolutions(equations) {
             // Inconsistent system, no solutions
             return false;
         } else if (allZeroes) {
-            // Row with all zeroes indicates multiple solutions or infinite solutions
+            // Row with all zeroes indicates infinite solutions
             return true;
         }
     }
@@ -214,4 +214,37 @@ function scaleArray(array, scalar){
     return Array.from(array, (x) => x*scalar);
 }
 
-export {gaussianElimination, backSubstitution, hasSolutions, swapRows, isRowEchelonForm, isUpperTriangular} // Export function(s) to test suite (brackets matter, see drag.test.js)
+/**
+ * Generates a random number max exclusive and min inclusive
+ * @param {number} min
+ * @param {number} max
+ * @returns {number}
+ */
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min) + min); // Max is exclusive and min is inclusive
+}
+
+/**
+ * Generates 2D array of randomly generated system of linear equations with elements between -10 and 10
+ * Called using rows and columns in HTML
+ * @param {number} rows
+ * @param {number} columns
+ */
+function generateEquation(rows, columns) {
+    let equations = new Array(rows);
+    for (let i = 0; i < rows; i++) {
+        equations[i] = new Array(columns);
+    }
+    for(let i = 0; i < rows; i++) {
+        for (let j = 0; j < columns; j++) {
+            equations[i][j] = getRandomInt(-9,10);
+        }
+    }
+    return equations;
+}
+
+export {gaussianElimination, backSubstitution, hasSolutions,
+    swapRows, isRowEchelonForm, isUpperTriangular, generateEquation};
+// Export function(s) to test suite (brackets matter, see drag.test.js)

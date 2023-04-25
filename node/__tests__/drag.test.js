@@ -48,14 +48,14 @@ async function getVal(page, element_id) {
 }
 
 test('Changes number of rows to 3 and writes "1" in cell (2,0)', async () => {
-    /*
+/*
     const browser = await puppeteer.launch(
     { // Shows the actual browser inputs
         headless: false,
         slowMo: 80,
         args: ['--window-size=1080,1024']
     });
-    */
+*/
     const browser = await puppeteer.launch();
     // Opens Chromium browser
     const page = await browser.newPage();
