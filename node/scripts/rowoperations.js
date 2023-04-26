@@ -144,7 +144,7 @@ function addScalarInput(table){
         }
        first_row.appendChild(scalar_input); // Buttons is given a parent so it can be attached to the left
        attachToParent(scalar_input, false); // Add button to left side of table because design specifies that buttons should be added on left side 
-       rows  = document.querySelectorAll("tr"); // Add listener to all table rows to ensure that button can be moved between rows 
+       let rows  = document.querySelectorAll("tr"); // Add listener to all table rows to ensure that button can be moved between rows 
        rows.forEach(element => {element.addEventListener("mouseover", moveInput)}); 
     }
     catch(error){
