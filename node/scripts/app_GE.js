@@ -9,7 +9,7 @@ Primitives:   "N/A"        / variable_case
 *****************************************
 */
 import {initDrag} from "./draganddrop.js";
-import {addScaleButton, updateTableFromArray} from "./rowoperations.js";
+import {addScalarInput, addScaleButton, updateTableFromArray} from "./rowoperations.js";
 import {generateEquation} from "./app_math.js";
 
 let CURRENT_TABLE;

@@ -123,27 +123,29 @@ function scaleRow(table,row,scalar,tableArray){
     }
 }
 /* TODO: Mads
-* Make row  */
+* Make button that scales the html elements by using eval.*/
 
 /**
- * Function adds a scale button to a table that can be moved  arounnd. 
- * It attaches a the button to the first row of the table.
- * Note: it enures that the first row of the table is defined before adding a button. 
+ * Function adds scalar input to a table that can be moved  arounnd. 
+ * It attaches the input cell to the first row of the table.
+ * Note: it enures that the first row of the table is defined before this input cell.
  * @param {HTMLelement} table - html representation of the table  
  */
-function addScaleButton(table){
+function addScalarInput(table){
     try{
-        let ScaleButton = document.createElement("input");
-        ScaleButton.classList.add("scaleButton"); // Ensure that scale button can be hidden with css styling 
-        ScaleButton.id = "scale_button_id";
-        ScaleButton.type = "number"; // Ensure that scalar is a number
+        let scalar_input = document.createElement("input");
+        scalar_input.classList.add("scalarInput"); // Ensure that scale button can be hidden with css styling 
+        scalar_input.id = "scalar_input_id";
+        scalar_input.type = "number"; // Ensure that scalar is a number
         let first_row = table.querySelector("tr");
         // Check whether table is defined
         if(first_row === undefined){
             throw new Error("The table is empty");
         }
-       first_row.appendChild(ScaleButton); // Buttons is given a parent so it can be attached to the left
-       attachToParent(ScaleButton, false); // Design specifies that buttons should be added on left side 
+       first_row.appendChild(scalar_input); // Buttons is given a parent so it can be attached to the left
+       attachToParent(scalar_input, false); // Add button to left side of table because design specifies that buttons should be added on left side 
+       let rows  = document.querySelectorAll("tr"); // Add listener to all table rows to ensure that button can be moved between rows 
+       rows.forEach(element => {element.addEventListener("mouseover", moveInput)}); 
     }
     catch(error){
         console.error(error);
@@ -154,16 +156,16 @@ function addScaleButton(table){
  * It also ensures that the button is made visible since it is hidden by css styling.  
  * @param {event} event - event that targets a row
  */
-function moveButton(event){
+function moveInput(event){
     let target_row = event.currentTarget;
-    let scaleButton = document.getElementById("scale_button_id");
+    let scalar_input = document.getElementById("scalar_input_id");
     // The first time the scalebutton is attached, it is hidden - ensure that it is shown on mouse move
-    if(scaleButton.style.visibility === "hidden"){ 
-        scaleButton.style.visibility = "visible";
+    if(scalar_input.style.visibility === "hidden"){ 
+        scalar_input.style.visibility = "visible";
     }
-    scaleButton.value = "1"; // Ensure that row is not scaled if user does not input a scalar value
-    target_row.appendChild(scaleButton);
-    attachToParent(ScaleButton, false);
+    scalar_input.value = "1"; // Ensure that row is not scaled if user does not input a scalar value
+    target_row.appendChild(scalar_input);
+    attachToParent(scalar_input, false);
     }
 
 /**
