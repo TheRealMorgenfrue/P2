@@ -1,5 +1,5 @@
 'use strict'
-import {sanitize} from "../scripts/app_GE"
+import {sanitize} from "../scripts/app_GE.js"
 import {attachToParent} from "../scripts/positioning.js" // Used for positioning buttons 
 import {swapRows} from "../scripts/app_math.js"
 //import {sanitize} from "../scripts/app_GE.js" // Used for scale button input 
@@ -103,25 +103,7 @@ function addRows(table, rowA, rowB, tableArray){
         console.log(`${error.message}`);
     }
 }
-/**
- * This function scales a row in the underlying array representation of the html matrix by a scalar if row can be found 
- * @param {HTMLelement} table - html element representing the matrix 
- * @param {HTMLelement} row - the row to be scaled by a scalar
- * @param {number} scalar - a scalar i.e. a number that a row is scaled by
- * @param {Array} tableArray  - 2D-array representation of the html element table 
- */
-function scaleRow(table,row,scalar,tableArray){
-    try{
-        row_to_scale = tableArray[searchForRowIndex(table, row)];
-        if(row_to_scale === undefined){
-            throw new Error("Row cannot be found");
-        }
-        row_to_scale.forEach(element => (element *= scalar));
-    }
-    catch(error){
-        console.log(`${error.message}`);
-    }
-}
+
 /* TODO: Mads*/
 /**
  * This function creates a scale field consisting of a scale button and an input field for the scalar. 
@@ -190,7 +172,7 @@ function attachMoveInput(all_rows){
 
 function scaleRow(table,row,scalar,tableArray){
 try{
-    row_to_scale = tableArray[searchForRowIndex(table, row)];
+    let row_to_scale = tableArray[searchForRowIndex(table, row)];
     if(row_to_scale === undefined){
         throw new Error("Row cannot be found");
     }
@@ -300,4 +282,4 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
             insertBefore(rowB, siblingA);
         }
         */
-export {addScaleButton, updateTableFromArray};
+export {updateTableFromArray};
