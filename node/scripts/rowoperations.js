@@ -166,7 +166,7 @@ function createScalarInput(){
 function createScaleButton(){
     const scale_button = document.createElement("button");
     scale_button.innerHTML = "Scale";
-    scale_field.addEventListener("click", callScaleRows());
+    scale_button.addEventListener("click", callScaleRows());
     return scale_button;
 }
 
