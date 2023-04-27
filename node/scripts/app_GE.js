@@ -9,7 +9,7 @@ Primitives:   "N/A"        / variable_case
 *****************************************
 */
 import {initDrag} from "./draganddrop.js";
-import {addAllScaleButtons, updateTableFromArray} from "./rowoperations.js";
+import {updateTableFromArray} from "./rowoperations.js";
 import {generateEquation} from "./app_math.js";
 
 let CURRENT_TABLE;
@@ -564,7 +564,6 @@ function lockTable() {
             element.setAttribute("readonly", "true");
         });
         console.log("Table is now locked");
-        addAllScaleButtons();
     }
     else {
         console.warn("Table is already locked");
@@ -663,4 +662,4 @@ window.addEventListener("load", (event) => {
 });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
-export {createArray};
+export {createArray, sanitize};

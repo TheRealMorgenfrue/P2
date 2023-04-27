@@ -1,6 +1,6 @@
 import {gaussianElimination, hasSolutions, isRowEchelonForm, isUpperTriangular, generateEquation} from "../scripts/app_math.js";
 
-test('consistent matrix with unique solution: hasSolutions returns true', () => {
+test('consistent matrix with unique solution: hasSolutions returns "unique"', () => {
     let consistent_matrix = [
         [1,2,1,-1,5],
         [3,2,4,4,16],
@@ -10,7 +10,7 @@ test('consistent matrix with unique solution: hasSolutions returns true', () => 
     let solution = hasSolutions(consistent_matrix);
     expect(solution.solutions).toEqual("unique");
 });
-test('inconsistent matrix: hasSolutions returns false', () => {
+test('inconsistent matrix: hasSolutions returns "none"', () => {
     let inconsistent_matrix = [
         [1,1,1],
         [1,0,-1],
@@ -20,7 +20,7 @@ test('inconsistent matrix: hasSolutions returns false', () => {
     expect(solution.solutions).toEqual("none");
 });
 
-test('over-determined matrix with multiple solutions: hasSolutions returns true', () => {
+test('over-determined matrix with multiple solutions: hasSolutions returns "infinite"', () => {
     let over_determined_matrix = [
         [1,1,1],
         [1,1,1],
@@ -31,7 +31,7 @@ test('over-determined matrix with multiple solutions: hasSolutions returns true'
     expect(solution.solutions).toEqual("infinite");
 });
 
-test('matrix with small digits, to show partial pivot: hasSolutions returns true ', () => {
+test('matrix with small digits, to show partial pivot: hasSolutions returns "unique"', () => {
     let small_valued_matrix = [
         [0.02,0.01,0,0,0.02],
         [1,2,1,0,1],
@@ -42,7 +42,7 @@ test('matrix with small digits, to show partial pivot: hasSolutions returns true
     expect(solution.solutions).toEqual("unique");
 });
 
-test('under-determined matrix with multiple solutions: hasSolutions returns true', () => {
+test('under-determined matrix with multiple solutions: hasSolutions returns "unique"', () => {
     let wide_matrix = [
         [1,1,0,1],
         [0,1,1,2]]
