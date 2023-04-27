@@ -1,4 +1,5 @@
 'use strict'
+import {sanitize} from "../scripts/app_GE"
 import {attachToParent} from "../scripts/positioning.js" // Used for positioning buttons 
 import {swapRows} from "../scripts/app_math.js"
 //import {sanitize} from "../scripts/app_GE.js" // Used for scale button input 
@@ -26,7 +27,7 @@ function searchForRowIndex(table, row){
  */
 function extractRowIndex(row){
     const idMatch = (row.id.match(/\d+$(?!\_)/));
-    if(idMatch.length > 0){
+    if(idMatch.length >= 0){
         return Number(idMatch);
     } else {
         return null;
@@ -121,50 +122,52 @@ function scaleRow(table,row,scalar,tableArray){
         console.log(`${error.message}`);
     }
 }
-/* TODO: Mads 
-* Instead of showing and not showing the scale button, implement logic that instead moves a single button when the row is moused over instead of showing and hiding the button 
-* Make scale button scale row in tableArray and update the table using updateTableFromArray
-*/
+/* TODO: Mads
+* Make button that scales the html elements by using eval.*/
+
 /**
- * This function adds a scale buttton to a row and moves this button to the left side of this row
- * @param {HTMLelement} row - row element that we want to add a scale button to  
+ * Function adds scalar input to a table that can be moved  arounnd. 
+ * It attaches the input cell to the first row of the table.
+ * Note: it enures that the first row of the table is defined before this input cell.
+ * @param {HTMLelement} table - html representation of the table  
  */
-function addScaleButton(row){
-    let ScaleButton = document.createElement("input");
-    ScaleButton.classList.add("scaleButton");
-    ScaleButton.addEventListener("mouseleave", hideButton);
-    ScaleButton.addEventListener("mouseenter", showButton);
-    row.appendChild(ScaleButton); // Buttons is given a parent so it can be attached to the left 
-    attachToParent(ScaleButton, true); // Design specifies that buttons should be added on left side 
-}
-/** 
- * This function adds a scale button to every row in the html representatio of the matrix. 
- * It uses addScaleButton as a simple helper function to add each button in a simple for loop
- */
-function addAllScaleButtons(){
-    let rows = document.querySelectorAll("tr");
-    rows.forEach((element) => {addScaleButton(element)});
-}
-/**
- * This function hides a html element when an event is fired.
- * It is supposed to show the scale button when a user hovers over them after it has been hidden initially 
- * This function is to be used in paralel with hideOnHover 
- * @param {event} event 
- */
-function moveButton(event){
-    console.log(`show event fired at ${event.target}\n`);
-    event.currentTarget.style = "visible";
+function addScalarInput(table){
+    try{
+        let scalar_input = document.createElement("input");
+        scalar_input.classList.add("scalarInput"); // Ensure that scale button can be hidden with css styling 
+        scalar_input.id = "scalar_input_id";
+        scalar_input.type = "number"; // Ensure that scalar is a number
+        let first_row = table.querySelector("tr");
+        // Check whether table is defined
+        if(first_row === undefined){
+            throw new Error("The table is empty");
+        }
+       first_row.appendChild(scalar_input); // Buttons is given a parent so it can be attached to the left
+       attachToParent(scalar_input, false); // Add button to left side of table because design specifies that buttons should be added on left side 
+       let rows  = document.querySelectorAll("tr"); // Add listener to all table rows to ensure that button can be moved between rows 
+       rows.forEach(element => {element.addEventListener("mouseover", moveInput)}); 
+    }
+    catch(error){
+        console.error(error);
+    }
 }
 /**
- * This function hides a html element when an event is fired 
- * It is supposed to hide the scale button when a user hovers over them after it has been hidden initially 
- * This function supplements showOnHover
- * @param {event} event 
+ * This function moves the scale button from one row to another. 
+ * It also ensures that the button is made visible since it is hidden by css styling.  
+ * @param {event} event - event that targets a row
  */
-function hideButton(event){
-    console.log(`hide event fired at ${event.target}\n`);
-    event.currentTarget.style = "hidden";
-}
+function moveInput(event){
+    let target_row = event.currentTarget;
+    let scalar_input = document.getElementById("scalar_input_id");
+    // The first time the scalebutton is attached, it is hidden - ensure that it is shown on mouse move
+    if(scalar_input.style.visibility === "hidden"){ 
+        scalar_input.style.visibility = "visible";
+    }
+    scalar_input.value = "1"; // Ensure that row is not scaled if user does not input a scalar value
+    target_row.appendChild(scalar_input);
+    attachToParent(scalar_input, false);
+    }
+
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
  * The ith row in the table uses the ith element from the array of arrays and copies one entry from the subarray into every table cell.
@@ -173,14 +176,17 @@ function hideButton(event){
  * 
  * The fourth argument is also optional and can be used to select specific elements within each table cell. It must be a valid CSS selector string.
  * 
+ * The fifth argument specifies which attribute of a cell's target element to change. The default is innerHTML.
+ * 
  * Remember to sanitize the data in tableArray!
  * @param {HTMLelement} table is an HTML table-lement or HTML tbody-element.
  * @param {Array} tableArray is an array of arrays representing the data that should be placed in the table.
  * @param {Array} options is a set of integers specifying the base-0 index of the rows that should be updated.
- * @param {String} query is an optional CSS selector string used to identify elements within the table cells.
  * If excluded, every row in the table will be updated. Both positive and negative values are allowed.
+ * @param {String} query is an optional CSS selector string used to identify elements within the table cells.
+ * @param {String} attribute is a specific attribute of the target element to modify instead of its innerHTML. Passed as a string like "value" and used with element.setAttribute.
  */
-function updateTableFromArray(table, tableArray, options, query){
+function updateTableFromArray(table, tableArray, options, query, attribute){
     //get an iterable list of rows in the table
     let rows = table.querySelectorAll("tr");
 
@@ -198,28 +204,37 @@ function updateTableFromArray(table, tableArray, options, query){
         rows = trimmedRows;
     }
 
+    if(!attribute || attribute.length < 0){
+        attribute = "innerHTML";
+    }
+
     //now that we know which rows to work on, we get the elements in each row and write new values in them.
-    //since querySelectorAll returns an iterable object, we can use the callback for forEach's index-argument
+    //since querySelectorAll returns an iterable object, we can use the index-argument in forEach's callback
     //as it would correspond to the value representing that cell in the array of arrays.
     //but first we need to check if we shoud include the extra query:
     if(query.length > 0){
         rows.forEach((row, i) => {
             row.querySelectorAll("td").forEach((cell, j) => {
-                cell.querySelector(query).innerHTML = tableArray[i][j];
+                cell.querySelector(query).setAttribute(attribute, tableArray[i][j]);
             })
     });
     } else {
         rows.forEach((row, i) => {
             row.querySelectorAll("td").forEach((cell, j) => {
-                cell.innerHTML = tableArray[i][j];
+                cell.setAttribute(attribute, tableArray[i][j]);
             })
     });
     }
-    //note: We use .innerHTML to set the data in each cell. This adds flexibility to what we can put in the table
-    //through the tableArray i.e. any HTML-code we want, ignoring if the parent element needs .value or .innerText etc.
-    //to set its data ordinarily, but the data might need sanitizing first. We assume another function has done that
-    //before this function is run.
+    //note: We use .innerHTML as our default attribute to set in each cell. This adds flexibility to what we can put in the table
+    //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.
+    //The data we set might need sanitizing first. We assume another function has done that before this function is run.
 }
+
+
+
+
+
+
         /*THE FOLLOWING IS DEPRECATED CODE FROM swapTableRows, USED IN PLACE OF updateTableFromArray
         //first, we find the siblings that come after rowA and rowB.
         //note that nextSibling returns null if the node it is called on is the last sibling
@@ -243,4 +258,4 @@ function updateTableFromArray(table, tableArray, options, query){
             insertBefore(rowB, siblingA);
         }
         */
-export {addAllScaleButtons, updateTableFromArray};
+export {addScaleButton, updateTableFromArray};

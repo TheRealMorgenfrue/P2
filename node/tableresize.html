@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<head>
+    <title>Test for resizing a table</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <div>
+        Rows:<input id="rowInput">
+        Columns:<input id="columnInput">
+        <button id="goButton">Resize</button>
+    </div>
+    <div id="tableContainer" style="position: relative; left: 50px;">
+        <table id="table">
+            <tr id="table_0">
+                <td>[]</td><td>[]</td>
+            </tr>
+            <tr id="table_1">
+                <td>[]</td><td>[]</td>
+            </tr>
+        </table>
+    </div>
+</body>
+<script>
+    document.getElementById("goButton").addEventListener("click", event => {
+        //get the requested dimensions and pack them into an object
+        //could be gotten in many other ways as well
+        const rowNumber = Number(document.getElementById("rowInput").value);
+        const columnNumber = Number(document.getElementById("columnInput").value);
+        console.log(`Resizing to ${rowNumber} by ${columnNumber}`);
+
+        const dimensions = {
+            rows: rowNumber,
+            columns: columnNumber
+        };
+
+        const changes = resizeTableBody(document.getElementById("table"), dimensions, "[]");
+    })
+    
+    //we assume the table has at least one tbody if a tbody is not passed as that argument
+    //should be compatible with updateTableFromArray
+
+    //table is the HTML-element of type "table" or "tbody" that should be resized
+    
+    //dimensions is an object with attributes "rows" and "columns"
+    //which represent the number of rows and columns to table should be resized to have
+
+    //HTMLcode is a string of HTML-code that will be placed in every cell this function creates
+    function resizeTableBody(table, dimensions, HTMLcode){
+        try{
+            //make sure we're dealing with a table or tbody
+            if(table.tagName.toUpperCase() !== "TABLE" && table.tagName.toUpperCase() !== "TBODY"){
+                throw new Error(`Argument "table" is not a table- or tbody-element.`)
+            }
+            //check if the dimensions are correctly defined
+            if(!dimensions){
+                throw new Error("Dimensions object not defined!");
+            }
+            if(isNaN(dimensions.rows) || isNaN(dimensions.columns) || dimensions.rows < 0 || dimensions.columns < 0){
+                throw new Error(`Dimension values not defined correctly.\nrowNumber is ${dimensions.rows} and columnNumber is ${dimensions.columns}`);
+            }
+            //define HTML-code to be placed in new cells
+            if(!HTMLcode || typeof HTMLcode !== "string"){
+                HTMLcode = "";
+            }
+            //if the table is not a tbody, we need to get a tbody first
+            if(table.tagName.toUpperCase() === "TABLE"){
+                table = table.querySelector("tbody");
+                console.log("Modifying first tbody in table")
+            }
+            //get an iterable refence to the rows
+            let tableRows = table.querySelectorAll("tr");
+            
+            //define arrays for the elements we add or remove
+            const changes = {
+                trAdded: [],
+                trRemoved: [],
+                tdAdded: [],
+                tdRemoved: []
+            };
+            //initialise the number of cells we need to add for various operations
+            //we can use this variable for both row- and column-changes
+            let cellsNeeded = 0;
+
+            //add or remove rows if requested
+            console.log(`Need to add ${dimensions.rows - tableRows.length} rows`);
+            if(tableRows.length < dimensions.rows){
+                //we need to add rows, since the requested number of rows is larger than the current number of rows
+                //first we find the number of columns we need to add to the new rows
+                if(table.lastElementChild){
+                    cellsNeeded = table.lastElementChild.querySelectorAll("td").length;
+                } else {
+                    cellsNeeded = 0;
+                }
+                //then we add a number of rows equal to the difference between the current row count and the requested row count
+                for (let i = 0; i < (dimensions.rows - tableRows.length); i++) {
+                    const newRow = document.createElement("tr");
+                    table.appendChild(newRow);
+
+                    //add the row to our list of changes
+                    changes.trAdded.push(newRow);
+                    
+                    /*Turns out we didn't need this, since the column-adding code below does it for us
+                      HOWEVER, if all rows are the same length, this could be readded and the column-adding code could be simplified...
+                    for (let j = 0; j < cellsNeeded; j++) {
+                        const newCell = document.createElement("td");
+                        newCell.innerHTML = HTMLcode;
+                        newRow.appendChild(newCell);
+                    }
+                    */
+                }
+            } else if(tableRows.length > dimensions.rows){
+                //we need to remove rows
+                //so we delete a number of rows equal to the difference between the current row count and the requested row count
+                for (let i = 0; i < (tableRows.length - dimensions.rows); i++) {
+                    //we use removeChild because it returns a reference to the removed element
+                    const removedRow = table.removeChild(table.lastElementChild);
+
+                    //add the removed row to our list of changes
+                    //note that it still exists even if it is no longer in the DOM!
+                    changes.trRemoved.push(removedRow);
+                }
+            }
+            console.log(`Added rows: ${changes.trAdded} Removed rows: ${changes.trRemoved}`);
+            //done adding or removing rows
+            //we update our list of rows before moving on to columns if we did something with the rows
+            if(dimensions.rows - tableRows.length !== 0){
+                tableRows = table.querySelectorAll("tr");
+            };
+            //add or remove columns if needed. It is important to do this after adding or removing any rows
+            //we do this for every row to ensure we end up with the same number of columns in every row
+            tableRows.forEach(row => {
+                cellsNeeded = dimensions.columns - row.querySelectorAll("td").length;
+                console.log(`Need ${cellsNeeded} cells on this row`);
+                if(cellsNeeded > 0){
+                    for (let i = 0; i < cellsNeeded; i++) {
+                        const newCell = document.createElement("td");
+                        newCell.innerHTML = HTMLcode;
+                        row.appendChild(newCell);
+
+                        //add the cell to our list of changes
+                        changes.tdAdded.push(newCell);
+                    }
+                } else if(cellsNeeded < 0){
+                    for (let i = cellsNeeded; i < 0; i++) {
+                        //once again using removeChild to get a reference to the element
+                        const removedCell = row.removeChild(row.lastElementChild);
+                        
+                        //add the cell to our list of changes
+                        changes.tdRemoved.push(removedCell);
+                    }
+                }
+            });
+            console.log(`Added cells: ${changes.tdAdded} Removed cells: ${changes.tdRemoved}`);
+            //we're finally done adding and removing things, so we return our changes-object
+            return changes;
+        } catch(error) {
+            console.error(error)
+            return null;
+        }
+        
+    }
+
+    //convert an HTML-table or tbody into an array of arrays of its elements and return it
+    //returns null if the input is not a table or tbody
+    function convertTableToArray(table){
+        try{
+            //make sure we're dealing with a table or a tbody
+            if(table.tagName.toUpperCase() !== "TABLE" && table.tagName.toUpperCase() !== "TBODY"){
+            throw new Error(`Argument "table" is not a table or tbody`);
+            }
+            //initialise the main array
+            const array = [];
+            //create a subarray for every row, fill it with the cells in that row
+            //and push the subarray to the main array
+            table.querySelectorAll("tr").forEach(row => {
+                const subArray = [];
+                row.querySelectorAll("td").forEach(cell => {
+                    subArray.push(cell);
+                })
+                array.push(subArray);
+            });
+            return array;
+        } catch(error){
+            console.error(error);
+            return null;
+        }
+       
+    }
+</script>

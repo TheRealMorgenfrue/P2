@@ -27,10 +27,9 @@
   width: 120px;
   margin-left: 10px;
 }
-/*This class controls styling of the scaling buttons on the matrix, which should appear non-visible until the row is hovered over*/
-.scaleButton {
+
+.scalarInput {
   width: 40px;
   margin-left: 1px;
-  visibility: visible;
-  background-color: blueviolet;
+  visibility: hidden;
 }
