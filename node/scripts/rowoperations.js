@@ -1,13 +1,13 @@
-'use strict'
-import {sanitize} from "../scripts/app_GE.js"
-import {attachToParent} from "../scripts/positioning.js" // Used for positioning buttons 
-import {swapRows} from "../scripts/app_math.js"
+
+import {sanitize} from "./app_GE.js"
+import {attachToParent} from "./positioning.js" // Used for positioning buttons
+import {swapRows} from "./app_math.js"
 //import {sanitize} from "../scripts/app_GE.js" // Used for scale button input 
 /**
  * This function takes a table and a row-element for said table and finds its base-0 index as if the table was an array of arrays.
  * If an index is found, it is returned as an integer, but if no index is found, the function returns a null-value.
- * @param {HTMLelement} table is an HTML-element of type "table" or "tbody".
- * @param {HTMLelement} row is an HTML-element of type "tr".
+ * @param {HTMLElement} table is an HTML-element of type "table" or "tbody".
+ * @param {HTMLElement} row is an HTML-element of type "tr".
  * @returns {Number} the base-0 index of the row with respect to the table- or tbody-element.
  */
 function searchForRowIndex(table, row){
@@ -22,7 +22,7 @@ function searchForRowIndex(table, row){
 /**
  * This function is a (probably) faster version of searchForRowIndex and uses RegEx to sift through the ID of a given element.
  * Note that this function only works if the ID of the row contains its base-0 index terminated by a "_"-character at the end!
- * @param {HTMLelement} row an HTML-element of type "tr" with an ID where the last sequence of digits that correspond to its base-0 index is held after an underscore (_).
+ * @param {HTMLElement} row an HTML-element of type "tr" with an ID where the last sequence of digits that correspond to its base-0 index is held after an underscore (_).
  * @returns {Number} the string of digits at the end of the element's ID, or null if there are none.
  */
 function extractRowIndex(row){
@@ -37,9 +37,9 @@ function extractRowIndex(row){
  * This function swaps two rows in an HTML-table and in an array of arrays representing it
  * when given the table element and the two row-elements.
  * This function does not make any changes to cells!!
- * @param {HTMLelement} table is the HTML table- or tbody-element where the swap takes place
- * @param {HTMLelement} rowA is the first row element.
- * @param {HTMLelement} rowB is the second row element, which should trade places with the first.
+ * @param {HTMLElement} table is the HTML table- or tbody-element where the swap takes place
+ * @param {HTMLElement} rowA is the first row element.
+ * @param {HTMLElement} rowB is the second row element, which should trade places with the first.
  * @param {Array} tableArray is an optional argument that represents the table as an array of rows.
  */
 function swapTableRows(table, rowA, rowB, tableArray){
@@ -73,9 +73,9 @@ function swapTableRows(table, rowA, rowB, tableArray){
  * This function implements row addition and subtraction for matrices. 
  * It manipulates the 2D array which forms the underlying representation of the HTML-table. 
  * Note that rowA is subtracted/added to rowB without changing rowA 
- * @param {HTMLelement} table - html representation of the current table 
- * @param {HTMLelement} rowA - html representation of the rowA of type "tr"
- * @param {HTMLelement} rowB - html representaion of rowB  of type "tr"
+ * @param {HTMLElement} table - html representation of the current table
+ * @param {HTMLElement} rowA - html representation of the rowA of type "tr"
+ * @param {HTMLElement} rowB - html representaion of rowB  of type "tr"
  * @param {Array} tableArray - 2D array that represents the backend version of the matrix 
  */
 function addRows(table, rowA, rowB, tableArray){
@@ -107,7 +107,7 @@ function addRows(table, rowA, rowB, tableArray){
 /* TODO: Mads*/
 /**
  * This function creates a scale field consisting of a scale button and an input field for the scalar. 
- * @param {htmlElement} table - The html/frontend representation of our the current matrix. 
+ * @param {HTMLElement} table - The html/frontend representation of our the current matrix.
  */
 function createScaleField(table){
     // Ensure that all elements that are attached to scale field are created before they are attached as children
@@ -171,16 +171,16 @@ function attachMoveInput(all_rows){
 }
 
 function scaleRow(table,row,scalar,tableArray){
-try{
-    let row_to_scale = tableArray[searchForRowIndex(table, row)];
-    if(row_to_scale === undefined){
-        throw new Error("Row cannot be found");
+    try{
+        let row_to_scale = tableArray[searchForRowIndex(table, row)];
+        if(row_to_scale === undefined){
+            throw new Error("Row cannot be found");
+        }
+        row_to_scale.forEach(element => (element *= scalar));
     }
-    row_to_scale.forEach(element => (element *= scalar));
-}
-catch(error){
-    console.log(`${error.message}`);
-}
+    catch(error){
+        console.log(`${error.message}`);
+    }
 }
 
 function callScaleRows(event){
@@ -203,7 +203,7 @@ function callScaleRows(event){
  * The fifth argument specifies which attribute of a cell's target element to change. The default is innerHTML.
  * 
  * Remember to sanitize the data in tableArray!
- * @param {HTMLelement} table is an HTML table-lement or HTML tbody-element.
+ * @param {HTMLElement} table is an HTML table-lement or HTML tbody-element.
  * @param {Array} tableArray is an array of arrays representing the data that should be placed in the table.
  * @param {Array} options is a set of integers specifying the base-0 index of the rows that should be updated.
  * If excluded, every row in the table will be updated. Both positive and negative values are allowed.

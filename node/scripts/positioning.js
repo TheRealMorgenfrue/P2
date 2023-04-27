@@ -1,6 +1,6 @@
 /**
  * Places an HTML element to the left or right of its parent with no margin.
- * @param {HTMLelement} element is the HTML element that should be attached to the side of its parent.
+ * @param {HTMLElement} element is the HTML element that should be attached to the side of its parent.
  * @param {boolean} left is optional and defaults to false. If true, the element is placed on the parent's left side instead the right.
  */
 function attachToParent(element, left){
