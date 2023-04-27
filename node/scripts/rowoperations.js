@@ -122,51 +122,93 @@ function scaleRow(table,row,scalar,tableArray){
         console.log(`${error.message}`);
     }
 }
-/* TODO: Mads
-* Make button that scales the html elements by using eval.*/
-
+/* TODO: Mads*/
 /**
- * Function adds scalar input to a table that can be moved  arounnd. 
- * It attaches the input cell to the first row of the table.
- * Note: it enures that the first row of the table is defined before this input cell.
- * @param {HTMLelement} table - html representation of the table  
+ * This function creates a scale field consisting of a scale button and an input field for the scalar. 
+ * @param {htmlElement} table - The html/frontend representation of our the current matrix. 
  */
-function addScalarInput(table){
+function createScaleField(table){
+    // Ensure that all elements that are attached to scale field are created before they are attached as children
+    let scale_field = document.createElement("div"),
+        scalar_input = createScalarInput(),
+        scale_button = createScaleButton(),
+        all_rows = document.querySelectorAll("tr"); // We select all rows so an event listener can be attached that moves/reattaches the scale field to a target row
     try{
-        let scalar_input = document.createElement("input");
-        scalar_input.classList.add("scalarInput"); // Ensure that scale button can be hidden with css styling 
-        scalar_input.id = "scalar_input_id";
-        scalar_input.type = "number"; // Ensure that scalar is a number
-        let first_row = table.querySelector("tr");
-        // Check whether table is defined
-        if(first_row === undefined){
-            throw new Error("The table is empty");
-        }
-       first_row.appendChild(scalar_input); // Buttons is given a parent so it can be attached to the left
-       attachToParent(scalar_input, false); // Add button to left side of table because design specifies that buttons should be added on left side 
-       let rows  = document.querySelectorAll("tr"); // Add listener to all table rows to ensure that button can be moved between rows 
-       rows.forEach(element => {element.addEventListener("mouseover", moveInput)}); 
+    let first_row = table.querySelector("tr");
+    // Check is needed if matrix can have dimensions 0x0 - we are still deciding which element we want
+    if(first_row === undefined){
+        throw new Error("Table is empty");
     }
+      // Add fields to ensure div can be hidden 
+    scale_field.classList.add("scale_field");
+    scale_field.id = "scale_field_id";
+    scale_field.appendChild(scalar_input);
+    scale_field.appendChild(scale_button);
+    // Attach scalar input element and scale button to div 
+    first_row.appendChild(scale_field);
+    attachToParent(scale_field, false);
+    attachMoveInput(all_rows);
+    scale_field.addEventListener("mouseover", event => {event.stopPropagation()}); 
+    }
+    // Make error visible on the user's console 
     catch(error){
         console.error(error);
     }
+
+    
 }
-/**
- * This function moves the scale button from one row to another. 
- * It also ensures that the button is made visible since it is hidden by css styling.  
- * @param {event} event - event that targets a row
- */
+function createScalarInput(){
+    let scalar_input = document.createElement("input");
+    scalar_input.type = "number"; 
+    return scalar_input;
+}
+
+function createScaleButton(){
+    const scale_button = document.createElement("button");
+    scale_button.innerHTML = "Scale";
+    scale_button.addEventListener("click", callScaleRows());
+    return scale_button;
+}
+
 function moveInput(event){
-    let target_row = event.currentTarget;
-    let scalar_input = document.getElementById("scalar_input_id");
+    const target_row = event.currentTarget;
+    const scale_field = document.getElementById("scale_field_id");
     // The first time the scalebutton is attached, it is hidden - ensure that it is shown on mouse move
-    if(scalar_input.style.visibility === "hidden"){ 
-        scalar_input.style.visibility = "visible";
+    if(scale_field.style.visibility === "hidden"){ 
+        scale_field.style.visibility = "visible";
     }
-    scalar_input.value = "1"; // Ensure that row is not scaled if user does not input a scalar value
-    target_row.appendChild(scalar_input);
-    attachToParent(scalar_input, false);
+    if(!target_row.querySelector("#scale_field_id")){
+        scale_field.querySelector("input").value = 1;   
+        target_row.appendChild(scale_field);
+        attachToParent(scale_field, false); 
     }
+
+}
+function attachMoveInput(all_rows){
+    all_rows.forEach(element => element.addEventListener("mouseover",moveInput));
+}
+
+function scaleRow(table,row,scalar,tableArray){
+try{
+    row_to_scale = tableArray[searchForRowIndex(table, row)];
+    if(row_to_scale === undefined){
+        throw new Error("Row cannot be found");
+    }
+    row_to_scale.forEach(element => (element *= scalar));
+}
+catch(error){
+    console.log(`${error.message}`);
+}
+}
+
+function callScaleRows(event){
+    event.stopImmediatePropagation(); // We do not want to drag a row when we move a button 
+    // Add capturing property to eventlistener
+    const table = document.getElementById("table_1"), 
+          row_to_scale = event.currentTarget.parent,
+          scalar = event.currentTarget.nextElementSibling.value;       
+    scaleRow(table, row_to_scale, scalar, CURRENT_TABLE);
+}
 
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
