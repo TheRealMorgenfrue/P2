@@ -207,7 +207,7 @@ function callScaleRows(event){
  * @param {Array} tableArray is an array of arrays representing the data that should be placed in the table.
  * @param {Array} options is a set of integers specifying the base-0 index of the rows that should be updated.
  * If excluded, every row in the table will be updated. Both positive and negative values are allowed.
- * @param {String} query is an optional CSS selector string used to identify elements within the table cells.
+ * @param {String} query is an optional CSS selector string used to identify and target elements within the table cells.
  * @param {String} attribute is a specific attribute of the target element to modify instead of its innerHTML. Passed as a string like "value" and used with element.setAttribute.
  */
 function updateTableFromArray(table, tableArray, options, query, attribute){
@@ -236,7 +236,7 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
     //since querySelectorAll returns an iterable object, we can use the index-argument in forEach's callback
     //as it would correspond to the value representing that cell in the array of arrays.
     //but first we need to check if we shoud include the extra query:
-    if(query.length > 0){
+    if(!query || query.length > 0){
         rows.forEach((row, i) => {
             row.querySelectorAll("td").forEach((cell, j) => {
                 cell.querySelector(query).setAttribute(attribute, tableArray[i][j]);
@@ -254,32 +254,70 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
     //The data we set might need sanitizing first. We assume another function has done that before this function is run.
 }
 
+/**
+ * Fills every cell in a table given as the first argument with the content from the second argument.
+ * 
+ * The second argument represents the content should be placed in the table as a string. Optional and defaults to an empty string.
+ * 
+ * The third argument is optional and controls which rows of the table should be updated. If excluded, every row is updated.
+ * 
+ * The fourth argument is also optional and can be used to select specific elements within each table cell. It must be a valid CSS selector string.
+ * 
+ * The fifth argument specifies which attribute of a cell's target element to change. The default is innerHTML.
+ * 
+ * Remember to sanitize the content if it is user-made!
+ * @param {HTMLelement} table is an HTML table-lement or HTML tbody-element.
+ * @param {Array} content is a string of the content that should be placed in every cell. For example, "<input>" for an input element of "0" for the number 0.
+ * @param {Array} options is a set of integers specifying the base-0 index of the rows that should be updated.
+ * If excluded, every row in the table will be updated. Both positive and negative values are allowed.
+ * @param {String} query is an optional CSS selector string used to identify and target elements within the table cells.
+ * @param {String} attribute is a specific attribute of the target element to modify instead of its innerHTML. Passed as a string like "value" and used with element.setAttribute.
+ */
+function fillTable(table, content, options, query, attribute){
+    //get an iterable list of rows in the table
+    let rows = table.querySelectorAll("tr");
 
+    //define the content if it is not specified
+    if(!content || content.length < 0){
+        content = "";
+    }
 
+    //check if there are any specific rows to update and trim the row list if there is
+    if(options instanceof Array || options instanceof Set){  //could also use isArray() for this check, but then a Set would not work as input
 
+        //create a new array and add the elements from the original array
+        //indexed by the numbers in the options-array note the use of .at(),
+        //which allows the use of negative integers and counts from the back of the array instead of the front
+        const trimmedRows = new Array;
+        options.forEach(element => {
+            trimmedRows.push(tableArray.at(element));
+        });
+        //overwrite rows with the trimmed version
+        rows = trimmedRows;
+    }
 
+    if(!attribute || attribute.length < 0){
+        attribute = "innerHTML";
+    }
 
-        /*THE FOLLOWING IS DEPRECATED CODE FROM swapTableRows, USED IN PLACE OF updateTableFromArray
-        //first, we find the siblings that come after rowA and rowB.
-        //note that nextSibling returns null if the node it is called on is the last sibling
-        const siblingA = rowA.nextSibling(),
-              siblingB = rowB.nextSibling();
-        
-        //there are two distinct cases to consider here:
-        // 1 the two rows are adjacent in the sibling list
-        // 2 the two rows are separated by at least one other row in the sibling list
-        //we can identify what case we are dealing with by checking if siblingA or siblingB is rowB or rowA respectively
-        if(siblingA === rowB){
-            //case 1: if rowA's sibling is rowB, place rowB before rowA to swap them
-            insertBefore(rowB, rowA);
-        } else if(siblingB === rowA){
-            //same as above, but in reverse
-            insertBefore(rowA, rowB);
-        } else {
-            //case 2: if none of the above if-statements trigger, we simply place each row before the other's sibling
-            //this works even if a sibling is null, as insertBefore interprets null as the end of the sibling list and will insert the node there
-            insertBefore(rowA, siblingB);
-            insertBefore(rowB, siblingA);
-        }
-        */
-export {updateTableFromArray};
+    //now that we know which rows to work on, we get the elements in each row and write the content in them.
+    //but first we need to check if we shoud include the extra query:
+    if(!query || query.length > 0){
+        rows.forEach((row) => {
+            row.querySelectorAll("td").forEach((cell) => {
+                cell.querySelector(query).setAttribute(attribute, content);
+            })
+    });
+    } else {
+        rows.forEach((row) => {
+            row.querySelectorAll("td").forEach((cell) => {
+                cell.setAttribute(attribute, content);
+            })
+    });
+    }
+    //note: We use .innerHTML as our default attribute to set in each cell. This adds flexibility to what we can put in the table
+    //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.
+    //The data we set might need sanitizing first. We assume another function has done that before this function is run.
+}
+
+export {updateTableFromArray, fillTable}
