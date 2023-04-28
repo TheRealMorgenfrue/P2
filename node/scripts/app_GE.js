@@ -1,10 +1,9 @@
-'use strict'
-/* 
+/*
 ******** Variable Case Explainer ********
-Global:     VARIABLECASE / VARIABLE_CASE
-Function:   variableCase / "N/A"
-Objects:     VariableCase / "N/A"
-Primitives:   "N/A"        / variable_case
+Global:     VARIABLECASE   / VARIABLE_CASE
+Function:   variableCase   / "N/A"
+Objects:    VariableCase   / "N/A"
+Primitives: "N/A"          / variable_case
 
 *****************************************
 */
