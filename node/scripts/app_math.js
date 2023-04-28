@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * @param {HTMLElement} row
  * @returns {string} for an HTML formatted equation of given row
@@ -195,6 +193,7 @@ function isRowEchelonForm(M){
     for (let i = 0; i < M.length; i++) {
         if(M[i].every(value => value === 0)){
             emptyRow = true;
+            continue;
         }
         for (let j = 0; j < M[i].length; j++) {
             if(M[i][j] !== 0){

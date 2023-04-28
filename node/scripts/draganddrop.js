@@ -1,4 +1,3 @@
-'use strict'
 /************ Drag'n Drop ***************
 the functions in this tag build on the from-scratch drag and drop-functionality from the second script tag
 this is an attempt to standardise them and make them work for any element by using custom events
@@ -72,7 +71,7 @@ function dragFunctionality(event){
 
 /**
  * Initialises drag functionality on a given element by calling dragFunctionality when the element receives a click-event.
- * @param {HTMLelement} element is the HTML element that should be made draggable.
+ * @param {HTMLElement} element is the HTML element that should be made draggable.
  */
 function initDrag(element){
     element.addEventListener("click", dragFunctionality)
@@ -80,7 +79,7 @@ function initDrag(element){
 
 /**
  * This function removes drag functionality from a given element by deleting the associated eventListener that was added by initDrag.
- * @param {HTMLelement} element is the HTML element that should no longer be draggable.
+ * @param {HTMLElement} element is the HTML element that should no longer be draggable.
  */
 function disableDrag(element){
     element.removeEventListener("click", dragFunctionality)
@@ -88,7 +87,7 @@ function disableDrag(element){
 
 /**
  * This function controls the highlighting of an element with the mouse. Compatible with most common browsers.
- * @param {HTMLelement} element is the HTML element whose highlighting should be affected.
+ * @param {HTMLElement} element is the HTML element whose highlighting should be affected.
  * @param {String} value can be one of the following strings:
  * 
  * "none"
