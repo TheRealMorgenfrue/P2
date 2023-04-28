@@ -65,7 +65,11 @@ const SETTINGS = new function() {
 
 Object.freeze(SETTINGS.READONLY);  // Make the "readonly_settings" object readonly
 
-
+/**
+ * Initialises the table at page load 
+ * @param {string} tableID ID of the table created
+ * @param {HTMLElement} element Optional (Defaults to document body). The HTML element which the table should be a child of
+ */
 function initTableGE(tableID, element) {
     // Create a table and add it to the page
     const table = document.createElement("table");
@@ -157,7 +161,7 @@ function addResizeButtons() {
     createEventListener(SETTINGS.READONLY.TABLE.column_id, "click");
 }
 /**
- * Helper function for getTableSize() that adds various attributes to row and column objects that are part of the "Input" object. 
+ * Helper function for addResizeButtons() that adds various attributes to row and column objects that are part of the "Input" object. 
  * @param {string} type 
  * @param {object} Input 
  */
@@ -261,9 +265,12 @@ function createEventListener(type_id, listener_type, table) {
         return;        
     }
 }
+
 /**
  * Converts the value in the input cells in the table into an array of arrays of numbers.
  * Also pushes the array of arrays it creates onto an array TABLES for use with the undo-feature.
+ * @param {HTMLTableElement} table The table from which the backend array is updated
+ * @returns 
  */
 function createBackendTable(table) {
     try {
