@@ -136,12 +136,13 @@ function addResizeButtons() {
 
     // Formats input boxes as "${rows} x ${columns}"
     const cdot = document.createTextNode(' x ');
+    span.appendChild(cdot);
 
     // In order to apply CSS to a TextNode it has to be a child of an element where CSS can be applied, e.g. 'span'
    
 
     // Add two classes to cdot to ensure correct CSS-styling 
-    span.classList.add("tbl", "inputbox");  
+    span.classList.add("tbl");
 
     // Adds attributes to row and column elements.
     // Do NOT use the global row_id here instead of "row" (equivalent for columns). 
@@ -151,7 +152,7 @@ function addResizeButtons() {
 
     // When done editing the element, add it to the html body. This is crucial for stuff like getElementById
     body.appendChild(Input.row);
-    body.appendChild(cdot);
+    body.appendChild(span);
     body.appendChild(Input.column);
 
     // Make eventlisteners for row and column elements
@@ -225,7 +226,7 @@ function createEventListener(type_id, listener_type, table) {
                         event.target.value = SETTINGS.READONLY.TABLE.min_matrix_size;
                     }
                     SETTINGS.WRITABLE.row_value = Number(event.target.value); // Convert to number since strings behave weird with logical operators
-                    resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, "<input>");
+                    resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells"}>`);
                 });   
                 break;
             } 
@@ -243,7 +244,7 @@ function createEventListener(type_id, listener_type, table) {
                         event.target.value = SETTINGS.READONLY.TABLE.min_matrix_size;
                     }
                     SETTINGS.WRITABLE.column_value = Number(event.target.value); // Convert to number since strings behave weird with logical operators
-                    resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, "<input>");
+                    resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells"}>`);
                 });   
                 break;
             }
@@ -487,6 +488,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
             //then we add a number of rows equal to the difference between the current row count and the requested row count
             for (let i = 0; i < (dimensions.row_value - tableRows.length); i++) {
                 const newRow = document.createElement("tr");
+                newRow.classList.add("tblCells")
                 table.appendChild(newRow);
 
                 //add the row to our list of changes
@@ -528,6 +530,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
                 for (let i = 0; i < cellsNeeded; i++) {
                     const newCell = document.createElement("td");
                     newCell.innerHTML = HTMLcode;
+                    newCell.classList.add("tblCells")
                     row.appendChild(newCell);
 
                     //add the cell to our list of changes
