@@ -65,4 +65,29 @@ function attachToParent(element, left){
 // document.addEventListener("click", event => {console.log(event.pageX, event.pageY);
 //     console.log(document.elementFromPoint(event.pageX, event.pageY).getBoundingClientRect().width);
 // });
-export {attachToParent}
+
+/**
+ * Lines up a given number of ancestors to an element left or right in a line using subsequent calls to attachToParent
+ */
+function lineUpAncestors(element, count, left){
+    try{
+        //make sure the ancestors exist
+        let extraElement = element;
+        for (let i = 0; i < count; i++) {
+            extraElement = extraElement.parentElement;
+        }
+        //if the element is undefined after going this far up the DOM-tree, we know it's not possible to line up the ancestors this far
+        if(!extraElement){
+            throw new Error(`Element does not seem to have ${count} ancestors!`);
+        }
+        //run attachToParent as many times as needed
+        for (let j = 0; j < count; j++) {
+            attachToParent(element, left)
+            element = element.parentElement;
+        }
+    } catch(error) {
+        console.error(error);
+    }
+}
+
+export {attachToParent, lineUpAncestors}
