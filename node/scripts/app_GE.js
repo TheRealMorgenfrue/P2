@@ -80,7 +80,7 @@ function initTableGE(tableID, element) {
         document.body.appendChild(table);
     }
 
-    table.classList.add("tbl")
+    table.classList.add("tbl");
     table.appendChild(tbody);
     
     // Set the table's ID if one is given
@@ -428,6 +428,8 @@ function sanitize(str){
  */
 function randomize_Table() {
     CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
+    const table = document.getElementById("gaussian_elimination_matrix");
+    updateTableFromArray(table, CURRENT_TABLE, false, "input", "value");
 }
 
 //we assume the table has at least one tbody if a tbody is not passed as that argument
@@ -488,7 +490,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
             //then we add a number of rows equal to the difference between the current row count and the requested row count
             for (let i = 0; i < (dimensions.row_value - tableRows.length); i++) {
                 const newRow = document.createElement("tr");
-                newRow.classList.add("tblCells")
+                newRow.classList.add("tblCells");
                 table.appendChild(newRow);
 
                 //add the row to our list of changes
@@ -553,7 +555,6 @@ function resizeTableBody(table, dimensions, HTMLcode){
         console.error(error)
         return null;
     }
-    
 }
 
 //convert an HTML-table or tbody into an array of arrays of its elements and return it
