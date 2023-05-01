@@ -87,7 +87,7 @@ function initTableGE(tableID, element) {
     if(tableID) {
         table.id = `${tableID}`;
     }
-    resizeTableBody(tbody, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells"}>`);
+    resizeTableBody(tbody, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells">`);
     
     tbody.addEventListener("change", (event) => {
         // Validate input in the cell the user modified 
@@ -311,7 +311,7 @@ function undoTable(undo_count) {
             // Go back undo_count times in the holding array amd remove all succeeding elements - e.g. [1,2,3,4,5] with undo_count = 2 becomes [1,2,3] 
             const deleted_tables = TABLES.splice(TABLES.length-undo_count, undo_count);
 
-            CURRENT_TABLE = deleted_tables.pop()
+            CURRENT_TABLE = deleted_tables.pop();
 
             // Testing 
             console.table(TABLES);
@@ -411,7 +411,7 @@ function sanitize(str){
     // Keep any negative scalars in input 
     if(str[0] === "-"){
         negation_operator = "-";
-    };
+    }
     str = str
     .replace(/[^0-9]/g, "").trim();
 //   .replace(/&/g, "")
@@ -473,7 +473,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
         };
         //initialise the number of cells we need to add for various operations
         //we can use this variable for both row- and column-changes
-        let cellsNeeded = 0;
+        let cells_needed = 0;
 
         //add or remove rows if requested
         console.log(`Need to add ${dimensions.row_value - tableRows.length} rows`);
@@ -481,9 +481,9 @@ function resizeTableBody(table, dimensions, HTMLcode){
             //we need to add rows, since the requested number of rows is larger than the current number of rows
             //first we find the number of columns we need to add to the new rows
             if(table.lastElementChild){
-                cellsNeeded = table.lastElementChild.querySelectorAll("td").length;
+                cells_needed = table.lastElementChild.querySelectorAll("td").length;
             } else {
-                cellsNeeded = 0;
+                cells_needed = 0;
             }
             //then we add a number of rows equal to the difference between the current row count and the requested row count
             for (let i = 0; i < (dimensions.row_value - tableRows.length); i++) {
@@ -496,7 +496,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
                 
                 /*Turns out we didn't need this, since the column-adding code below does it for us
                     HOWEVER, if all rows are the same length, this could be readded and the column-adding code could be simplified...
-                for (let j = 0; j < cellsNeeded; j++) {
+                for (let j = 0; j < cells_needed; j++) {
                     const newCell = document.createElement("td");
                     newCell.innerHTML = HTMLcode;
                     newRow.appendChild(newCell);
@@ -520,14 +520,14 @@ function resizeTableBody(table, dimensions, HTMLcode){
         //we update our list of rows before moving on to columns if we did something with the rows
         if(dimensions.row_value - tableRows.length !== 0){
             tableRows = table.querySelectorAll("tr");
-        };
+        }
         //add or remove columns if needed. It is important to do this after adding or removing any rows
         //we do this for every row to ensure we end up with the same number of columns in every row
         tableRows.forEach(row => {
-            cellsNeeded = dimensions.column_value - row.querySelectorAll("td").length;
-            console.log(`Need ${cellsNeeded} cells on this row`);
-            if(cellsNeeded > 0){
-                for (let i = 0; i < cellsNeeded; i++) {
+            cells_needed = dimensions.column_value - row.querySelectorAll("td").length;
+            console.log(`Need ${cells_needed} cells on this row`);
+            if(cells_needed > 0){
+                for (let i = 0; i < cells_needed; i++) {
                     const newCell = document.createElement("td");
                     newCell.innerHTML = HTMLcode;
                     newCell.classList.add("tblCells")
@@ -536,8 +536,8 @@ function resizeTableBody(table, dimensions, HTMLcode){
                     //add the cell to our list of changes
                     changes.tdAdded.push(newCell);
                 }
-            } else if(cellsNeeded < 0){
-                for (let i = cellsNeeded; i < 0; i++) {
+            } else if(cells_needed < 0){
+                for (let i = cells_needed; i < 0; i++) {
                     //once again using removeChild to get a reference to the element
                     const removedCell = row.removeChild(row.lastElementChild);
                     
