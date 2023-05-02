@@ -36,7 +36,7 @@ function loadStyle(src) {
 
 window.addEventListener("DOMContentLoaded", (event) => {
     loadStyle("../styles/simple.css")
-        // .then(() => loadStyle(""))
+        .then(() => loadStyle("../styles/fancy.css"))
         //.then(() => loadStyle("css/icomoon.css"))
         .then(() => {
             console.log('All styles are loaded!');

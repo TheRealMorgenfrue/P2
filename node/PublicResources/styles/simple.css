@@ -10,13 +10,20 @@
   }
 /* This class controls stuff for the entire table. Thus, every element that relies on the table's position must also have this class */
 .tbl {
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
   position: relative;
   left: 45px;
+  border-collapse: collapse;
+  border-spacing: 0;
 }
 /* This class controls stuff in the table cells, e.g. the matrix cells */
 .tblCells {
-  border: 1px solid black;
-  width: 100px;
+  border: transparent;
+  background: none;
+  width: 20px;
+  text-align: center;
 }
 /* This class controls stuff in the input box, that is the ${rows} x ${colums} fields */
 .inputBox {

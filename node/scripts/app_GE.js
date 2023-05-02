@@ -79,10 +79,9 @@ function initTableGE(tableID, element) {
     } else {
         document.body.appendChild(table);
     }
-
-    table.classList.add("tbl")
+    table.classList.add("container");
     table.appendChild(tbody);
-    
+
     // Set the table's ID if one is given
     if(tableID) {
         table.id = `${tableID}`;
@@ -596,7 +595,10 @@ function populateIDs(table){
 // Running The Program
 // Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
 window.addEventListener("load", (event) => {
-    initTableGE(SETTINGS.READONLY.TABLE.table_id);
+    // const div = document.createElement("div");
+    // div.classList.add("container");
+    // document.body.appendChild(div);
+    initTableGE(SETTINGS.READONLY.TABLE.table_id)
 });
 
 
