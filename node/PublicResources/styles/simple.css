@@ -20,19 +20,22 @@
 }
 /* This class controls stuff in the table cells, e.g. the matrix cells */
 .tblCells {
-  border: transparent;
-  background: none;
+  /* appearance: none; */
+  /* background: none; */
   width: 20px;
   text-align: center;
 }
 /* This class controls stuff in the input box, that is the ${rows} x ${colums} fields */
 .inputBox {
   width: 50px;
+  position: relative;
+  left: 50%;
+  top: 40%;
 }
 
 .buttons {
   width: 120px;
-  margin-left: 10px;
+  /* margin-left: 10px; */
 }
 
 .scale_field {

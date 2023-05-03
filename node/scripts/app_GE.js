@@ -181,7 +181,7 @@ function addAttributes(type, Input) {
  * @param {string} listener_type 
  * @returns 
  */
-function createEventListener(type_id, listener_type, table) {
+function createEventListener(type_id, listener_type) {
     try {   // Catch all errors in the function 
         let element;
         try {
@@ -552,7 +552,6 @@ function resizeTableBody(table, dimensions, HTMLcode){
         console.error(error)
         return null;
     }
-    
 }
 
 //convert an HTML-table or tbody into an array of arrays of its elements and return it
@@ -579,7 +578,6 @@ function convertTableToArray(table){
         console.error(error);
         return null;
     }
-    
 }
 
 //assigns an ID to every row and cell in a table, provided they exist. Should mostly be used for testing
@@ -592,14 +590,206 @@ function populateIDs(table){
     })
 }
 
+
+
+
+
+function resizeMathTableBody(mtable, dimensions, HTMLcode){
+    try{
+        //make sure we're dealing with a mtable or mtbody
+        if(mtable.tagName.toUpperCase() !== "MTABLE" && mtable.tagName.toUpperCase() !== "MROW"){
+            throw new Error(`Argument "mtable" is not a mtable- or mrow-element.`)
+        }
+        //check if the dimensions are correctly defined
+        if(!dimensions){
+            throw new Error("Dimensions object not defined!");
+        }
+        if(isNaN(dimensions.row_value) || isNaN(dimensions.column_value) || dimensions.row_value < 0 || dimensions.column_value < 0){
+            throw new Error(`Dimension values not defined correctly.\nrowNumber is ${dimensions.row_value} and columnNumber is ${dimensions.column_value}`);
+        }
+        //define HTML-code to be placed in new cells
+        if(!HTMLcode || typeof HTMLcode !== "string"){
+            HTMLcode = "";
+        }
+        // //if the mtable is not a mtbody, we need to get a mtbody first
+        // if(mtable.tagName.toUpperCase() === "MTABLE"){
+        //     mtable = mtable.querySelector("mrow");
+        //     console.log("Modifying first mrow in mtable")
+        // }
+        
+        //get an iterable refence to the rows
+        let tableRows = mtable.querySelectorAll("mtr");
+        
+        //define arrays for the elements we add or remove
+        const changes = {
+            mtrAdded: [],
+            mtrRemoved: [],
+            mtdAdded: [],
+            mtdRemoved: []
+        };
+        //initialise the number of cells we need to add for various operations
+        //we can use this variable for both row- and column-changes
+        let cellsNeeded = 0;
+
+        //add or remove rows if requested
+        console.log(`Need to add ${dimensions.row_value - tableRows.length} mrows`);
+        if(tableRows.length < dimensions.row_value){
+            //we need to add rows, since the requested number of rows is larger than the current number of rows
+            //first we find the number of columns we need to add to the new rows
+            if(mtable.lastElementChild){
+                cellsNeeded = mtable.lastElementChild.querySelectorAll("mtd").length;
+            } else {
+                cellsNeeded = 0;
+            }
+            //then we add a number of rows equal to the difference between the current row count and the requested row count
+            for (let i = 0; i < (dimensions.row_value - tableRows.length); i++) {
+                const newRow = document.createElement("mtr");
+                newRow.classList.add("tblCells")
+                mtable.appendChild(newRow);
+
+                //add the row to our list of changes
+                changes.mtrAdded.push(newRow);
+                
+                /*Turns out we didn't need this, since the column-adding code below does it for us
+                    HOWEVER, if all rows are the same length, this could be readded and the column-adding code could be simplified...
+                for (let j = 0; j < cellsNeeded; j++) {
+                    const newCell = document.createElement("td");
+                    newCell.innerHTML = HTMLcode;
+                    newRow.appendChild(newCell);
+                }
+                */
+            }
+        } else if(tableRows.length > dimensions.row_value){
+            //we need to remove rows
+            //so we delete a number of rows equal to the difference between the current row count and the requested row count
+            for (let i = 0; i < (tableRows.length - dimensions.row_value); i++) {
+                //we use removeChild because it returns a reference to the removed element
+                const removedRow = mtable.removeChild(mtable.lastElementChild);
+
+                //add the removed row to our list of changes
+                //note that it still exists even if it is no longer in the DOM!
+                changes.mtrRemoved.push(removedRow);
+            }
+        }
+        console.log(`Added mrows: ${changes.mtrAdded} Removed mrows: ${changes.mtrRemoved}`);
+        //done adding or removing rows
+        //we update our list of rows before moving on to columns if we did something with the rows
+        if(dimensions.row_value - tableRows.length !== 0){
+            tableRows = mtable.querySelectorAll("mtr");
+        };
+        //add or remove columns if needed. It is important to do this after adding or removing any rows
+        //we do this for every row to ensure we end up with the same number of columns in every row
+        tableRows.forEach(row => {
+            cellsNeeded = dimensions.column_value - row.querySelectorAll("mtd").length;
+            console.log(`Need ${cellsNeeded} cells on this row`);
+            if(cellsNeeded > 0){
+                for (let i = 0; i < cellsNeeded; i++) {
+                    const newCell = document.createElement("mtd");
+                    newCell.innerHTML = HTMLcode;
+                    newCell.classList.add("tblCells")
+                    row.appendChild(newCell);
+
+                    //add the cell to our list of changes
+                    changes.mtdAdded.push(newCell);
+                }
+            } else if(cellsNeeded < 0){
+                for (let i = cellsNeeded; i < 0; i++) {
+                    //once again using removeChild to get a reference to the element
+                    const removedCell = row.removeChild(row.lastElementChild);
+                    
+                    //add the cell to our list of changes
+                    changes.mtdRemoved.push(removedCell);
+                }
+            }
+        });
+        console.log(`Added cells: ${changes.mtdAdded} Removed cells: ${changes.mtdRemoved}`);
+        //we're finally done adding and removing things, so we return our changes-object
+        return changes;
+    } catch(error) {
+        console.error(error)
+        return null;
+    }
+}
+
+function initMathTableGE(tableID, element) {
+    // Create a mtable and add it to the page
+    const mtable = document.createElement("mtable");
+    const mrow = document.createElement("mrow");
+    const mo1 = document.createElement("mo");
+    const mo2 = document.createElement("mo");
+    mo1.innerText = "[";
+    mo2.innerText = "]";
+    if(element){
+        element.appendChild(mrow);
+    } else {
+        document.body.appendChild(mtable);
+    }
+    mrow.appendChild(mo1);
+    mrow.appendChild(mtable);
+
+    // Set the mtable's ID if one is given
+    if(tableID) {
+        mtable.id = "mathtab_le";
+    }
+    resizeMathTableBody(mtable, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells"}>`);
+    mrow.appendChild(mo2);
+
+    mrow.addEventListener("change", (event) => {
+        // Validate input in the cell the user modified 
+        console.log(`target value = ${event.target.value}`);
+        let cell_value = event.target.value;
+        let sanitized_cell_value = sanitize(cell_value);
+        event.target.value = sanitized_cell_value;
+    });
+    // addTableButtons();
+    // addResizeButtons();
+}
+
+
 // Running The Program
 // Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
 window.addEventListener("load", (event) => {
-    // const div = document.createElement("div");
-    // div.classList.add("container");
-    // document.body.appendChild(div);
-    initTableGE(SETTINGS.READONLY.TABLE.table_id)
+    const math = document.createElement("math");
+    math.setAttribute("display", "block"); 
+    // math.classList.add("tbl");
+    document.body.appendChild(math);
+
+    const mrow = document.createElement("mrow");
+    // const mo1 = document.createElement("mo");
+    // const mo2 = document.createElement("mo");
+    // const mtable = document.createElement("mtable");
+    // const mtr1 = document.createElement("mtr");
+    // const mtr2 = document.createElement("mtr");
+    // const mtd1 = document.createElement("mtd");
+    // const mtd2 = document.createElement("mtd");
+    // const mn1 = document.createElement("mn");
+    // const mn2 = document.createElement("mn");
+    // mo1.innerText = "[";
+    // mo2.innerText = "]";
+    // mn1.innerHTML = 1;
+    // mn2.innerHTML = 2;
+    // document.body.appendChild(math);
+    // math.appendChild(mrow);
+    // mrow.appendChild(mo1);
+    // mrow.appendChild(mtable);
+    // mtable.appendChild(mtr1);
+    // mtr1.appendChild(mtd1);
+    // mtd1.appendChild(mn1);
+    // mtable.appendChild(mtr2);
+    // mtr2.appendChild(mtd2);
+    // mtd2.appendChild(mn2);
+    // mrow.appendChild(mo2);
+
+    // math.appendChild(mrow);
+
+    initMathTableGE("fisk", math);
+    initTableGE(SETTINGS.READONLY.TABLE.table_id);
 });
+
+// MATH
+// https://www.w3.org/TR/MathML/chapter6.html#world-int-style
+// https://developer.mozilla.org/en-US/docs/Learn/MathML/First_steps/Tables
+
 
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
