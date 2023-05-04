@@ -240,70 +240,92 @@ function fillTable(table, content, options, query, attribute){
  * 6 Handler to remove extra interface when clicking outside table 
  */
 
-/* Global object to manage row operations since the layout makes it difficult to keep track of which rows are the target of which row operations.
+/* Global settings to manage row operations since the layout makes it difficult to keep track of which rows are the target of which row operations.
 * This is especially true of adding rows where both rows need to be kept track of. 
 */ 
+
+//defining some pseudo-global settings in sessionStorage - to be used in main.js
+//everything is stored as strings
+sessionStorage.setItem("primaryRow", "");           //the ID of the primary row
+sessionStorage.setItem("primaryScaleFactor", "");
+sessionStorage.setItem("secondaryRow", "");         //the ID of the secondary row
+sessionStorage.setItem("secondaryScaleFactor", "");
+sessionStorage.setItem("addButton", "");
+sessionStorage.setItem("primaryScaleField", "");
+sessionStorage.setItem("allowInterfaceMoving", "");
+sessionStorage.setItem("allowRowSwap", "true");
+
+/*
+// Returns the selected setting element as a JSON 
+function getAndParse(setting_key, setting_value){
+    const item = getItem(setting_key);
+
+    // In order to set an item in sessions storage, its value has to be a string. 
+    if(typeof(setting_key) === "object"){
+        setting_key = JSON.stringify(setting_key); // For html elements
+    }
+    else{
+        setting_key = string(setting_key)
+    };
+    try{
+        sessionStorage.setItem(setting_key, setting_value); // MDN specifies that 
+    }
+    catch(error){
+        console.error(error);
+    }
+    return JSON.parse(item);    
+}
+
 const ROW_OPERATION_MANAGER = {
         primaryRow: undefined,
         primaryScaleFactor: undefined,
         secondaryRow: undefined,
         secondaryScaleFactor: undefined,
-        allowInterfaceMoving: true // We use this attribute to check whether the add interface may be moved to the another row
+        addButton: undefined,           //references to the add_button and primary scaling field
+        primaryScaleField: undefined,
+        allowInterfaceMoving: true, // We use this attribute to check whether the add interface may be moved to the another row
+        allowRowSwap:true
 };
-
-// We select all rows so an event listener can be attached that moves/reattaches the scale field to a target row - we assume that the table is non-empty 
-document.querySelectorAll("tr").forEach(element => element.addEventListener("mouseover",moveInterface));
-// We create a scale field with a target row specified by argument 
-scale_field = createScaleField("primaryRow");
-
-add_interface = createAddInterface();
-
-table.appendChild(add_interface[0]); // Note: The return value of add interface is an array. The 0'th element is the add ubtton 
-
-lineUpDescendants(add_interface[add_interface.length-1], add_interface.length); // Adds descendents in a linear order starting from the element that is supposed to be the further descendent from the root element.
-
-//eventListener updates the scale factor whenever the user changes it
-scale_field.addEventListener("change", event => {
-   ROW_OPERATION_MANAGER.primaryScaleFactor = event.target.value;
-});
-document.body.appendChild(scale_field);
-attachToParent(scale_field, false);
-
+*/
 /**
  * This function creates a scale field consisting of an input button, a scale button. 
  * It add event listeners the the scale button that scales the target row. 
  * Note that the target row is obtained using the global object ROW_OPERATION_MANAGER
- * @param {string} target_row - is a string used to index the global object ROW_OPERATION_MANAGER to find the target row
+ * @param {string} target_row - is a string used to index the global object ROW_OPERATION_MANAGER to find the target row. Could be "primaryRow" or "secondaryRow"
  * @returns {HTMLelement} - is a HTML div that contains and input and a scale button
  */
 
 //create a set of HTML elements to act as an interface for scaling
-function createScaleField(target_row){
+function createScaleField(target_row, table){
     // We create input box that becomes child of scale field  
     const scalar_input = document.createElement("input");
     scalar_input.type = "number";
+    scalar_input.classList.add("scale_field"); 
     // We create the scale button that is attached to scalefield
     const scale_button = document.createElement("button");
     scale_button.innerHTML = "Scale";
     // When scale button is clicked, the target row is scaled if it exists. 
     scale_button.addEventListener("click", event => {
         event.stopPropagation(); // We do not want click to propgate to dragfunctionality 
-        scale_target = ROW_OPERATION_MANAGER[target_row];
+        //scale_target = ROW_OPERATION_MANAGER[target_row];
+        const scale_target = sessionStorage.getItem(target_row);
         if(!scale_target){ // Row has to exist in order to scale it.
             console.warn(`No row with name "${target_row}" exists in ROW_OPERATION_MANAGER`);
         } else {
             scaleRow(table, scale_target, scalar_input.value, CURRENT_TABLE);
         }
     });
-    
+
     // We create scale field and add attributes to it
     const scale_field = document.createElement("div"); // We use div so that multiple elements can be children of a scale field 
+    document.body.appendChild(scale_field);   
     scale_field.classList.add("scale_field"); // We create a class so we can hide an element using CSS
-    scale_field.id = "scale_field_id"; // May not necessary -> Test!
+    scale_field.id = `${target_row}_scale_field`; // May not necessary -> Test!
     scale_field.appendChild(scalar_input);
     scale_field.appendChild(scale_button);
     scale_field.addEventListener("mouseover", event => {event.stopPropagation()}); // We stop the mouseOver-event from bubbling to target row to prevent unnecessary listeners - the scalefield has already been moved, we don't need to check whether it needs to move again.
 
+    
     return scale_field;
 }
 /**
@@ -317,12 +339,14 @@ function createAddInterface(table){
     // Create add button
     const add_button = document.createElement("button");
     add_button.innerHTML = "+";
+    add_button.id = "add_button_id";
 
     // Create scale field and make it hidden
-    const scale_field = createScaleField("secondaryRow");
+    const scale_field = createScaleField("secondaryRow", table);
     scale_field.style.visibility = "hidden";
     scale_field.addEventListener("change", event => {
-        ROW_OPERATION_MANAGER.secondaryScaleFactor = event.target.value;
+        sessionStorage.setItem("secondaryScaleFactor", String(event.target.value));
+        //ROW_OPERATION_MANAGER.secondaryScaleFactor = event.target.value;
     });
     
     // Create a table to hold the row we're going to add and hide it for later
@@ -337,6 +361,7 @@ function createAddInterface(table){
     go_button.style.visibility = "hidden";
 
     // Setup relationships between the elements
+    document.body.appendChild(add_button);
     add_button.appendChild(scale_field);
     scale_field.appendChild(row_holder);
     row_holder.appendChild(go_button);
@@ -347,8 +372,11 @@ function createAddInterface(table){
         event.stopPropagation();
         if(event.target === add_button){
             scale_field.style.visibility = "visible";
+            attachToParent(scale_field);
             row_holder.style.visibility = "visible";
-            ROW_OPERATION_MANAGER.allowInterfaceMoving = false;
+            attachToParent(row_holder);
+            //ROW_OPERATION_MANAGER.allowInterfaceMoving = false;
+            sessionStorage.setItem("allowInterfaceMoving", "");     //an empty string is falsy, so we write that instead of "false", since a non-empty string is truthy
             console.log("Locking interface to this row");
 
             //preparing a listener to cancel the addition operation if the user clicks outside the interface or table
@@ -357,10 +385,15 @@ function createAddInterface(table){
                 scale_field.style.visibility = "hidden";
                 row_holder.style.visibility = "hidden";
                 go_button.style.visibility = "hidden";
-                row_holder.removeChild(held_row);
-                ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
-                ROW_OPERATION_MANAGER.secondaryRow = null;
-                ROW_OPERATION_MANAGER.allowInterfaceMoving = true;
+                if(held_row){
+                    row_holder.removeChild(held_row);
+                }
+                //ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
+                sessionStorage.setItem("secondaryScaleFactor", "1");
+                //ROW_OPERATION_MANAGER.secondaryRow = null;
+                sessionStorage.setItem("secondaryRow", "");
+                //ROW_OPERATION_MANAGER.allowInterfaceMoving = true;
+                sessionStorage.setItem("allowInterfaceMoving", "true");
                 console.log("Cancelling addition operation");
             }, {once: true})    //might need to be capturing. Testing required
         }
@@ -371,25 +404,33 @@ function createAddInterface(table){
     row_holder.addEventListener("draggingStopped", event => {
         held_row = event.detail.cloneNode(true);
         row_holder.appendChild(held_row);
-        ROW_OPERATION_MANAGER.secondaryRow = held_row;
+        //ROW_OPERATION_MANAGER.secondaryRow = held_row;
+        sessionStorage.setItem("secondaryRow", held_row.id);
         go_button.style.visibility = "visible";
+        attachToParent(go_button);
         console.log("Caught a row");
     });
 
     //performing the actual addition and resetting the interface when the go_button is clicked
     go_button.addEventListener("click", () => {
-        addRows(table,ROW_OPERATION_MANAGER.secondaryRow, ROW_OPERATION_MANAGER.primaryRow,CURRENT_TABLE);
+        //addRows(table,ROW_OPERATION_MANAGER.secondaryRow, ROW_OPERATION_MANAGER.primaryRow,CURRENT_TABLE);
+        addRows(table, document.getElementById(sessionStorage.getItem("secondaryRow")), document.getElementById(sessionStorage.getItem("primaryRow")),CURRENT_TABLE);
         scale_field.style.visibility = "hidden";
         row_holder.style.visibility = "hidden";
         go_button.style.visibility = "hidden";
-        row_holder.removeChild(held_row);
-        ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
-        ROW_OPERATION_MANAGER.secondaryRow = null;
-        ROW_OPERATION_MANAGER.allowInterfaceMoving = true;
+        if(held_row){
+            row_holder.removeChild(held_row);
+        }
+        //ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
+        sessionStorage.setItem("secondaryScaleFactor", "1");
+        //ROW_OPERATION_MANAGER.secondaryRow = null;
+        sessionStorage.setItem("secondaryRow", "");
+        //ROW_OPERATION_MANAGER.allowInterfaceMoving = true;
+        sessionStorage.setItem("allowInterfaceMoving", "true");
         console.log("Adding rows and packing up");
     });
-
-    return [addButton, scale_field, row_holder, go_button];
+    
+    return [add_button, scale_field, row_holder, go_button];
 }
 
 //a function designed for use in a mouseover-eventhandler
@@ -399,15 +440,24 @@ function createAddInterface(table){
  * @param {event} event - mouseover event that checks if the scale field, add button and the add button's children should be moved to another row.  
  */
 function moveInterface(event){
-    if(ROW_OPERATION_MANAGER.allowInterfaceMoving){
+    if(sessionStorage.getItem("allowInterfaceMoving")){
         const target_row = event.currentTarget;
-        if(target_row !== ROW_OPERATION_MANAGER.primaryRow){
-            ROW_OPERATION_MANAGER.primaryRow = target_row;
-            ROW_OPERATION_MANAGER.primaryScaleFactor = 1;
-            ROW_OPERATION_MANAGER.secondaryRow = null;
-            ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
-            attachToParent(scale_field_primary,true);
-            attachToParent(add_interface[0]);
+        if(//target_row !== ROW_OPERATION_MANAGER.primaryRow
+            target_row.id !== sessionStorage.getItem("primaryRow")){
+            //ROW_OPERATION_MANAGER.primaryRow = target_row;
+            sessionStorage.setItem("primaryRow", target_row.id);
+            //ROW_OPERATION_MANAGER.primaryScaleFactor = 1;
+            sessionStorage.setItem("primaryScaleFactor", "1");
+            //ROW_OPERATION_MANAGER.secondaryRow = null;
+            sessionStorage.setItem("secondaryRow", "");
+            //ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
+            sessionStorage.setItem("secondaryScaleFactor", "1");
+            document.getElementById(sessionStorage.getItem("primaryRow")).appendChild(document.getElementById(sessionStorage.getItem("primaryScaleField")));
+            document.getElementById(sessionStorage.getItem("primaryRow")).appendChild(document.getElementById(sessionStorage.getItem("addButton")));
+            //attachToParent(ROW_OPERATION_MANAGER.primaryScaleField, true);
+            attachToParent(document.getElementById(sessionStorage.getItem("primaryScaleField")), true);
+            //attachToParent(ROW_OPERATION_MANAGER.addButton);
+            attachToParent(document.getElementById(sessionStorage.getItem("addButton")));
             console.log("Moving interface and updating/resetting");        
         }
     }
@@ -435,4 +485,5 @@ function scaleRow(table,row,scalar,tableArray){
     }
 }
 
-export {updateTableFromArray, fillTable}
+
+export {updateTableFromArray, fillTable, createScaleField, moveInterface, createAddInterface}

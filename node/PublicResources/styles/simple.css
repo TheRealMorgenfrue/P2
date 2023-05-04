@@ -11,7 +11,7 @@
 /* This class controls stuff for the entire table. Thus, every element that relies on the table's position must also have this class */
 .tbl {
   position: relative;
-  left: 45px;
+  left: 300px;
 }
 /* This class controls stuff in the table cells, e.g. the matrix cells */
 .tblCells {
@@ -29,7 +29,16 @@
 }
 
 .scale_field {
-  width: 40px;
+  width: 50px;
   margin-left: 1px;
-  visibility: hidden;
 }
+
+.scale_field > button {
+  width: 50px;
+  height: 20px;
+}
+
+.scale_field > input {
+  width: 50px;
+}
+

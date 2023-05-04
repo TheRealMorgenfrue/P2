@@ -69,25 +69,27 @@ function attachToParent(element, left){
 /**
  * Lines up a given number of ancestors to an element left or right in a line using subsequent calls to attachToParent
  */
-function lineUpAncestors(element, count, left){
+function lineUpAncestors(element, count){
     try{
-        //make sure the ancestors exist
-        let extraElement = element;
+        const family = [];
+        //add the specified number of elements to the family
         for (let i = 0; i < count; i++) {
-            extraElement = extraElement.parentElement;
-        }
-        //if the element is undefined after going this far up the DOM-tree, we know it's not possible to line up the ancestors this far
-        if(!extraElement){
-            throw new Error(`Element does not seem to have ${count} ancestors!`);
-        }
-        //run attachToParent as many times as needed
-        for (let j = 0; j < count; j++) {
-            attachToParent(element, left)
+            family.unshift(element);
             element = element.parentElement;
         }
-    } catch(error) {
-        console.error(error);
+        //throw an error if the oldest ancestor is null
+        if(!family[0]){
+            throw new Error(`Ancestor number ${count} of ${element} is null!`);
+        }
+        //run attachToParent to line the ancestors up correctly
+        //since we used unshift, the one furthest up the DOM tree is positioned first
+        family.forEach(element => {
+            attachToParent(element);
+        });
+    }catch(error){
+        console.error(error)
     }
 }
+
 
 export {attachToParent, lineUpAncestors}

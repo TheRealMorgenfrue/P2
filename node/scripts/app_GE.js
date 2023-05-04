@@ -583,12 +583,5 @@ function populateIDs(table){
     })
 }
 
-// Running The Program
-// Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
-window.addEventListener("load", (event) => {
-    initTableGE(SETTINGS.READONLY.TABLE.table_id);
-});
-
-
 // Export function(s) to test suite (brackets matter, see drag.test.js)
-export {createArray, sanitize};
+export {createArray, sanitize, initTableGE, populateIDs};
