@@ -4,7 +4,6 @@ Global:     VARIABLECASE   / VARIABLE_CASE
 Function:   variableCase   / "N/A"
 Objects:    VariableCase   / "N/A"
 Primitives: "N/A"          / variable_case
-
 *****************************************
 */
 import {initDrag} from "./draganddrop.js";
@@ -79,14 +78,15 @@ function initTableGE(tableID, element) {
     } else {
         document.body.appendChild(table);
     }
+
     table.classList.add("container");
     table.appendChild(tbody);
-
+    
     // Set the table's ID if one is given
     if(tableID) {
         table.id = `${tableID}`;
     }
-    resizeTableBody(tbody, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells"}>`);
+    resizeTableBody(tbody, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells">`);
     
     tbody.addEventListener("change", (event) => {
         // Validate input in the cell the user modified 
@@ -181,7 +181,7 @@ function addAttributes(type, Input) {
  * @param {string} listener_type 
  * @returns 
  */
-function createEventListener(type_id, listener_type) {
+function createEventListener(type_id, listener_type, table) {
     try {   // Catch all errors in the function 
         let element;
         try {
@@ -226,6 +226,7 @@ function createEventListener(type_id, listener_type) {
                     }
                     SETTINGS.WRITABLE.row_value = Number(event.target.value); // Convert to number since strings behave weird with logical operators
                     resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells"}>`);
+                    // resizeMathTableBody(document.getElementById("math_table"), SETTINGS.WRITABLE, `<input class="tblCells">`);
                 });   
                 break;
             } 
@@ -244,6 +245,7 @@ function createEventListener(type_id, listener_type) {
                     }
                     SETTINGS.WRITABLE.column_value = Number(event.target.value); // Convert to number since strings behave weird with logical operators
                     resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells"}>`);
+                    // resizeMathTableBody(document.getElementById("math_table"), SETTINGS.WRITABLE, `<input class="tblCells">`);
                 });   
                 break;
             }
@@ -310,7 +312,7 @@ function undoTable(undo_count) {
             // Go back undo_count times in the holding array amd remove all succeeding elements - e.g. [1,2,3,4,5] with undo_count = 2 becomes [1,2,3] 
             const deleted_tables = TABLES.splice(TABLES.length-undo_count, undo_count);
 
-            CURRENT_TABLE = deleted_tables.pop()
+            CURRENT_TABLE = deleted_tables.pop();
 
             // Testing 
             console.table(TABLES);
@@ -410,7 +412,7 @@ function sanitize(str){
     // Keep any negative scalars in input 
     if(str[0] === "-"){
         negation_operator = "-";
-    };
+    }
     str = str
     .replace(/[^0-9]/g, "").trim();
 //   .replace(/&/g, "")
@@ -427,6 +429,8 @@ function sanitize(str){
  */
 function randomize_Table() {
     CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
+    const table = document.getElementById("gaussian_elimination_matrix");
+    updateTableFromArray(table, CURRENT_TABLE, false, "input", "value");
 }
 
 //we assume the table has at least one tbody if a tbody is not passed as that argument
@@ -472,7 +476,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
         };
         //initialise the number of cells we need to add for various operations
         //we can use this variable for both row- and column-changes
-        let cellsNeeded = 0;
+        let cells_needed = 0;
 
         //add or remove rows if requested
         console.log(`Need to add ${dimensions.row_value - tableRows.length} rows`);
@@ -480,14 +484,14 @@ function resizeTableBody(table, dimensions, HTMLcode){
             //we need to add rows, since the requested number of rows is larger than the current number of rows
             //first we find the number of columns we need to add to the new rows
             if(table.lastElementChild){
-                cellsNeeded = table.lastElementChild.querySelectorAll("td").length;
+                cells_needed = table.lastElementChild.querySelectorAll("td").length;
             } else {
-                cellsNeeded = 0;
+                cells_needed = 0;
             }
             //then we add a number of rows equal to the difference between the current row count and the requested row count
             for (let i = 0; i < (dimensions.row_value - tableRows.length); i++) {
                 const newRow = document.createElement("tr");
-                newRow.classList.add("tblCells")
+                newRow.classList.add("tblCells");
                 table.appendChild(newRow);
 
                 //add the row to our list of changes
@@ -495,7 +499,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
                 
                 /*Turns out we didn't need this, since the column-adding code below does it for us
                     HOWEVER, if all rows are the same length, this could be readded and the column-adding code could be simplified...
-                for (let j = 0; j < cellsNeeded; j++) {
+                for (let j = 0; j < cells_needed; j++) {
                     const newCell = document.createElement("td");
                     newCell.innerHTML = HTMLcode;
                     newRow.appendChild(newCell);
@@ -519,14 +523,14 @@ function resizeTableBody(table, dimensions, HTMLcode){
         //we update our list of rows before moving on to columns if we did something with the rows
         if(dimensions.row_value - tableRows.length !== 0){
             tableRows = table.querySelectorAll("tr");
-        };
+        }
         //add or remove columns if needed. It is important to do this after adding or removing any rows
         //we do this for every row to ensure we end up with the same number of columns in every row
         tableRows.forEach(row => {
-            cellsNeeded = dimensions.column_value - row.querySelectorAll("td").length;
-            console.log(`Need ${cellsNeeded} cells on this row`);
-            if(cellsNeeded > 0){
-                for (let i = 0; i < cellsNeeded; i++) {
+            cells_needed = dimensions.column_value - row.querySelectorAll("td").length;
+            console.log(`Need ${cells_needed} cells on this row`);
+            if(cells_needed > 0){
+                for (let i = 0; i < cells_needed; i++) {
                     const newCell = document.createElement("td");
                     newCell.innerHTML = HTMLcode;
                     newCell.classList.add("tblCells")
@@ -535,8 +539,8 @@ function resizeTableBody(table, dimensions, HTMLcode){
                     //add the cell to our list of changes
                     changes.tdAdded.push(newCell);
                 }
-            } else if(cellsNeeded < 0){
-                for (let i = cellsNeeded; i < 0; i++) {
+            } else if(cells_needed < 0){
+                for (let i = cells_needed; i < 0; i++) {
                     //once again using removeChild to get a reference to the element
                     const removedCell = row.removeChild(row.lastElementChild);
                     
@@ -578,23 +582,10 @@ function convertTableToArray(table){
         console.error(error);
         return null;
     }
+    
 }
 
-//assigns an ID to every row and cell in a table, provided they exist. Should mostly be used for testing
-function populateIDs(table){
-    table.querySelectorAll("tr").forEach((row, i) => {
-        row.id = `${SETTINGS.READONLY.TABLE.table_id}_${i}`;
-        row.querySelectorAll("td").forEach((cell, j) => {
-            cell.id = `${SETTINGS.READONLY.TABLE.table_id}_${i},${j}`;
-        })
-    })
-}
-
-
-
-
-
-function resizeMathTableBody(mtable, dimensions, HTMLcode){
+function resizeMathTableBody(mtable, dimensions, HTMLcode) {
     try{
         //make sure we're dealing with a mtable or mtbody
         if(mtable.tagName.toUpperCase() !== "MTABLE" && mtable.tagName.toUpperCase() !== "MROW"){
@@ -609,6 +600,7 @@ function resizeMathTableBody(mtable, dimensions, HTMLcode){
         }
         //define HTML-code to be placed in new cells
         if(!HTMLcode || typeof HTMLcode !== "string"){
+
             HTMLcode = "";
         }
         // //if the mtable is not a mtbody, we need to get a mtbody first
@@ -644,7 +636,6 @@ function resizeMathTableBody(mtable, dimensions, HTMLcode){
             //then we add a number of rows equal to the difference between the current row count and the requested row count
             for (let i = 0; i < (dimensions.row_value - tableRows.length); i++) {
                 const newRow = document.createElement("mtr");
-                newRow.classList.add("tblCells")
                 mtable.appendChild(newRow);
 
                 //add the row to our list of changes
@@ -681,16 +672,17 @@ function resizeMathTableBody(mtable, dimensions, HTMLcode){
         //we do this for every row to ensure we end up with the same number of columns in every row
         tableRows.forEach(row => {
             cellsNeeded = dimensions.column_value - row.querySelectorAll("mtd").length;
-            console.log(`Need ${cellsNeeded} cells on this row`);
+            console.log(`Need ${cellsNeeded} mcells on this mrow`);
             if(cellsNeeded > 0){
                 for (let i = 0; i < cellsNeeded; i++) {
-                    const newCell = document.createElement("mtd");
-                    newCell.innerHTML = HTMLcode;
-                    newCell.classList.add("tblCells")
-                    row.appendChild(newCell);
+                    const mtd_cell = document.createElement("mtd");
+                    const mi = document.createElement("mi");
+                    mtd_cell.appendChild(mi);
+                    mi.innerHTML = HTMLcode;
+                    row.appendChild(mtd_cell);
 
                     //add the cell to our list of changes
-                    changes.mtdAdded.push(newCell);
+                    changes.mtdAdded.push(mtd_cell);
                 }
             } else if(cellsNeeded < 0){
                 for (let i = cellsNeeded; i < 0; i++) {
@@ -702,7 +694,7 @@ function resizeMathTableBody(mtable, dimensions, HTMLcode){
                 }
             }
         });
-        console.log(`Added cells: ${changes.mtdAdded} Removed cells: ${changes.mtdRemoved}`);
+        console.log(`Added mcells: ${changes.mtdAdded} Removed mcells: ${changes.mtdRemoved}`);
         //we're finally done adding and removing things, so we return our changes-object
         return changes;
     } catch(error) {
@@ -711,86 +703,23 @@ function resizeMathTableBody(mtable, dimensions, HTMLcode){
     }
 }
 
-function initMathTableGE(tableID, element) {
-    // Create a mtable and add it to the page
-    const mtable = document.createElement("mtable");
-    const mrow = document.createElement("mrow");
-    const mo1 = document.createElement("mo");
-    const mo2 = document.createElement("mo");
-    mo1.innerText = "[";
-    mo2.innerText = "]";
-    if(element){
-        element.appendChild(mrow);
-    } else {
-        document.body.appendChild(mtable);
-    }
-    mrow.appendChild(mo1);
-    mrow.appendChild(mtable);
 
-    // Set the mtable's ID if one is given
-    if(tableID) {
-        mtable.id = "mathtab_le";
-    }
-    resizeMathTableBody(mtable, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells"}>`);
-    mrow.appendChild(mo2);
 
-    mrow.addEventListener("change", (event) => {
-        // Validate input in the cell the user modified 
-        console.log(`target value = ${event.target.value}`);
-        let cell_value = event.target.value;
-        let sanitized_cell_value = sanitize(cell_value);
-        event.target.value = sanitized_cell_value;
-    });
-    // addTableButtons();
-    // addResizeButtons();
+//assigns an ID to every row and cell in a table, provided they exist. Should mostly be used for testing
+function populateIDs(table){
+    table.querySelectorAll("tr").forEach((row, i) => {
+        row.id = `${SETTINGS.READONLY.TABLE.table_id}_${i}`;
+        row.querySelectorAll("td").forEach((cell, j) => {
+            cell.id = `${SETTINGS.READONLY.TABLE.table_id}_${i},${j}`;
+        })
+    })
 }
-
 
 // Running The Program
 // Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
 window.addEventListener("load", (event) => {
-    const math = document.createElement("math");
-    math.setAttribute("display", "block"); 
-    // math.classList.add("tbl");
-    document.body.appendChild(math);
-
-    const mrow = document.createElement("mrow");
-    // const mo1 = document.createElement("mo");
-    // const mo2 = document.createElement("mo");
-    // const mtable = document.createElement("mtable");
-    // const mtr1 = document.createElement("mtr");
-    // const mtr2 = document.createElement("mtr");
-    // const mtd1 = document.createElement("mtd");
-    // const mtd2 = document.createElement("mtd");
-    // const mn1 = document.createElement("mn");
-    // const mn2 = document.createElement("mn");
-    // mo1.innerText = "[";
-    // mo2.innerText = "]";
-    // mn1.innerHTML = 1;
-    // mn2.innerHTML = 2;
-    // document.body.appendChild(math);
-    // math.appendChild(mrow);
-    // mrow.appendChild(mo1);
-    // mrow.appendChild(mtable);
-    // mtable.appendChild(mtr1);
-    // mtr1.appendChild(mtd1);
-    // mtd1.appendChild(mn1);
-    // mtable.appendChild(mtr2);
-    // mtr2.appendChild(mtd2);
-    // mtd2.appendChild(mn2);
-    // mrow.appendChild(mo2);
-
-    // math.appendChild(mrow);
-
-    initMathTableGE("fisk", math);
     initTableGE(SETTINGS.READONLY.TABLE.table_id);
 });
-
-// MATH
-// https://www.w3.org/TR/MathML/chapter6.html#world-int-style
-// https://developer.mozilla.org/en-US/docs/Learn/MathML/First_steps/Tables
-
-
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
 export {createArray, sanitize};

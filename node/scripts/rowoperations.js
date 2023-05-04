@@ -1,5 +1,5 @@
 
-import {sanitize} from "./app_GE.js"
+// import {sanitize} from "./app_GE.js"
 import {attachToParent} from "./positioning.js" // Used for positioning buttons
 import {swapRows} from "./app_math.js"
 //import {sanitize} from "../scripts/app_GE.js" // Used for scale button input 

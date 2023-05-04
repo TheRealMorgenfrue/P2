@@ -1,3 +1,7 @@
+/* https://www.w3.org/TR/CSS/#terms */
+
+
+
 html, body {
 	height: 100%;
 }
@@ -21,6 +25,7 @@ table {
     width: auto;
 	border-collapse: collapse;
 	overflow: hidden;
+	background-color: white;
 	box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
@@ -28,7 +33,11 @@ th,
 td {
 	padding: 5px;
 	background-color: rgba(255,255,255,0.2);
-	color: #fff;
+}
+
+td > input {
+	border-color: transparent;
+	background-color: transparent;
 }
 
 th {
@@ -40,7 +49,8 @@ thead th {
 }
 
 tbody tr:hover {
-    background-color: rgba(255,255,255,0.3);
+    /* background-color: rgba(255,255,255,0.3); */
+	background-color: rgba(0, 0, 0, 0.3);
 }
 
 tbody td {
@@ -54,6 +64,47 @@ left: 0;
 right: 0;
 top: -9999px;
 bottom: -9999px;
-background-color: rgba(255,255,255,0.2);
+/* background-color: rgba(255,255,255,0.2); */
+background-color: rgba(0, 0, 0, 0.2);
 z-index: -1;
 }
+
+.mcontainer {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+mtable {
+    width: auto;
+	border-collapse: collapse;
+	
+	overflow: hidden;
+	z-index: -100;
+}
+
+/* mtd {
+	padding: 5px;
+	background-color: rgba(255,255,255,0.2);
+	color: #fff;
+}
+
+mrow mtr:hover {
+    background-color: rgba(255,255,255,0.3);
+}
+
+mrow mtd {
+    position: relative;
+}
+
+mrow mtd:hover::before {
+content: "";
+position: absolute;
+left: 0;
+right: 0;
+top: -9999px;
+bottom: -9999px;
+background-color: rgba(255,255,255,0.2);
+z-index: -1;
+} */

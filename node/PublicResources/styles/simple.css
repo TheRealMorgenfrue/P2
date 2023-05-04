@@ -34,8 +34,11 @@
 }
 
 .buttons {
-  width: 120px;
-  /* margin-left: 10px; */
+  width: auto;
+  position: absolute;
+  /* left: 10px; */
+  top: 70%;
+  margin-left: 1300px;
 }
 
 .scale_field {
