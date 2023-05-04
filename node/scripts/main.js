@@ -66,12 +66,6 @@ window.addEventListener("load", () => {
     // Defining the table and adding drag functionality
     let TABLE = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
 
-    //add IDs to the rows and cells
-    populateIDs(TABLE);
-
-    TABLE.querySelectorAll("tr").forEach(row => {
-        initDrag(row);
-    });
     //remove anything that's not a cell from the row's list of children when we start dragging
     TABLE.addEventListener("draggingStarted", event => {
         Array.from(event.detail.children).forEach(element => {
@@ -82,7 +76,8 @@ window.addEventListener("load", () => {
     })
 
     //define what the primary row is
-    sessionStorage.setItem("primaryRow", TABLE.querySelector("tr").id);
+    console.log(TABLE.querySelector("tr"));
+    //sessionStorage.setItem("primaryRow", TABLE.querySelector("tr").id); // ERROR IS HERE - SESSION STORAGE ITEM IS EMPTY AFTER THIS ASSIGNMENT
 
     // We select all rows so an event listener can be attached that moves/reattaches the scale field to a target row - we assume that the table is non-empty 
     TABLE.querySelectorAll("tr").forEach(element => element.addEventListener("mouseover", moveInterface));

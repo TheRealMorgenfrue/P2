@@ -115,4 +115,4 @@ function highlightPermissions(element, value){
     }
 }
 
-export {initDrag}; // Export function(s) to test suite (brackets matter, see drag.test.js)
+export {initDrag, disableDrag}; // Export function(s) to test suite (brackets matter, see drag.test.js)

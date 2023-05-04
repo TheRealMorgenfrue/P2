@@ -1,5 +1,5 @@
 
-import {sanitize} from "./app_GE.js"
+import {sanitize, pushToHistory} from "./app_GE.js"
 import {attachToParent, lineUpAncestors} from "./positioning.js" // Used for positioning buttons
 import {swapRows} from "./app_math.js"
 //import {sanitize} from "../scripts/app_GE.js" // Used for scale button input 
@@ -64,6 +64,7 @@ function swapTableRows(table, rowA, rowB, tableArray){
         //with the array elements swapped, we move on to swapping the rows in the HTML-table.
         //we use updateTableFromArray for this task
         updateTableFromArray(table, tableArray, [indexA, indexB])
+        sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
 
     } catch(error) {
         console.error(error);
@@ -98,6 +99,7 @@ function addRows(table, rowA, rowB, tableArray){
             row2[i] += row1[i];
         }
         updateTableFromArray(table,tableArray,[indexB],"input");
+        sessionStorage.setItem("currentTable", JSON.stringify(tableArray)); // Update global table array objects
     }
     catch(error){
         console.log(`${error.message}`);
@@ -304,15 +306,17 @@ function createScaleField(target_row, table){
     // We create the scale button that is attached to scalefield
     const scale_button = document.createElement("button");
     scale_button.innerHTML = "Scale";
+
     // When scale button is clicked, the target row is scaled if it exists. 
     scale_button.addEventListener("click", event => {
         event.stopPropagation(); // We do not want click to propgate to dragfunctionality 
         //scale_target = ROW_OPERATION_MANAGER[target_row];
-        const scale_target = sessionStorage.getItem(target_row);
+        const scale_target = document.getElementById(sessionStorage.getItem(target_row));
         if(!scale_target){ // Row has to exist in order to scale it.
-            console.warn(`No row with name "${target_row}" exists in ROW_OPERATION_MANAGER`);
+            console.warn(`Expected "${target_row}" from session storage but recieved "${scale_target}"`);
         } else {
-            scaleRow(table, scale_target, scalar_input.value, CURRENT_TABLE);
+            //scaleRow(table, scale_target, scalar_input.value, CURRENT_TABLE);
+            scaleRow(table, scale_target, scalar_input.value, JSON.parse(sessionStorage.getItem("currentTable")));
         }
     });
 
@@ -414,7 +418,8 @@ function createAddInterface(table){
     //performing the actual addition and resetting the interface when the go_button is clicked
     go_button.addEventListener("click", () => {
         //addRows(table,ROW_OPERATION_MANAGER.secondaryRow, ROW_OPERATION_MANAGER.primaryRow,CURRENT_TABLE);
-        addRows(table, document.getElementById(sessionStorage.getItem("secondaryRow")), document.getElementById(sessionStorage.getItem("primaryRow")),CURRENT_TABLE);
+        //addRows(table, document.getElementById(sessionStorage.getItem("secondaryRow")), document.getElementById(sessionStorage.getItem("primaryRow")),CURRENT_TABLE);
+        addRows(table, document.getElementById(sessionStorage.getItem("secondaryRow")), document.getElementById(sessionStorage.getItem("primaryRow")), JSON.parse(sessionStorage.getItem("currentTable")));
         scale_field.style.visibility = "hidden";
         row_holder.style.visibility = "hidden";
         go_button.style.visibility = "hidden";
@@ -479,6 +484,7 @@ function scaleRow(table,row,scalar,tableArray){
         }
         row_to_scale.forEach(element => (element *= scalar));
         updateTableFromArray(table, tableArray, [index], "input", "value");
+        sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
     }
     catch(error){
         console.log(`${error.message}`);
