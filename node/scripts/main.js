@@ -82,7 +82,7 @@ window.addEventListener("load", () => {
     // We select all rows so an event listener can be attached that moves/reattaches the scale field to a target row - we assume that the table is non-empty 
     TABLE.querySelectorAll("tr").forEach(element => element.addEventListener("mouseover", moveInterface));
     // We create a scale field with a target row specified by argument 
-    let scale_field = createScaleField("primaryRow", TABLE);
+    let scale_field = createScaleField("primaryRow", "primaryScaleFactor", TABLE);
     //ROW_OPERATION_MANAGER.primaryScaleField = scale_field;
     sessionStorage.setItem("primaryScaleField", scale_field.id);
 

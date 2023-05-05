@@ -42,7 +42,7 @@ function extractRowIndex(row){
  * @param {HTMLElement} rowB is the second row element, which should trade places with the first.
  * @param {Array} tableArray is an optional argument that represents the table as an array of rows.
  */
-function swapTableRows(table, rowA, rowB, tableArray){
+function swapTableRows(table, rowA, rowB, tableArray){  //NEEDS WORK!!!!!
     //entering a try-clause so we can throw an error if "table" is not a table- or tbody-tag
     try{
         //check if the "table" argument is a table or a tbody
@@ -65,7 +65,7 @@ function swapTableRows(table, rowA, rowB, tableArray){
         //we use updateTableFromArray for this task
         updateTableFromArray(table, tableArray, [indexA, indexB])
         sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
-
+        pushToHistory(tableArray);
     } catch(error) {
         console.error(error);
     }
@@ -98,8 +98,9 @@ function addRows(table, rowA, rowB, tableArray){
         for(let i = 0; i < rowA.length; i++){
             row2[i] += row1[i];
         }
-        updateTableFromArray(table,tableArray,[indexB],"input");
+        updateTableFromArray(table,tableArray,[indexB],"input", "value");
         sessionStorage.setItem("currentTable", JSON.stringify(tableArray)); // Update global table array objects
+        pushToHistory(tableArray);
     }
     catch(error){
         console.log(`${error.message}`);
@@ -119,7 +120,7 @@ function addRows(table, rowA, rowB, tableArray){
  * Remember to sanitize the data in tableArray!
  * @param {HTMLElement} table is an HTML table-lement or HTML tbody-element.
  * @param {Array} tableArray is an array of arrays representing the data that should be placed in the table.
- * @param {Array} options is a set of integers specifying the base-0 index of the rows that should be updated.
+ * @param {Array} options is an array of integers specifying the base-0 index of the rows that should be updated.
  * If excluded, every row in the table will be updated. Both positive and negative values are allowed.
  * @param {String} query is an optional CSS selector string used to identify and target elements within the table cells.
  * @param {String} attribute is a specific attribute of the target element to modify instead of its innerHTML. Passed as a string like "value" and used with element.setAttribute.
@@ -127,42 +128,66 @@ function addRows(table, rowA, rowB, tableArray){
 function updateTableFromArray(table, tableArray, options, query, attribute){
     //get an iterable list of rows in the table
     let rows = table.querySelectorAll("tr");
-
+    console.log(`Table is "${table}\nWill try to update it to look like ${tableArray}\nSelected rows are ${options}`);
     //check if there are any specific rows to update and trim the row list if there is
-    if(options instanceof Array || options instanceof Set){  //could also use isArray() for this check, but then a Set would not work as input
+    if(Array.isArray(options)){
 
         //create a new array and add the elements from the original array
         //indexed by the numbers in the options-array note the use of .at(),
         //which allows the use of negative integers and counts from the back of the array instead of the front
         const trimmedRows = new Array;
+
+        //making rows into a normal array instead of a nodelist so we can index it
+        rows = Array.from(rows);
+        console.log(`Row(s) targeted by updateTable is ${options}`);
         options.forEach(element => {
-            trimmedRows.push(tableArray.at(element));
+            trimmedRows.push(rows.at(element));
         });
         //overwrite rows with the trimmed version
         rows = trimmedRows;
     }
-
+    console.log(`Trimmed rows are\n${rows}`);
     if(!attribute || attribute.length < 0){
         attribute = "innerHTML";
     }
     //now that we know which rows to work on, we get the elements in each row and write new values in them.
     //since querySelectorAll returns an iterable object, we can use the index-argument in forEach's callback
     //as it would correspond to the value representing that cell in the array of arrays.
-    //but first we need to check if we shoud include the extra query:
-    if(!query || query.length > 0){
-        rows.forEach((row, i) => {
+    //but first we need to check if we shoud include the extra query and/or the options:
+    let modeSelector = 0;
+    if(query && typeOf(query) === "string"){
+        modeSelector += 1;
+    }
+    if(Array.isArray(options)){
+        modeSelector += 2;
+    }
+    switch (modeSelector) {
+        case 3:
+            
+            break;
+    
+        default:
+            break;
+    }
+
+    if(query && query.length > 0 && Array.isArray(options)){
+        console.log(`Modifying elements queried by "${query}"`);
+        rows.forEach((row, i) => { //Consider if options is [0,1,4,3], then rows is [Row0, Row1, Row4, Row3] but tableArray is still [Row0, Row1, Row2, Row3, Row4]. We must use options[i] instead of i to index tableArray if we want to modify the ith row
+            console.log(`Working on row #${i} which is ${row} with id ${row.id}`)
             row.querySelectorAll("td").forEach((cell, j) => {
-                cell.querySelector(query).setAttribute(attribute, tableArray[i][j]);
+                console.log(`Working on cell${j} with id ${cell.id}`);
+                cell.querySelector(query)[attribute] = tableArray[options[i]][j];   //accessing the property with a string in square brackets can be done for any object 
             })
     });
     } else {
+        console.log("No query received. Modifying cells instead")
         rows.forEach((row, i) => {
             row.querySelectorAll("td").forEach((cell, j) => {
-                cell.setAttribute(attribute, tableArray[i][j]);
+                cell[attribute] = tableArray[options[i]][j];
             })
     });
     }
-    //note: We use .innerHTML as our default attribute to set in each cell. This adds flexibility to what we can put in the table
+    //note: We use .innerHTML as our default at tribute to set in each cell. This adds flexibility to what we can put in the table
     //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.
     //The data we set might need sanitizing first. We assume another function has done that before this function is run.
 }
@@ -215,16 +240,16 @@ function fillTable(table, content, options, query, attribute){
 
     //now that we know which rows to work on, we get the elements in each row and write the content in them.
     //but first we need to check if we shoud include the extra query:
-    if(!query || query.length > 0){
+    if(query && query.length > 0){
         rows.forEach((row) => {
             row.querySelectorAll("td").forEach((cell) => {
-                cell.querySelector(query).setAttribute(attribute, content);
+                cell.querySelector(query)[attribute] = content;
             })
     });
     } else {
         rows.forEach((row) => {
             row.querySelectorAll("td").forEach((cell) => {
-                cell.setAttribute(attribute, content);
+                cell[attribute] = content;
             })
     });
     }
@@ -298,18 +323,21 @@ const ROW_OPERATION_MANAGER = {
  */
 
 //create a set of HTML elements to act as an interface for scaling
-function createScaleField(target_row, table){
+function createScaleField(target_row, factor_name, table){
     // We create input box that becomes child of scale field  
     const scalar_input = document.createElement("input");
     scalar_input.type = "number";
-    scalar_input.classList.add("scale_field"); 
+    scalar_input.classList.add("scale_field");
+    scalar_input.addEventListener("change", event => {
+        sessionStorage.setItem(factor_name, event.currentTarget.value);
+    })
+
     // We create the scale button that is attached to scalefield
     const scale_button = document.createElement("button");
     scale_button.innerHTML = "Scale";
 
     // When scale button is clicked, the target row is scaled if it exists. 
     scale_button.addEventListener("click", event => {
-        event.stopPropagation(); // We do not want click to propgate to dragfunctionality 
         //scale_target = ROW_OPERATION_MANAGER[target_row];
         const scale_target = document.getElementById(sessionStorage.getItem(target_row));
         if(!scale_target){ // Row has to exist in order to scale it.
@@ -321,7 +349,8 @@ function createScaleField(target_row, table){
     });
 
     // We create scale field and add attributes to it
-    const scale_field = document.createElement("div"); // We use div so that multiple elements can be children of a scale field 
+    const scale_field = document.createElement("div"); // We use div so that multiple elements can be children of a scale field
+    scale_field.addEventListener("click", event => {event.stopPropagation()}); // We do not want click to propgate to dragfunctionality 
     document.body.appendChild(scale_field);   
     scale_field.classList.add("scale_field"); // We create a class so we can hide an element using CSS
     scale_field.id = `${target_row}_scale_field`; // May not necessary -> Test!
@@ -346,7 +375,7 @@ function createAddInterface(table){
     add_button.id = "add_button_id";
 
     // Create scale field and make it hidden
-    const scale_field = createScaleField("secondaryRow", table);
+    const scale_field = createScaleField("secondaryRow", "secondaryScaleFactor", table);
     scale_field.style.visibility = "hidden";
     scale_field.addEventListener("change", event => {
         sessionStorage.setItem("secondaryScaleFactor", String(event.target.value));
@@ -477,17 +506,19 @@ function moveInterface(event){
  */
 function scaleRow(table,row,scalar,tableArray){
     try{
-        const index = searchForRowIndex(table, row);
+        const index = extractRowIndex(row);
         const row_to_scale = tableArray[index];
+        console.log(`Scaling row #${index} by multiplying with ${scalar}\nRow to scale looks like ${row_to_scale}`);
         if(row_to_scale === undefined){
-            throw new Error("Row cannot be found");
+            throw new Error(`Row ${row_to_scale} not found`);
         }
-        row_to_scale.forEach(element => (element *= scalar));
+        row_to_scale.forEach((element, i) => (row_to_scale[i] = element * scalar));
         updateTableFromArray(table, tableArray, [index], "input", "value");
         sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
+        pushToHistory(tableArray);
     }
     catch(error){
-        console.log(`${error.message}`);
+        console.log(`${error.message}\n${error.lineNumber}`);
     }
 }
 

@@ -417,7 +417,7 @@ function unlockTable() {
 
         tbl.querySelectorAll("tr").forEach(row => {
             //disable dragging
-            disableDrag(element);
+            disableDrag(row);
         });
         console.log("Table is now unlocked");
     }
