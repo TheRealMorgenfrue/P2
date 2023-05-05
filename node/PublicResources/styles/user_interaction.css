@@ -1,0 +1,32 @@
+/* This class controls stuff in the input box, that is the ${rows} x ${colums} fields */
+.inputBox {
+  position: relative;
+  text-align: center;
+  transform: translateY(-50%); /* Add padding corresponding to 50% of the input box width */
+}
+
+.inputBox > input {
+  width: 35px;
+}
+/* Controls the textNode "x" */
+.inputBox > span {
+  color: white;
+}
+
+.buttonContainer {
+  position: relative;
+	display: flex;
+	justify-content: center;
+  transform: translateY(50%); /* Add padding corresponding to 50% of the input box width */
+}
+
+.buttonContainer > input {
+  margin-right: 10px;
+}
+
+
+.scale_field {
+  width: 40px;
+  margin-left: 1px;
+  visibility: hidden;
+}
