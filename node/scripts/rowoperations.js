@@ -155,38 +155,48 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
     //as it would correspond to the value representing that cell in the array of arrays.
     //but first we need to check if we shoud include the extra query and/or the options:
     let modeSelector = 0;
-    if(query && typeOf(query) === "string"){
-        modeSelector += 1;
-    }
     if(Array.isArray(options)){
         modeSelector += 2;
     }
+    if(query && typeof query === "string"){
+        modeSelector += 1;
+    }
     switch (modeSelector) {
-        case 3:
-            
+        case 3: //both options and query are given:
+            console.log(`Got query:${query} and options: ${options}`);
+            rows.forEach((row, i) => { //Consider if options is [0,1,4,3], then rows is [Row0, Row1, Row4, Row3] but tableArray is still [Row0, Row1, Row2, Row3, Row4]. We must use options[i] instead of i to index tableArray if we want to modify the ith row
+                console.log(`Working on row #${i} which is ${row} with id ${row.id}`)
+                row.querySelectorAll("td").forEach((cell, j) => {
+                    console.log(`Working on cell${j} with id ${cell.id}`);
+                    cell.querySelector(query)[attribute] = tableArray[options[i]][j];   //accessing the property with a string in square brackets can be done for any object 
+                })
+            });
             break;
-    
-        default:
+        case 2: //options is given but query is not
+            console.log(`Got no query and options: ${options}`);
+            rows.forEach((row, i) => {
+                row.querySelectorAll("td").forEach((cell, j) => {
+                    cell[attribute] = tableArray[options[i]][j];
+                })
+            });
             break;
+        case 1: //query is given but options is not
+            console.log(`Got query:${query} and no options`);
+            rows.forEach((row, i) => {
+                row.querySelectorAll("td").forEach((cell, j) => {
+                    cell.querySelector(query)[attribute] = tableArray[i][j];
+                })
+            });
+            break;
+        default://options and query are both not given
+            console.log(`Got neither options nor query`);
+            rows.forEach((row, i) => {
+                row.querySelectorAll("td").forEach((cell, j) => {
+                    cell[attribute] = tableArray[i][j];
+                })
+            });
     }
 
-    if(query && query.length > 0 && Array.isArray(options)){
-        console.log(`Modifying elements queried by "${query}"`);
-        rows.forEach((row, i) => { //Consider if options is [0,1,4,3], then rows is [Row0, Row1, Row4, Row3] but tableArray is still [Row0, Row1, Row2, Row3, Row4]. We must use options[i] instead of i to index tableArray if we want to modify the ith row
-            console.log(`Working on row #${i} which is ${row} with id ${row.id}`)
-            row.querySelectorAll("td").forEach((cell, j) => {
-                console.log(`Working on cell${j} with id ${cell.id}`);
-                cell.querySelector(query)[attribute] = tableArray[options[i]][j];   //accessing the property with a string in square brackets can be done for any object 
-            })
-    });
-    } else {
-        console.log("No query received. Modifying cells instead")
-        rows.forEach((row, i) => {
-            row.querySelectorAll("td").forEach((cell, j) => {
-                cell[attribute] = tableArray[options[i]][j];
-            })
-    });
-    }
     //note: We use .innerHTML as our default at tribute to set in each cell. This adds flexibility to what we can put in the table
     //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.
     //The data we set might need sanitizing first. We assume another function has done that before this function is run.
@@ -205,8 +215,8 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
  * 
  * Remember to sanitize the content if it is user-made!
  * @param {HTMLelement} table is an HTML table-lement or HTML tbody-element.
- * @param {Array} content is a string of the content that should be placed in every cell. For example, "<input>" for an input element of "0" for the number 0.
- * @param {Array} options is a set of integers specifying the base-0 index of the rows that should be updated.
+ * @param {String} content is a string of the content that should be placed in every cell. For example, "<input>" for an input element of "0" for the number 0.
+ * @param {Array} options is an array of integers specifying the base-0 index of the rows that should be updated.
  * If excluded, every row in the table will be updated. Both positive and negative values are allowed.
  * @param {String} query is an optional CSS selector string used to identify and target elements within the table cells.
  * @param {String} attribute is a specific attribute of the target element to modify instead of its innerHTML. Passed as a string like "value" and used with element.setAttribute.
@@ -221,7 +231,7 @@ function fillTable(table, content, options, query, attribute){
     }
 
     //check if there are any specific rows to update and trim the row list if there is
-    if(options instanceof Array || options instanceof Set){  //could also use isArray() for this check, but then a Set would not work as input
+    if(Array.isArray(options)){  //could also use isArray() for this check, but then a Set would not work as input
 
         //create a new array and add the elements from the original array
         //indexed by the numbers in the options-array note the use of .at(),
@@ -240,18 +250,45 @@ function fillTable(table, content, options, query, attribute){
 
     //now that we know which rows to work on, we get the elements in each row and write the content in them.
     //but first we need to check if we shoud include the extra query:
-    if(query && query.length > 0){
-        rows.forEach((row) => {
-            row.querySelectorAll("td").forEach((cell) => {
-                cell.querySelector(query)[attribute] = content;
-            })
-    });
-    } else {
-        rows.forEach((row) => {
-            row.querySelectorAll("td").forEach((cell) => {
-                cell[attribute] = content;
-            })
-    });
+    let modeSelector = 0;
+    if(Array.isArray(options)){
+        modeSelector += 2;
+    }
+    if(query && typeof query === "string"){
+        modeSelector += 1;
+    }
+    switch (modeSelector) {
+        case 3: //both options and query are given:
+            console.log(`Got query:${query} and options: ${options}`);
+            rows.forEach((row) => {
+                row.querySelectorAll("td").forEach((cell) => {
+                    cell.querySelector(query)[attribute] = content;   //accessing the property with a string in square brackets can be done for any object 
+                })
+            });
+            break;
+        case 2: //options is given but query is not
+            console.log(`Got no query and options: ${options}`);
+            rows.forEach((row) => {
+                row.querySelectorAll("td").forEach((cell) => {
+                    cell[attribute] = content;
+                })
+            });
+            break;
+        case 1: //query is given but options is not
+            console.log(`Got query:${query} and no options`);
+            rows.forEach((row) => {
+                row.querySelectorAll("td").forEach((cell) => {
+                    cell.querySelector(query)[attribute] = content;
+                })
+            });
+            break;
+        default://options and query are both not given
+            console.log(`Got neither options nor query`);
+            rows.forEach((row) => {
+                row.querySelectorAll("td").forEach((cell) => {
+                    cell[attribute] = content;
+                })
+            });
     }
     //note: We use .innerHTML as our default attribute to set in each cell. This adds flexibility to what we can put in the table
     //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.
@@ -386,7 +423,8 @@ function createAddInterface(table){
     const row_holder = document.createElement("table");
     row_holder.style.visibility = "hidden";
     row_holder.style.backgroundColor = "red";    //temporary styling to make it visible
-    row_holder.style.width = "300px";            //who knows if this is big enough
+    row_holder.style.width = "300px";
+    row_holder.style.height = "20px";            //who knows if this is big enough
 
     // Create add button and hide it
     const go_button = document.createElement("button");
@@ -418,8 +456,11 @@ function createAddInterface(table){
                 scale_field.style.visibility = "hidden";
                 row_holder.style.visibility = "hidden";
                 go_button.style.visibility = "hidden";
-                if(held_row){
-                    row_holder.removeChild(held_row);
+                const current_row = row_holder.querySelector(`#${sessionStorage.getItem("secondaryRow")}`)
+                if(current_row){
+                    const replacement_row = document.createElement("tr");
+                    document.body.appendChild(replacement_row);
+                    row_holder.querySelector("tbody").replaceChild(replacement_row, current_row);
                 }
                 //ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
                 sessionStorage.setItem("secondaryScaleFactor", "1");
@@ -436,7 +477,18 @@ function createAddInterface(table){
     let held_row = undefined;
     row_holder.addEventListener("draggingStopped", event => {
         held_row = event.detail.cloneNode(true);
-        row_holder.appendChild(held_row);
+        held_row.style.position = "static";     //setting the held row to static so its offset is ignored
+        const old_row = row_holder.querySelector("tr");
+        if(old_row){
+            row_holder.querySelector("tbody").replaceChild(held_row, old_row);   //replacing the current row in row_holder with the new one
+        } else {
+            if(!row_holder.querySelector("tbody")){
+                const tbody = document.createElement("tbody");
+                document.body.appendChild(tbody);
+                row_holder.appendChild(tbody);
+            }
+            row_holder.querySelector("tbody").appendChild(held_row);
+        }
         //ROW_OPERATION_MANAGER.secondaryRow = held_row;
         sessionStorage.setItem("secondaryRow", held_row.id);
         go_button.style.visibility = "visible";
@@ -452,9 +504,12 @@ function createAddInterface(table){
         scale_field.style.visibility = "hidden";
         row_holder.style.visibility = "hidden";
         go_button.style.visibility = "hidden";
-        if(held_row){
-            row_holder.removeChild(held_row);
-        }
+        const current_row = row_holder.querySelector(`#${sessionStorage.getItem("secondaryRow")}`)
+            if(current_row){
+                const replacement_row = document.createElement("tr");
+                document.body.appendChild(replacement_row);
+                row_holder.querySelector("tbody").replaceChild(replacement_row, current_row);
+            }
         //ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
         sessionStorage.setItem("secondaryScaleFactor", "1");
         //ROW_OPERATION_MANAGER.secondaryRow = null;

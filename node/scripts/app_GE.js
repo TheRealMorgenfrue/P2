@@ -392,13 +392,15 @@ function lockTable() {
             initDrag(row);
         });
 
+        const backend_table = createBackendTable(tbl);
+        sessionStorage.setItem("currentTable", JSON.stringify(backend_table)); // Create string representation of current matrix to be used by other .js files/script files. - We have to do this because imports only allow non-mutable/changeable items. 
+
+        tbl.dispatchEvent(new CustomEvent("GEstarted", {bubbles: true, detail: backend_table}));
         console.log("Table is now locked");
     }
     else {
         console.warn("Table is already locked");
     }
-    const backend_table = createBackendTable(tbl);
-    sessionStorage.setItem("currentTable", JSON.stringify(backend_table)); // Create string representation of current matrix to be used by other .js files/script files. - We have to do this because imports only allow non-mutable/changeable items. 
 }
 /**  
  * Helper function for the "unlock" button that makes all cells in the table writeable again

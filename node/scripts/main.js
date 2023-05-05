@@ -103,3 +103,4 @@ window.addEventListener("load", () => {
     });
 });
 
+// Scale field skal kun sættes på en enkelt gang; når vi locker table, skal man ikke kunne gøre mere!!
