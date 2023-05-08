@@ -34,18 +34,16 @@ const SETTINGS = new function() {
             this.title = `Input desired size - max ${this.max_matrix_size}`;
         }
         this.BUTTONS = new function() {
-            this.lock_button_id = "lockbutton";
-            this.lock_button_value = "Lock";
-            this.lock_button_type = "button";
-            this.lock_Table = function() { lockTable(); };    // We can have functions as keys in objects by wrapping them in a function
-            this.unlock_button_id = "unlockbutton";
-            this.unlock_button_value = "Unlock";
-            this.unlock_button_type = "button";
-            this.unlock_Table = function() { unlockTable(); };
-            this.clear_button_id = "clearbutton";
-            this.clear_button_value = "Clear matrix";
-            this.clear_button_type = "button";
-            this.clear_Table = function() { fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id)); };
+            this.confirm_button_id = "confirmbutton";
+            this.confirm_button_value = "Confirm matrix";
+            this.confirm_button_type = "button";
+            this.confirm_Table = function() { lockTable(); };    // We can have functions as keys in objects by wrapping them in a function
+            this.reset_button_id = "resetbutton";
+            this.reset_button_value = "Reset matrix";
+            this.reset_button_type = "button";
+            this.reset_Table = function() {
+                fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id), "", false, "input", "value");
+                unlockTable(); };
             this.rewind_button_id = "rewindbutton";
             this.rewind_button_value = "Go back";
             this.rewind_button_type = "button";
@@ -333,20 +331,19 @@ function addTableButtons() {
     // Object that contains the button's element type. This compresses the code to Input.id (instead of having to write e.g. 'lock_button.id' and 'unlock_button.id')
     const Input = {
         div: document.createElement("div"),
-        lock_button: document.createElement("input"),
-        unlock_button: document.createElement("input"),
-        clear_button: document.createElement("input"),
+        confirm_button: document.createElement("input"),
+        reset_button: document.createElement("input"),
         rewind_button: document.createElement("input"),
         randomize_button: document.createElement("input")
     };
 
     // Do NOT use the global id for the buttons here. 
     // That could cause a serious issue with the definition in the 'Input' object
-    addButtonAttributes("lock", Input);
-    addButtonAttributes("unlock", Input);   
-    addButtonAttributes("clear", Input);
+
     addButtonAttributes("rewind", Input);
+    addButtonAttributes("reset", Input);
     addButtonAttributes("randomize", Input);
+    addButtonAttributes("confirm", Input);
     Input.div.classList.add("buttonContainer");
 
     // document.body.appendChild( Input.div);
@@ -381,9 +378,12 @@ function lockTable() {
         console.warn("Table is already locked");
     }
     createBackendTable(tbl);
+    // Hide unusable buttons
+    document.getElementById("randomizebutton").style.visibility = "hidden";
+    document.getElementById("confirmbutton").style.visibility = "hidden";
 }
 /**  
- * Helper function for the "unlock" button that makes all cells in the table writeable again
+ * Helper function for the "reset" button that makes all cells in the table writeable again
  */
 function unlockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
@@ -399,6 +399,8 @@ function unlockTable() {
     else {
         console.warn("Table is already unlocked");
     }
+    document.getElementById("randomizebutton").style.visibility = "visible";
+    document.getElementById("confirmbutton").style.visibility = "visible";
 }
 /**
  * Removes all undesired characters from a string given. 
