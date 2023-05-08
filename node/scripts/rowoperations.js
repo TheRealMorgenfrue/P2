@@ -236,17 +236,17 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
     //since querySelectorAll returns an iterable object, we can use the index-argument in forEach's callback
     //as it would correspond to the value representing that cell in the array of arrays.
     //but first we need to check if we shoud include the extra query:
-    if(!query || query.length > 0){
+    if(query && query.length > 0){
         rows.forEach((row, i) => {
             row.querySelectorAll("td").forEach((cell, j) => {
                 cell.querySelector(query).setAttribute(attribute, tableArray[i][j]);
-            })
+            });
     });
     } else {
         rows.forEach((row, i) => {
             row.querySelectorAll("td").forEach((cell, j) => {
                 cell.setAttribute(attribute, tableArray[i][j]);
-            })
+            });
     });
     }
     //note: We use .innerHTML as our default attribute to set in each cell. This adds flexibility to what we can put in the table
@@ -290,7 +290,7 @@ function fillTable(table, content, options, query, attribute){
         //which allows the use of negative integers and counts from the back of the array instead of the front
         const trimmedRows = new Array;
         options.forEach(element => {
-            trimmedRows.push(tableArray.at(element));
+            trimmedRows.push(rows.at(element));
         });
         //overwrite rows with the trimmed version
         rows = trimmedRows;
@@ -302,18 +302,18 @@ function fillTable(table, content, options, query, attribute){
 
     //now that we know which rows to work on, we get the elements in each row and write the content in them.
     //but first we need to check if we shoud include the extra query:
-    if(!query || query.length > 0){
+    if(query && query.length > 0){
         rows.forEach((row) => {
             row.querySelectorAll("td").forEach((cell) => {
                 cell.querySelector(query).setAttribute(attribute, content);
             })
-    });
+        });
     } else {
         rows.forEach((row) => {
             row.querySelectorAll("td").forEach((cell) => {
                 cell.setAttribute(attribute, content);
             })
-    });
+        });
     }
     //note: We use .innerHTML as our default attribute to set in each cell. This adds flexibility to what we can put in the table
     //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.

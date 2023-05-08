@@ -73,7 +73,7 @@ function initTableGE(tableID, element) {
     // Create a table and add it to the page
     const table = document.createElement("table");
     const tbody = document.createElement("tbody");
-    
+
     // Always append table to the document body. This is changed later if an element is specified.
     // The reason for this is to avoid the problem where the table is not actually appended to the given element (for some weird reason).
     document.body.appendChild(table);
@@ -134,7 +134,7 @@ function addResizeButtons() {
         row: document.createElement('input'),
         column: document.createElement('input')
     };
-    const div = document.createElement("div"); 
+    const div = document.createElement("div");
     const span = document.createElement("span"); 
     const cdot = document.createTextNode(' x ');
 
@@ -226,7 +226,7 @@ function createEventListener(type_id, listener_type) {
                     }
                     SETTINGS.WRITABLE.row_value = Number(event.target.value); // Convert to number since strings behave weird with logical operators
                     resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}">`);
-                });   
+                });
                 break;
             } 
             case "column_change": {
@@ -592,7 +592,7 @@ function populateIDs(table){
 }
 /**
  * Appends a child to a parent element.
- * 
+ *
  * If the parent does not exist in the DOM tree, append it to the document body.
  * @param {HTMLElement|string} parent_element Append child to this element. If a string is given, e.g. "div", a new parent element is created instead.
  * @param {HTMLElement|string} child_element The child that'll be appended to the parent element. If a string is given, e.g. "div", a new child element is created instead.
@@ -604,7 +604,7 @@ function appendToParent(child_element, parent_element) {
     try {
         if(!parent_element) { // Make sure parent element is defined
             throw new Error(`Cannot attach child element to parent. Parent element is ${parent_element}`);
-        } 
+        }
         else if(!child_element) { // Make sure child element is defined
             throw new Error(`Cannot attach child element to parent. Child element is ${child_element}`);
         }
@@ -620,14 +620,14 @@ function appendToParent(child_element, parent_element) {
             wrapper = document.createElement(parent_element); // Create new element type (e.g. <div>)
         }
         // The document object in Internet Explorer does not have a contains() method - to ensure cross-browser compatibility, also use document.body.contains().
-        // If the parent element already exists in the DOM tree, remove it 
+        // If the parent element already exists in the DOM tree, remove it
         // (to prevent page crash when trying to append an element to the DOM when it's already appended to the DOM).
         else if(document.contains(parent_element) || document.body.contains(parent_element)) {
             parent_parent = parent_element.parentElement; // Get the parent of the parent element which a child will be attached to
             wrapper = parent_parent.removeChild(parent_element); // Remove the child from the DOM and return it for later use (as opposed to element.remove() which just terminates the child)
             console.info(`Parent element "${parent_element}" already exists in DOM, removing.`);
-            
-            // If the child element already exists in the DOM tree, remove it 
+
+            // If the child element already exists in the DOM tree, remove it
             // (to prevent page crash when trying to append an element to the DOM when it's already appended to the DOM).
             if(document.contains(child_element) || document.body.contains(child_element)) {
                 child_parent = child_element.parentElement; // Get the parent of the child element
@@ -646,14 +646,14 @@ function appendToParent(child_element, parent_element) {
         }
         wrapper.appendChild(child_element);
 
-        // Append element to its parent element if it has one 
+        // Append element to its parent element if it has one
         if(parent_parent) {
             parent_parent.append(wrapper);
         }
         // Append to body, since no parent was found
         else {
-            document.body.append(wrapper); 
-        } 
+            document.body.append(wrapper);
+        }
     } catch (error) {
         console.error(error);
     }
@@ -672,7 +672,7 @@ window.addEventListener("load", (event) => {
     innerdiv.id = "table_container";
     innerdiv.classList.add("tableContainer");
     document.body.appendChild(innerdiv);
-    
+
     initTableGE(SETTINGS.READONLY.TABLE.table_id, innerdiv);
 
 });
