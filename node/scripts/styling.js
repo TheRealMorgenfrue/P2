@@ -35,9 +35,9 @@ function loadStyle(src) {
 
 
 window.addEventListener("DOMContentLoaded", (event) => {
-    loadStyle("../styles/simple.css")
-        // .then(() => loadStyle(""))
-        //.then(() => loadStyle("css/icomoon.css"))
+    loadStyle("../styles/user_interaction.css")
+        .then(() => loadStyle("../styles/table.css"))
+        .then(() => loadStyle("../styles/body.css"))
         .then(() => {
             console.log('All styles are loaded!');
         }).catch(err => console.error(err));
