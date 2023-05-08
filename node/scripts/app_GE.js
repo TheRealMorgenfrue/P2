@@ -357,6 +357,7 @@ function addButtonAttributes(type, Input) {
     Input[`${type}_button`].id = SETTINGS.READONLY.BUTTONS[`${type}_button_id`];       // Set its ID
     Input[`${type}_button`].value = SETTINGS.READONLY.BUTTONS[`${type}_button_value`]; // Set its value
     Input[`${type}_button`].type = SETTINGS.READONLY.BUTTONS[`${type}_button_type`];   // Make it a "button" type
+    Input[`${type}_button`].classList.add(`${type}Button`);
     Input.div.append(Input[`${type}_button`]); // Add to button container div
     Input[`${type}_button`].addEventListener("click", SETTINGS.READONLY.BUTTONS[`${type}_Table`]); // Add EventListener
 }
@@ -665,18 +666,12 @@ function appendToParent(child_element, parent_element) {
 // Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
 window.addEventListener("load", (event) => {
     // Set-up for the table
-    // const outerdiv = document.createElement("div");
-    // outerdiv.appendChild(innerdiv);
-    // outerdiv.id = "outer_table_container";
-    // outerdiv.classList.add("outerTableContainer");
-    // document.body.appendChild(outerdiv);
-    const innerdiv = document.createElement("div");
-    innerdiv.id = "table_container";
-    innerdiv.classList.add("tableContainer");
-    document.body.appendChild(innerdiv);
+    const table_container_div = document.createElement("div");
+    table_container_div.id = "table_container";
+    table_container_div.classList.add("tableContainer");
+    document.body.appendChild(table_container_div);
 
-    initTableGE(SETTINGS.READONLY.TABLE.table_id, innerdiv);
-
+    initTableGE(SETTINGS.READONLY.TABLE.table_id, table_container_div);
 });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)

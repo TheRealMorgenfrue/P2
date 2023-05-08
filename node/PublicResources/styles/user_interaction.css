@@ -1,3 +1,17 @@
+/* Buttons gallore: */
+/* https://getcssscan.com/css-buttons-examples
+   https://saruwakakun.com/en/css3-buttons */
+
+/* Button styling: */
+/* https://moderncss.dev/css-button-styling-guide/
+   https://css-tricks.com/how-to-stack-elements-in-css/ */
+
+
+/* Button icons gallore: */
+/* https://fontawesome.com/icons/circle-check?f=classic&s=solid&pc=%2300ff40 */
+
+
+
 /* All element types without a leading "." means they apply to all elements in the DOM of that type.
    (Unless another operator is present) */
 
@@ -30,8 +44,18 @@
 }
 
 /* This directly applies to the buttons */
-.buttonContainer > input {
+.buttonContainer input {
   margin-right: 10px; /* Add padding to the right of each button */
+}
+
+.confirmButton {
+  padding: 7px 20px;
+	border-radius: 25px;
+  background: url(../images/circle-check-solid.svg) no-repeat left;
+}
+
+.confirmButton:hover {
+  background-image: linear-gradient(45deg, #FFC107 0%, #f76a35 100%);
 }
 
 
@@ -39,4 +63,46 @@
   width: 40px;
   margin-left: 1px;
   visibility: hidden;
+}
+
+
+
+
+
+
+/*dent around button*/
+/* .btn{
+  display: inline-block;
+  position: relative;
+  text-decoration: none;
+  color: rgba(3, 169, 244, 0.54);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  text-align: center;
+  background: #f7f7f7;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.08);
+} */
+.btn .fa {/*Button itself*/
+  position: absolute;
+  content: '';
+  width: 80px;
+  height: 80px;
+  line-height: 80px;
+  vertical-align: middle; 
+  /* left: 10px;
+  top: 9px; */
+  border-radius: 50%;
+  font-size: 40px;
+  background-image: url(../images/circle-check-solid.svg), linear-gradient(white, white);
+  background-color: transparent;
+  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.66);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(0, 0, 0, 0.19);
+  /* border-bottom: solid 2px #b5b5b5; */
+}
+
+.btn .fa:active{
+  background-image: -webkit-linear-gradient(#efefef 0%, #d6d6d6 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(0, 0, 0, 0.19);
+  border-bottom: solid 2px #d8d8d8;
 }
