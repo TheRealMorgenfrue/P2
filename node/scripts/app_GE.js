@@ -73,7 +73,7 @@ function initTableGE(tableID, element) {
     // Create a table and add it to the page
     const table = document.createElement("table");
     const tbody = document.createElement("tbody");
-
+    
     // Always append table to the document body. This is changed later if an element is specified.
     // The reason for this is to avoid the problem where the table is not actually appended to the given element (for some weird reason).
     document.body.appendChild(table);
@@ -83,6 +83,7 @@ function initTableGE(tableID, element) {
     if(tableID) {
         table.id = `${tableID}`;
     }
+
     resizeTableBody(tbody, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}">`);
     
     tbody.addEventListener("change", (event) => {
@@ -487,6 +488,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
             //then we add a number of rows equal to the difference between the current row count and the requested row count
             for (let i = 0; i < (dimensions.row_value - tableRows.length); i++) {
                 const newRow = document.createElement("tr");
+
                 table.appendChild(newRow);
 
                 //add the row to our list of changes

@@ -266,8 +266,8 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
  * The fifth argument specifies which attribute of a cell's target element to change. The default is innerHTML.
  * 
  * Remember to sanitize the content if it is user-made!
- * @param {HTMLelement} table is an HTML table-lement or HTML tbody-element.
- * @param {Array} content is a string of the content that should be placed in every cell. For example, "<input>" for an input element of "0" for the number 0.
+ * @param {HTMLElement} table is an HTML table-lement or HTML tbody-element.
+ * @param {String} content is a string of the content that should be placed in every cell. For example, "<input>" for an input element of "0" for the number 0.
  * @param {Array} options is a set of integers specifying the base-0 index of the rows that should be updated.
  * If excluded, every row in the table will be updated. Both positive and negative values are allowed.
  * @param {String} query is an optional CSS selector string used to identify and target elements within the table cells.
