@@ -1,27 +1,37 @@
-/* This class controls stuff in the input box, that is the ${rows} x ${colums} fields */
+/* All element types without a leading "." means they apply to all elements in the DOM of that type.
+   (Unless another operator is present) */
+
+/* input box =  the ${rows} x ${colums} fields*/
+
+
+/* This is the container class for the input box. All children of the container inherit these by default */
 .inputBox {
   position: relative;
   text-align: center;
-  transform: translateY(-50%); /* Add padding corresponding to 50% of the input box width */
+  transform: translateY(-50%); /* Add padding corresponding to 50% of the container height */
 }
 
+/* This directly applies to the input box */
 .inputBox > input {
   width: 35px;
 }
+
 /* Controls the textNode "x" */
 .inputBox > span {
   color: white;
 }
 
+/* This is the container class for the buttons. All children of the container inherit these by default */
 .buttonContainer {
   position: relative;
 	display: flex;
 	justify-content: center;
-  transform: translateY(50%); /* Add padding corresponding to 50% of the input box width */
+  transform: translateY(50%); /* Add padding corresponding to 50% of the container height */
 }
 
+/* This directly applies to the buttons */
 .buttonContainer > input {
-  margin-right: 10px;
+  margin-right: 10px; /* Add padding to the right of each button */
 }
 
 

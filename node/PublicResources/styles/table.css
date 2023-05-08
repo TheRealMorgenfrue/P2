@@ -10,17 +10,12 @@
 /* https://stackoverflow.com/questions/10487292/position-absolute-but-relative-to-parent */
 
 
+/* All element types without a leading "." means they apply to all elements in the DOM of that type.
+   (Unless another operator is present) */
 
-/* Styling for everything in the table container div (TCD). 
-Everything that relies on the table's position must either be a child of TCD or have this class */
-/* .outerTableContainer {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-} */
 
-/* Controls the position of the table and related elements on the page */
+/* Container class for the table. All children of the container inherit these by default. */
+/* Controls the position of the table on the page */
 .tableContainer {
 	position: absolute;
 	top: 50%;
