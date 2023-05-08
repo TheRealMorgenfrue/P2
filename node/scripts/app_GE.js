@@ -34,18 +34,16 @@ const SETTINGS = new function() {
             this.title = `Input desired size - max ${this.max_matrix_size}`;
         }
         this.BUTTONS = new function() {
-            this.lock_button_id = "lockbutton";
-            this.lock_button_value = "Lock";
-            this.lock_button_type = "button";
-            this.lock_Table = function() { lockTable(); };    // We can have functions as keys in objects by wrapping them in a function
-            this.unlock_button_id = "unlockbutton";
-            this.unlock_button_value = "Unlock";
-            this.unlock_button_type = "button";
-            this.unlock_Table = function() { unlockTable(); };
-            this.clear_button_id = "clearbutton";
-            this.clear_button_value = "Clear matrix";
-            this.clear_button_type = "button";
-            this.clear_Table = function() { fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id)); };
+            this.confirm_button_id = "confirmbutton";
+            this.confirm_button_value = "Confirm matrix";
+            this.confirm_button_type = "button";
+            this.confirm_Table = function() { lockTable(); };    // We can have functions as keys in objects by wrapping them in a function
+            this.reset_button_id = "resetbutton";
+            this.reset_button_value = "Reset matrix";
+            this.reset_button_type = "button";
+            this.reset_Table = function() {
+                fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id), "", false, "input", "value");
+                unlockTable(); };
             this.rewind_button_id = "rewindbutton";
             this.rewind_button_value = "Go back";
             this.rewind_button_type = "button";
@@ -73,7 +71,7 @@ function initTableGE(tableID, element) {
     // Create a table and add it to the page
     const table = document.createElement("table");
     const tbody = document.createElement("tbody");
-    
+
     // Always append table to the document body. This is changed later if an element is specified.
     // The reason for this is to avoid the problem where the table is not actually appended to the given element (for some weird reason).
     document.body.appendChild(table);
@@ -134,7 +132,7 @@ function addResizeButtons() {
         row: document.createElement('input'),
         column: document.createElement('input')
     };
-    const div = document.createElement("div"); 
+    const div = document.createElement("div");
     const span = document.createElement("span"); 
     const cdot = document.createTextNode(' x ');
 
@@ -226,7 +224,7 @@ function createEventListener(type_id, listener_type) {
                     }
                     SETTINGS.WRITABLE.row_value = Number(event.target.value); // Convert to number since strings behave weird with logical operators
                     resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}">`);
-                });   
+                });
                 break;
             } 
             case "column_change": {
@@ -333,20 +331,19 @@ function addTableButtons() {
     // Object that contains the button's element type. This compresses the code to Input.id (instead of having to write e.g. 'lock_button.id' and 'unlock_button.id')
     const Input = {
         div: document.createElement("div"),
-        lock_button: document.createElement("input"),
-        unlock_button: document.createElement("input"),
-        clear_button: document.createElement("input"),
+        confirm_button: document.createElement("input"),
+        reset_button: document.createElement("input"),
         rewind_button: document.createElement("input"),
         randomize_button: document.createElement("input")
     };
 
     // Do NOT use the global id for the buttons here. 
     // That could cause a serious issue with the definition in the 'Input' object
-    addButtonAttributes("lock", Input);
-    addButtonAttributes("unlock", Input);   
-    addButtonAttributes("clear", Input);
+
     addButtonAttributes("rewind", Input);
+    addButtonAttributes("reset", Input);
     addButtonAttributes("randomize", Input);
+    addButtonAttributes("confirm", Input);
     Input.div.classList.add("buttonContainer");
 
     // document.body.appendChild( Input.div);
@@ -381,9 +378,12 @@ function lockTable() {
         console.warn("Table is already locked");
     }
     createBackendTable(tbl);
+    // Hide unusable buttons
+    document.getElementById("randomizebutton").style.visibility = "hidden";
+    document.getElementById("confirmbutton").style.visibility = "hidden";
 }
 /**  
- * Helper function for the "unlock" button that makes all cells in the table writeable again
+ * Helper function for the "reset" button that makes all cells in the table writeable again
  */
 function unlockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
@@ -399,6 +399,8 @@ function unlockTable() {
     else {
         console.warn("Table is already unlocked");
     }
+    document.getElementById("randomizebutton").style.visibility = "visible";
+    document.getElementById("confirmbutton").style.visibility = "visible";
 }
 /**
  * Removes all undesired characters from a string given. 
@@ -592,7 +594,7 @@ function populateIDs(table){
 }
 /**
  * Appends a child to a parent element.
- * 
+ *
  * If the parent does not exist in the DOM tree, append it to the document body.
  * @param {HTMLElement|string} parent_element Append child to this element. If a string is given, e.g. "div", a new parent element is created instead.
  * @param {HTMLElement|string} child_element The child that'll be appended to the parent element. If a string is given, e.g. "div", a new child element is created instead.
@@ -604,7 +606,7 @@ function appendToParent(child_element, parent_element) {
     try {
         if(!parent_element) { // Make sure parent element is defined
             throw new Error(`Cannot attach child element to parent. Parent element is ${parent_element}`);
-        } 
+        }
         else if(!child_element) { // Make sure child element is defined
             throw new Error(`Cannot attach child element to parent. Child element is ${child_element}`);
         }
@@ -620,14 +622,14 @@ function appendToParent(child_element, parent_element) {
             wrapper = document.createElement(parent_element); // Create new element type (e.g. <div>)
         }
         // The document object in Internet Explorer does not have a contains() method - to ensure cross-browser compatibility, also use document.body.contains().
-        // If the parent element already exists in the DOM tree, remove it 
+        // If the parent element already exists in the DOM tree, remove it
         // (to prevent page crash when trying to append an element to the DOM when it's already appended to the DOM).
         else if(document.contains(parent_element) || document.body.contains(parent_element)) {
             parent_parent = parent_element.parentElement; // Get the parent of the parent element which a child will be attached to
             wrapper = parent_parent.removeChild(parent_element); // Remove the child from the DOM and return it for later use (as opposed to element.remove() which just terminates the child)
             console.info(`Parent element "${parent_element}" already exists in DOM, removing.`);
-            
-            // If the child element already exists in the DOM tree, remove it 
+
+            // If the child element already exists in the DOM tree, remove it
             // (to prevent page crash when trying to append an element to the DOM when it's already appended to the DOM).
             if(document.contains(child_element) || document.body.contains(child_element)) {
                 child_parent = child_element.parentElement; // Get the parent of the child element
@@ -646,14 +648,14 @@ function appendToParent(child_element, parent_element) {
         }
         wrapper.appendChild(child_element);
 
-        // Append element to its parent element if it has one 
+        // Append element to its parent element if it has one
         if(parent_parent) {
             parent_parent.append(wrapper);
         }
         // Append to body, since no parent was found
         else {
-            document.body.append(wrapper); 
-        } 
+            document.body.append(wrapper);
+        }
     } catch (error) {
         console.error(error);
     }
@@ -672,7 +674,7 @@ window.addEventListener("load", (event) => {
     innerdiv.id = "table_container";
     innerdiv.classList.add("tableContainer");
     document.body.appendChild(innerdiv);
-    
+
     initTableGE(SETTINGS.READONLY.TABLE.table_id, innerdiv);
 
 });

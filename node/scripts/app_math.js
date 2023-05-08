@@ -246,7 +246,6 @@ function generateEquation(rows, columns) {
             equations[i][j] = getRandomInt(-9,10);
         }
     }
-    console.table(equations);
     return equations;
 }
 

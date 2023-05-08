@@ -236,18 +236,46 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
     //since querySelectorAll returns an iterable object, we can use the index-argument in forEach's callback
     //as it would correspond to the value representing that cell in the array of arrays.
     //but first we need to check if we shoud include the extra query:
-    if(!query || query.length > 0){
-        rows.forEach((row, i) => {
-            row.querySelectorAll("td").forEach((cell, j) => {
-                cell.querySelector(query).setAttribute(attribute, tableArray[i][j]);
-            })
-    });
-    } else {
-        rows.forEach((row, i) => {
-            row.querySelectorAll("td").forEach((cell, j) => {
-                cell.setAttribute(attribute, tableArray[i][j]);
-            })
-    });
+
+    let modeSelector = 0;
+    if(Array.isArray(options)){
+        modeSelector += 2;
+    }
+    if(query && typeof query === "string"){
+        modeSelector += 1;
+    }
+    switch (modeSelector) {
+        case 3: //both options and query are given:
+            console.log(`Got query:${query} and options: ${options}`);
+            rows.forEach((row, i) => {
+                row.querySelectorAll("td").forEach((cell, j) => {
+                    cell.querySelector(query)[attribute] = tableArray[i][j];   //accessing the property with a string in square brackets can be done for any object
+                })
+            });
+            break;
+        case 2: //options is given but query is not
+            console.log(`Got no query and options: ${options}`);
+            rows.forEach((row, i) => {
+                row.querySelectorAll("td").forEach((cell, j) => {
+                    cell[attribute] = tableArray[i][j];
+                })
+            });
+            break;
+        case 1: //query is given but options is not
+            console.log(`Got query:${query} and no options`);
+            rows.forEach((row, i) => {
+                row.querySelectorAll("td").forEach((cell, j) => {
+                    cell.querySelector(query)[attribute] = tableArray[i][j];
+                })
+            });
+            break;
+        default://options and query are both not given
+            console.log(`Got neither options nor query`);
+            rows.forEach((row, i) => {
+                row.querySelectorAll("td").forEach((cell, j) => {
+                    cell[attribute] = tableArray[i][j];
+                })
+            });
     }
     //note: We use .innerHTML as our default attribute to set in each cell. This adds flexibility to what we can put in the table
     //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.
@@ -290,7 +318,7 @@ function fillTable(table, content, options, query, attribute){
         //which allows the use of negative integers and counts from the back of the array instead of the front
         const trimmedRows = new Array;
         options.forEach(element => {
-            trimmedRows.push(tableArray.at(element));
+            trimmedRows.push(rows.at(element));
         });
         //overwrite rows with the trimmed version
         rows = trimmedRows;
@@ -302,18 +330,45 @@ function fillTable(table, content, options, query, attribute){
 
     //now that we know which rows to work on, we get the elements in each row and write the content in them.
     //but first we need to check if we shoud include the extra query:
-    if(!query || query.length > 0){
-        rows.forEach((row) => {
-            row.querySelectorAll("td").forEach((cell) => {
-                cell.querySelector(query).setAttribute(attribute, content);
-            })
-    });
-    } else {
-        rows.forEach((row) => {
-            row.querySelectorAll("td").forEach((cell) => {
-                cell.setAttribute(attribute, content);
-            })
-    });
+    let modeSelector = 0;
+    if(Array.isArray(options)){
+        modeSelector += 2;
+    }
+    if(query && typeof query === "string"){
+        modeSelector += 1;
+    }
+    switch (modeSelector) {
+        case 3: //both options and query are given:
+            console.log(`Got query:${query} and options: ${options}`);
+            rows.forEach((row) => {
+                row.querySelectorAll("td").forEach((cell) => {
+                    cell.querySelector(query)[attribute] = content;   //accessing the property with a string in square brackets can be done for any object
+                })
+            });
+            break;
+        case 2: //options is given but query is not
+            console.log(`Got no query and options: ${options}`);
+            rows.forEach((row) => {
+                row.querySelectorAll("td").forEach((cell) => {
+                    cell[attribute] = content;
+                })
+            });
+            break;
+        case 1: //query is given but options is not
+            console.log(`Got query:${query} and no options`);
+            rows.forEach((row) => {
+                row.querySelectorAll("td").forEach((cell) => {
+                    cell.querySelector(query)[attribute] = content;
+                })
+            });
+            break;
+        default://options and query are both not given
+            console.log(`Got neither options nor query`);
+            rows.forEach((row) => {
+                row.querySelectorAll("td").forEach((cell) => {
+                    cell[attribute] = content;
+                })
+            });
     }
     //note: We use .innerHTML as our default attribute to set in each cell. This adds flexibility to what we can put in the table
     //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.

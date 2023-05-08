@@ -48,14 +48,14 @@ async function getVal(page, element_id) {
 }
 
 test('Changes number of rows to 3 and writes "1" in cell (2,0)', async () => {
-/*
-    const browser = await puppeteer.launch(
-    { // Shows the actual browser inputs
-        headless: false,
-        slowMo: 80,
-        args: ['--window-size=1080,1024']
-    });
-*/
+    /*
+        const browser = await puppeteer.launch(
+        { // Shows the actual browser inputs
+            headless: false,
+            slowMo: 80,
+            args: ['--window-size=1080,1024']
+        });
+    */
     const browser = await puppeteer.launch();
     // Opens Chromium browser
     const page = await browser.newPage();
@@ -105,8 +105,7 @@ test('Adds a value to cell (0,0), then uses clear button and checks value in cel
 
 /* FUNCTIONS THAT WE WANT TO TEST
 createArray - Array is created and created correctly?
-CreateTable - table is created and updated correctly 
-AttachToParent - correct offset? 
+CreateTable - table is created and updated correctly
+AttachToParent - correct offset?
 Create event listener returns correct event listeners
 */
-
