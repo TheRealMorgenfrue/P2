@@ -331,7 +331,7 @@ function addTableButtons() {
     // Object that contains the button's element type. This compresses the code to Input.id (instead of having to write e.g. 'lock_button.id' and 'unlock_button.id')
     const Input = {
         div: document.createElement("div"),
-        confirm_button: document.createElement("input"),
+        confirm_button: document.createElement("a"),
         reset_button: document.createElement("input"),
         rewind_button: document.createElement("input"),
         randomize_button: document.createElement("input")
@@ -339,12 +339,17 @@ function addTableButtons() {
 
     // Do NOT use the global id for the buttons here. 
     // That could cause a serious issue with the definition in the 'Input' object
-
     addButtonAttributes("rewind", Input);
     addButtonAttributes("reset", Input);
     addButtonAttributes("randomize", Input);
     addButtonAttributes("confirm", Input);
     Input.div.classList.add("buttonContainer");
+    createSVG("M 10,30\
+    A 20,20 0,0,1 50,30\
+    A 20,20 0,0,1 90,30\
+    Q 90,60 50,90\
+    Q 10,60 10,30 z",
+    "0 0 100 100", document.body);
 
     // document.body.appendChild( Input.div);
     appendToParent(Input.div, document.getElementById("table_container"));
@@ -355,8 +360,14 @@ function addTableButtons() {
 function addButtonAttributes(type, Input) {
     // [`${type}`] Makes it possible to use a variable to access properties of an object
     Input[`${type}_button`].id = SETTINGS.READONLY.BUTTONS[`${type}_button_id`];       // Set its ID
-    Input[`${type}_button`].value = SETTINGS.READONLY.BUTTONS[`${type}_button_value`]; // Set its value
-    Input[`${type}_button`].type = SETTINGS.READONLY.BUTTONS[`${type}_button_type`];   // Make it a "button" type
+    if(type === "confirm") {
+        Input[`${type}_button`].text = SETTINGS.READONLY.BUTTONS[`${type}_button_value`];
+    }
+    else {
+        Input[`${type}_button`].value = SETTINGS.READONLY.BUTTONS[`${type}_button_value`]; // Set its value
+        Input[`${type}_button`].type = SETTINGS.READONLY.BUTTONS[`${type}_button_type`];   // Make it a "button" type
+    }
+
     Input[`${type}_button`].classList.add(`${type}Button`);
     Input.div.append(Input[`${type}_button`]); // Add to button container div
     Input[`${type}_button`].addEventListener("click", SETTINGS.READONLY.BUTTONS[`${type}_Table`]); // Add EventListener
@@ -660,6 +671,39 @@ function appendToParent(child_element, parent_element) {
     } catch (error) {
         console.error(error);
     }
+}
+
+function createSVG(path, view_box, parent) {
+    try {
+        if(!path) {
+            throw new Error(`Path must not be ${path}.`);
+        }
+        else if(typeof path !== "string") {
+            throw new Error(`Path must be a string, not "${typeof path}".`);
+        }
+        if(!view_box) {
+            throw new Error(`viewBox must not be ${view_box}.`);
+        }
+        else if(typeof view_box !== "string") {
+            throw new Error(`viewBox must be a string, not "${typeof view_box}".`);
+        }
+        if(!parent) {
+            throw new Error(`Parent must not be ${parent}.`);
+        }
+    } catch (error) {
+        console.error(error);
+        return;
+    }
+    const svg = document.createElement("svg");
+    const path_element = document.createElement("path");
+
+    svg.setAttribute("viewBox", view_box);
+    svg.setAttribute("xlmns", "http://www.w3.org/2000/svg");
+
+    path_element.setAttribute("d", path);
+    
+    svg.append(path_element);
+    parent.append(svg);
 }
 
 // Running The Program
