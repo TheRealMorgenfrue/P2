@@ -34,42 +34,32 @@ function extractRowIndex(row){
     }
 }
 /**
- * This function swaps two rows in an HTML-table and in an array of arrays representing it
- * when given the table element and the two row-elements.
- * This function does not make any changes to cells!!
- * @param {HTMLElement} table is the HTML table- or tbody-element where the swap takes place
- * @param {HTMLElement} rowA is the first row element.
- * @param {HTMLElement} rowB is the second row element, which should trade places with the first.
- * @param {Array} tableArray is an optional argument that represents the table as an array of rows.
+ * This function is designed for use in a draggingStopped-eventListener and will swap the row
+ * given by event.detail with the row given by event.currentTarget. It goes without saying that this listener should be placed on every row in a table,
+ * since draggingStopped-events usually happen on cells, and so using event.target would cause a number of issues.
+ * The function works on the backend and calls updateTableFromArray to update the frontend.
+ * 
+ * It is currently hardcoded to use "currentTable" from the sessionStorage as the backend representation. Check the function body for details.
+ * @param {event} event is a customEvent with event.detail being a row and event.target being another row.
+ * Both rows must have an ID ending with an underscore followed by their corresponding index in the backend-representation of the matrix.
+ * We also assume that "currentTable" represents a tbody-element that is a parent of both rows.
  */
-function swapTableRows(table, rowA, rowB, tableArray){  //NEEDS WORK!!!!!
-    //entering a try-clause so we can throw an error if "table" is not a table- or tbody-tag
-    try{
-        //check if the "table" argument is a table or a tbody
-        if(table.tagName.toUpperCase() !== "TABLE" && table.tagName.toUpperCase() !== "TBODY"){
-            throw new Error(`Argument "table" is not a table or tbody`);
-        }
-        //if tableArray is given, swap the elements there
-        //beware that we don't check if the tableArray actually represents the table!
-        if(tableArray){
-            //defining indexes of the two rows. The extractRowIndex-function requires a specific ID-format for the rows, but works fast.
-            //a different function to find the indeces could be used instead without issue
-            const indexA = extractRowIndex(rowA), 
-                  indexB = extractRowIndex(rowB);
+function swapTableRows(event){
     
-            //reusing swapRows from app_math.js to swap the rows
-            swapRows(indexA, indexB, tableArray);
-        }
-
-        //with the array elements swapped, we move on to swapping the rows in the HTML-table.
-        //we use updateTableFromArray for this task
-        updateTableFromArray(table, tableArray, [indexA, indexB])
-        sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
-        pushToHistory(tableArray);
-    } catch(error) {
-        console.error(error);
-    }
+    const indexA = extractRowIndex(event.currentTarget),   //the index of the row where the drag ended
+          indexB = extractRowIndex(event.detail),          //the index of the row that was dragged to event.target
+          tableArray = JSON.parse(sessionStorage.getItem("currentTable"));
+    //reusing swapRows from app_math.js to swap the rows in the backend
+    swapRows(indexA, indexB, tableArray);
+    
+    //with the array elements swapped, we move on to swapping the rows in the HTML-table.
+    //we use updateTableFromArray for this task, with event.target.parentElement being the tbody-element where _both_ rows are
+    updateTableFromArray(event.currentTarget.parentElement, tableArray, [indexA, indexB], "input", "value");
+    console.log(`Swapping row ${indexA} with row ${indexB}. New matrix is ${tableArray}`);
+    sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
+    pushToHistory(tableArray);
 }
+
 /**
  * This function implements row addition and subtraction for matrices. 
  * It manipulates the 2D array which forms the underlying representation of the HTML-table. 
@@ -78,7 +68,7 @@ function swapTableRows(table, rowA, rowB, tableArray){  //NEEDS WORK!!!!!
  * @param {HTMLElement} rowA - html representation of the rowA of type "tr"
  * @param {HTMLElement} rowB - html representaion of rowB  of type "tr"
  * @param {Array} tableArray - 2D array that represents the backend version of the matrix 
- */
+ *//*
 function addRows(table, rowA, rowB, tableArray){
     // Ensure that operation is always valid by checking length of both rows 
     try{
@@ -106,7 +96,7 @@ function addRows(table, rowA, rowB, tableArray){
         console.log(`${error.message}`);
     }
 }
-
+*/
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
  * The ith row in the table uses the ith element from the array of arrays and copies one entry from the subarray into every table cell.
@@ -118,7 +108,7 @@ function addRows(table, rowA, rowB, tableArray){
  * The fifth argument specifies which attribute of a cell's target element to change. The default is innerHTML.
  * 
  * Remember to sanitize the data in tableArray!
- * @param {HTMLElement} table is an HTML table-lement or HTML tbody-element.
+ * @param {HTMLElement} table is an HTML table-element or HTML tbody-element.
  * @param {Array} tableArray is an array of arrays representing the data that should be placed in the table.
  * @param {Array} options is an array of integers specifying the base-0 index of the rows that should be updated.
  * If excluded, every row in the table will be updated. Both positive and negative values are allowed.
@@ -295,62 +285,20 @@ function fillTable(table, content, options, query, attribute){
     //The data we set might need sanitizing first. We assume another function has done that before this function is run.
 }
 
-/** NEW ROW ADD STARTS HERE
- * 1 Create elements in dom and change layout 
- * 2 Handler to move scale- and add-button and change scaling targets
- * 3 Handler to block movement of add-button and show extra interface
- * 4 draggingStopped-handler to copy extra row into empty field and show GO-button
- * 5 Go button calls add rows correctly
- * 6 Handler to remove extra interface when clicking outside table 
- */
-
-/* Global settings to manage row operations since the layout makes it difficult to keep track of which rows are the target of which row operations.
-* This is especially true of adding rows where both rows need to be kept track of. 
-*/ 
-
 //defining some pseudo-global settings in sessionStorage - to be used in main.js
 //everything is stored as strings
 sessionStorage.setItem("primaryRow", "");           //the ID of the primary row
-sessionStorage.setItem("primaryScaleFactor", "");
+sessionStorage.setItem("primaryScaleFactor", "");   // The scalar value of a row 
 sessionStorage.setItem("secondaryRow", "");         //the ID of the secondary row
 sessionStorage.setItem("secondaryScaleFactor", "");
+sessionStorage.setItem("bufferScaleFactor","");      
+sessionStorage.setItem("bufferRow","");             // The elements of the buffer row as a JSON string 
 sessionStorage.setItem("addButton", "");
 sessionStorage.setItem("primaryScaleField", "");
 sessionStorage.setItem("allowInterfaceMoving", "");
 sessionStorage.setItem("allowRowSwap", "true");
+sessionStorage.setItem("currentTable", "");         // Table representation of the current table
 
-/*
-// Returns the selected setting element as a JSON 
-function getAndParse(setting_key, setting_value){
-    const item = getItem(setting_key);
-
-    // In order to set an item in sessions storage, its value has to be a string. 
-    if(typeof(setting_key) === "object"){
-        setting_key = JSON.stringify(setting_key); // For html elements
-    }
-    else{
-        setting_key = string(setting_key)
-    };
-    try{
-        sessionStorage.setItem(setting_key, setting_value); // MDN specifies that 
-    }
-    catch(error){
-        console.error(error);
-    }
-    return JSON.parse(item);    
-}
-
-const ROW_OPERATION_MANAGER = {
-        primaryRow: undefined,
-        primaryScaleFactor: undefined,
-        secondaryRow: undefined,
-        secondaryScaleFactor: undefined,
-        addButton: undefined,           //references to the add_button and primary scaling field
-        primaryScaleField: undefined,
-        allowInterfaceMoving: true, // We use this attribute to check whether the add interface may be moved to the another row
-        allowRowSwap:true
-};
-*/
 /**
  * This function creates a scale field consisting of an input button, a scale button. 
  * It add event listeners the the scale button that scales the target row. 
@@ -375,12 +323,10 @@ function createScaleField(target_row, factor_name, table){
 
     // When scale button is clicked, the target row is scaled if it exists. 
     scale_button.addEventListener("click", event => {
-        //scale_target = ROW_OPERATION_MANAGER[target_row];
         const scale_target = document.getElementById(sessionStorage.getItem(target_row));
         if(!scale_target){ // Row has to exist in order to scale it.
             console.warn(`Expected "${target_row}" from session storage but recieved "${scale_target}"`);
         } else {
-            //scaleRow(table, scale_target, scalar_input.value, CURRENT_TABLE);
             scaleRow(table, scale_target, scalar_input.value, JSON.parse(sessionStorage.getItem("currentTable")));
         }
     });
@@ -390,7 +336,7 @@ function createScaleField(target_row, factor_name, table){
     scale_field.addEventListener("click", event => {event.stopPropagation()}); // We do not want click to propgate to dragfunctionality 
     document.body.appendChild(scale_field);   
     scale_field.classList.add("scale_field"); // We create a class so we can hide an element using CSS
-    scale_field.id = `${target_row}_scale_field`; // May not necessary -> Test!
+    scale_field.id = `${target_row}_scale_field`; // May not be necessary -> Test!
     scale_field.appendChild(scalar_input);
     scale_field.appendChild(scale_button);
     scale_field.addEventListener("mouseover", event => {event.stopPropagation()}); // We stop the mouseOver-event from bubbling to target row to prevent unnecessary listeners - the scalefield has already been moved, we don't need to check whether it needs to move again.
@@ -411,14 +357,6 @@ function createAddInterface(table){
     add_button.innerHTML = "+";
     add_button.id = "add_button_id";
 
-    // Create scale field and make it hidden
-    const scale_field = createScaleField("secondaryRow", "secondaryScaleFactor", table);
-    scale_field.style.visibility = "hidden";
-    scale_field.addEventListener("change", event => {
-        sessionStorage.setItem("secondaryScaleFactor", String(event.target.value));
-        //ROW_OPERATION_MANAGER.secondaryScaleFactor = event.target.value;
-    });
-    
     // Create a table to hold the row we're going to add and hide it for later
     const row_holder = document.createElement("table");
     row_holder.style.visibility = "hidden";
@@ -426,7 +364,14 @@ function createAddInterface(table){
     row_holder.style.width = "300px";
     row_holder.style.height = "20px";            //who knows if this is big enough
 
-    // Create add button and hide it
+    // Create scale field and make it hidden
+    const scale_field = createSafeScaleField(row_holder);
+    scale_field.style.visibility = "hidden";
+    scale_field.addEventListener("change", event => {
+        sessionStorage.setItem("secondaryScaleFactor", String(event.target.value));
+    });
+    
+    // Create go button and hide it
     const go_button = document.createElement("button");
     go_button.innerHTML = "Add!";
     go_button.style.visibility = "hidden";
@@ -446,7 +391,6 @@ function createAddInterface(table){
             attachToParent(scale_field);
             row_holder.style.visibility = "visible";
             attachToParent(row_holder);
-            //ROW_OPERATION_MANAGER.allowInterfaceMoving = false;
             sessionStorage.setItem("allowInterfaceMoving", "");     //an empty string is falsy, so we write that instead of "false", since a non-empty string is truthy
             console.log("Locking interface to this row");
 
@@ -462,11 +406,8 @@ function createAddInterface(table){
                     document.body.appendChild(replacement_row);
                     row_holder.querySelector("tbody").replaceChild(replacement_row, current_row);
                 }
-                //ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
                 sessionStorage.setItem("secondaryScaleFactor", "1");
-                //ROW_OPERATION_MANAGER.secondaryRow = null;
                 sessionStorage.setItem("secondaryRow", "");
-                //ROW_OPERATION_MANAGER.allowInterfaceMoving = true;
                 sessionStorage.setItem("allowInterfaceMoving", "true");
                 console.log("Cancelling addition operation");
             }, {once: true})    //might need to be capturing. Testing required
@@ -474,33 +415,50 @@ function createAddInterface(table){
     });
     //creating a variable to hold the row we need to add to the other one
     //we also set up a listener to detect when we've selected the row we want and show the go_button
-    let held_row = undefined;
-    row_holder.addEventListener("draggingStopped", event => {
-        held_row = event.detail.cloneNode(true);
+    add_button.addEventListener("draggingStopped", event => {
+        event.stopPropagation(); //ensure that the event does not trigger a row swap
+        const held_row = event.detail.cloneNode(true);
         held_row.style.position = "static";     //setting the held row to static so its offset is ignored
-        const old_row = row_holder.querySelector("tr");
-        if(old_row){
-            row_holder.querySelector("tbody").replaceChild(held_row, old_row);   //replacing the current row in row_holder with the new one
-        } else {
-            if(!row_holder.querySelector("tbody")){
-                const tbody = document.createElement("tbody");
-                document.body.appendChild(tbody);
-                row_holder.appendChild(tbody);
-            }
-            row_holder.querySelector("tbody").appendChild(held_row);
+        
+        console.log(`Held row is ${held_row} and contains ${typeof held_row.lastChild.firstChild}, ${typeof held_row.firstChild.firstChild}\n${event.detail.lastChild.firstChild} ${event.detail.firstChild.firstChild}`);
+        //the following code is a workaround to get the row and its inputs into the row_holder
+        //since it just does not work to put held_row into the row_holder directly
+        let table_body = row_holder.querySelector("tbody");
+        if(!table_body){
+            table_body = document.createElement("tbody");
+            row_holder.appendChild(table_body);
         }
-        //ROW_OPERATION_MANAGER.secondaryRow = held_row;
+
+        let current_row = table_body.querySelector("tr");
+        if(!current_row){
+            current_row = document.createElement("tr");
+            table_body.replaceChildren(current_row)
+        }
+
+        const inputs = held_row.querySelectorAll("input");
+        const cells = [];
+
+        inputs.forEach(input => {
+            const element = document.createElement("td");
+            element.appendChild(input);
+            cells.push(input)
+        });
+        current_row.id = held_row.id;
+        current_row.replaceChildren(...cells);
+        //end of workaround
+
         sessionStorage.setItem("secondaryRow", held_row.id);
+        //get the ID from the held_row and copy its backend version (obtained by indexing currentTable with the result from extractRowIndex) into sessionStorage for use with the safe scalefield
+        sessionStorage.setItem("bufferRow", JSON.stringify(JSON.parse(sessionStorage.getItem("currentTable"))[extractRowIndex(held_row)]));
+        //updateTableFromArray(row_holder, [JSON.parse(sessionStorage.getItem("bufferRow"))]);    //fix for elements becoming undefined. not needed anymore
         go_button.style.visibility = "visible";
         attachToParent(go_button);
-        console.log("Caught a row");
+        console.log(`Caught a row: ${sessionStorage.getItem("bufferRow")}`);
     });
 
     //performing the actual addition and resetting the interface when the go_button is clicked
     go_button.addEventListener("click", () => {
-        //addRows(table,ROW_OPERATION_MANAGER.secondaryRow, ROW_OPERATION_MANAGER.primaryRow,CURRENT_TABLE);
-        //addRows(table, document.getElementById(sessionStorage.getItem("secondaryRow")), document.getElementById(sessionStorage.getItem("primaryRow")),CURRENT_TABLE);
-        addRows(table, document.getElementById(sessionStorage.getItem("secondaryRow")), document.getElementById(sessionStorage.getItem("primaryRow")), JSON.parse(sessionStorage.getItem("currentTable")));
+        addRows(table, JSON.parse(sessionStorage.getItem("currentTable")), document.getElementById(sessionStorage.getItem("primaryRow")));
         scale_field.style.visibility = "hidden";
         row_holder.style.visibility = "hidden";
         go_button.style.visibility = "hidden";
@@ -510,11 +468,8 @@ function createAddInterface(table){
                 document.body.appendChild(replacement_row);
                 row_holder.querySelector("tbody").replaceChild(replacement_row, current_row);
             }
-        //ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
         sessionStorage.setItem("secondaryScaleFactor", "1");
-        //ROW_OPERATION_MANAGER.secondaryRow = null;
         sessionStorage.setItem("secondaryRow", "");
-        //ROW_OPERATION_MANAGER.allowInterfaceMoving = true;
         sessionStorage.setItem("allowInterfaceMoving", "true");
         console.log("Adding rows and packing up");
     });
@@ -522,30 +477,23 @@ function createAddInterface(table){
     return [add_button, scale_field, row_holder, go_button];
 }
 
-//a function designed for use in a mouseover-eventhandler
-//it checks if the addition/scaling interface is allowed to move and moves it if the row that's being moused over is not where the interface is at
+
 /**
- * 
+ * A function designed for use in a mouseover-eventhandler
+ * it checks if the addition/scaling interface is allowed to move and moves it if the row that's being moused over is not where the interface is at
  * @param {event} event - mouseover event that checks if the scale field, add button and the add button's children should be moved to another row.  
  */
 function moveInterface(event){
-    if(sessionStorage.getItem("allowInterfaceMoving")){
-        const target_row = event.currentTarget;
-        if(//target_row !== ROW_OPERATION_MANAGER.primaryRow
-            target_row.id !== sessionStorage.getItem("primaryRow")){
-            //ROW_OPERATION_MANAGER.primaryRow = target_row;
+    if(sessionStorage.getItem("allowInterfaceMoving")){ // 
+        const target_row = event.currentTarget; 
+        if(target_row.id !== sessionStorage.getItem("primaryRow")){
             sessionStorage.setItem("primaryRow", target_row.id);
-            //ROW_OPERATION_MANAGER.primaryScaleFactor = 1;
             sessionStorage.setItem("primaryScaleFactor", "1");
-            //ROW_OPERATION_MANAGER.secondaryRow = null;
             sessionStorage.setItem("secondaryRow", "");
-            //ROW_OPERATION_MANAGER.secondaryScaleFactor = 1;
             sessionStorage.setItem("secondaryScaleFactor", "1");
             document.getElementById(sessionStorage.getItem("primaryRow")).appendChild(document.getElementById(sessionStorage.getItem("primaryScaleField")));
             document.getElementById(sessionStorage.getItem("primaryRow")).appendChild(document.getElementById(sessionStorage.getItem("addButton")));
-            //attachToParent(ROW_OPERATION_MANAGER.primaryScaleField, true);
             attachToParent(document.getElementById(sessionStorage.getItem("primaryScaleField")), true);
-            //attachToParent(ROW_OPERATION_MANAGER.addButton);
             attachToParent(document.getElementById(sessionStorage.getItem("addButton")));
             console.log("Moving interface and updating/resetting");        
         }
@@ -577,5 +525,71 @@ function scaleRow(table,row,scalar,tableArray){
     }
 }
 
+/**
+ * 
+ * @param {HTMLelement} table is the element holding the row that's scaled
+ * @returns 
+ */
 
-export {updateTableFromArray, fillTable, createScaleField, moveInterface, createAddInterface}
+function createSafeScaleField(table){
+    // // Copy row from backend 
+    // const target_row_index = searchForRowIndex(table,target_row);
+    // let row_copy = tableArray[target_row_index]; 
+
+    const scalar_input = document.createElement("input");
+    scalar_input.type = "number";
+    scalar_input.classList.add("scale_field");
+    scalar_input.addEventListener("change", event => {
+        sessionStorage.setItem("bufferScaleFactor", event.currentTarget.value);
+    });
+    // We create the scale button that is attached to scalefield
+    const scale_button = document.createElement("button");
+    scale_button.innerHTML = "Scale";
+    
+    // When scale button is clicked, the target row is scaled if it exists. 
+    scale_button.addEventListener("click", event => {
+        const row_copy = JSON.parse(sessionStorage.getItem("bufferRow"));
+        if(!row_copy){ // Row has to exist in order to scale it.
+            console.warn(`Expected a row copy to scale`);
+        } else {
+        //scale the buffered row and put it back in sessionStorage
+            const scalar = JSON.parse(sessionStorage.getItem("bufferScaleFactor"));
+            row_copy.forEach((value, i) => {row_copy[i] = value * scalar}); 
+            sessionStorage.setItem("bufferRow", JSON.stringify(row_copy)) // Places the row that is scaled in buffer 
+            console.log(`${row_copy} has been scaled by ${sessionStorage.getItem("bufferScaleFactor")} to produce ${sessionStorage.getItem("bufferRow")}`);
+            }
+            // Update the rows in the secondary scale field to match the contents of bufferRow  
+            // Update the frontend using the buffered row
+            updateTableFromArray(table, [row_copy], null, "input", "value");            
+        });
+    
+        // We create scale field and add attributes to it
+        const scale_field = document.createElement("div"); // We use div so that multiple elements can be children of a scale field
+        scale_field.addEventListener("click", event => {event.stopPropagation()}); // We do not want click to propgate to dragfunctionality 
+        document.body.appendChild(scale_field);   
+        scale_field.classList.add("scale_field"); // We create a class so we can hide an element using CSS
+        scale_field.id = `safe_scale_field`; // May not be necessary -> Test!
+        scale_field.appendChild(scalar_input);
+        scale_field.appendChild(scale_button);
+        scale_field.addEventListener("mouseover", event => {event.stopPropagation()}); // We stop the mouseOver-event from bubbling to target row to prevent unnecessary listeners - the scalefield has already been moved, we don't need to check whether it needs to move again.
+    
+        
+        return scale_field;    
+
+}
+
+function addRows(table,tableArray,row){
+    try{
+        const index = extractRowIndex(row);
+        const target_row = tableArray[index];
+        const buffer_row = JSON.parse(sessionStorage.getItem("bufferRow"));
+        target_row.forEach((value, i) => {target_row[i] = value + buffer_row[i]});
+        updateTableFromArray(table, tableArray, [index], "input", "value");
+        pushToHistory(tableArray);
+    }
+    catch(error){
+        console.error(error);
+    }
+}
+
+export {updateTableFromArray, fillTable, createScaleField, createSafeScaleField, moveInterface, createAddInterface, swapTableRows}

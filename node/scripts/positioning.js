@@ -16,19 +16,19 @@ function attachToParent(element, left){
     //offset x to the right or left of the parent element
     if(left){
         x -= childRect.width;
-        console.log(`Offsetting element to the left by ${childRect.width}`)
+        //console.log(`Offsetting element to the left by ${childRect.width}`)
     } else {
         x += parentRect.width;
-        console.log(`Offsetting element to the right by ${parentRect.width}`)
+        //console.log(`Offsetting element to the right by ${parentRect.width}`)
     }
-    console.log(`x-offset coordinates are (${x}, ${y})`);
+    //console.log(`x-offset coordinates are (${x}, ${y})`);
 
     //offset the y-coordinate so the two elements line up in the middle instead of at the top
     let a = parentRect.height, b = childRect.height;
     const offsetY = (a - b)/2;
     y += offsetY;
-    console.log(`Y is offset by ${offsetY}px.`);
-    console.log(`y-offset coordinates are (${x}, ${y})`);
+    //console.log(`y is offset by ${offsetY}px.`);
+    //console.log(`y-offset coordinates are (${x}, ${y})`);
 
     //now we have calculated the x- and y-values we need to offset the child with to place it right or left of its parent
     //but so far we have assumed that the parent is the child's frame of reference, i.e. that the parent is non-static.
@@ -39,7 +39,7 @@ function attachToParent(element, left){
         ancestor = ancestor.parentElement;
     }
     const ancestorRect = ancestor.getBoundingClientRect();
-    console.log(`Ancestor is ${ancestor}`)
+    //console.log(`Ancestor is ${ancestor}`)
 
     //offset x and y by the difference between the parent's coordinates and the ancestor's coordinates
     //note that if we wanted the x's and y's of something with respect to the body, instead of the difference between two things, we would need to offset it by the window.scrollX and window.scrollY respectively 
@@ -47,18 +47,18 @@ function attachToParent(element, left){
     a = parentRect.left;
     b = ancestorRect.left;
     x += (a - b);
-    console.log(`Difference between ancestor and parent x is ${a - b}`);
+    //console.log(`Difference between ancestor and parent x is ${a - b}`);
 
     a = parentRect.top;
     b = ancestorRect.top;
     y += (a - b);
-    console.log(`Difference between ancestor and parent y is ${a - b}`);
-    console.log(`Corrected coordinates are (${x}, ${y})`);
+    //console.log(`Difference between ancestor and parent y is ${a - b}`);
+    //console.log(`Corrected coordinates are (${x}, ${y})`);
 
     //set the element's position
     element.style.left = `${x}px`;
     element.style.top = `${y}px`;
-    console.log(`Final coordinates are (${x}, ${y})`);
+    //console.log(`Final coordinates are (${x}, ${y})`);
 }
 
 // Get coordinates of a mouse click event to debug functions

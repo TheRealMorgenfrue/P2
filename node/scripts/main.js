@@ -1,7 +1,7 @@
 'use strict'
 import{initTableGE, populateIDs} from "./app_GE.js";
 import{initDrag} from "./draganddrop.js";
-import{createScaleField, moveInterface, createAddInterface} from "./rowoperations.js";
+import{createScaleField, createSafeScaleField, moveInterface, createAddInterface, swapTableRows} from "./rowoperations.js";
 import{attachToParent, lineUpAncestors} from "./positioning.js";
 
 /**
@@ -80,7 +80,10 @@ window.addEventListener("load", () => {
     //sessionStorage.setItem("primaryRow", TABLE.querySelector("tr").id); // ERROR IS HERE - SESSION STORAGE ITEM IS EMPTY AFTER THIS ASSIGNMENT
 
     // We select all rows so an event listener can be attached that moves/reattaches the scale field to a target row - we assume that the table is non-empty 
-    TABLE.querySelectorAll("tr").forEach(element => element.addEventListener("mouseover", moveInterface));
+    TABLE.querySelectorAll("tr").forEach(row => {
+        row.addEventListener("mouseover", moveInterface);
+        row.addEventListener("draggingStopped", swapTableRows);
+    });
     // We create a scale field with a target row specified by argument 
     let scale_field = createScaleField("primaryRow", "primaryScaleFactor", TABLE);
     //ROW_OPERATION_MANAGER.primaryScaleField = scale_field;
