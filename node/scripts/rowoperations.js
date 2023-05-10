@@ -51,7 +51,7 @@ function swapTableRows(event){
           tableArray = JSON.parse(sessionStorage.getItem("currentTable"));
     //reusing swapRows from app_math.js to swap the rows in the backend
     swapRows(indexA, indexB, tableArray);
-    
+
     //with the array elements swapped, we move on to swapping the rows in the HTML-table.
     //we use updateTableFromArray for this task, with event.target.parentElement being the tbody-element where _both_ rows are
     updateTableFromArray(event.currentTarget.parentElement, tableArray, [indexA, indexB], "input", "value");
@@ -60,43 +60,6 @@ function swapTableRows(event){
     pushToHistory(tableArray);
 }
 
-/**
- * This function implements row addition and subtraction for matrices. 
- * It manipulates the 2D array which forms the underlying representation of the HTML-table. 
- * Note that rowA is subtracted/added to rowB without changing rowA 
- * @param {HTMLElement} table - html representation of the current table
- * @param {HTMLElement} rowA - html representation of the rowA of type "tr"
- * @param {HTMLElement} rowB - html representaion of rowB  of type "tr"
- * @param {Array} tableArray - 2D array that represents the backend version of the matrix 
- *//*
-function addRows(table, rowA, rowB, tableArray){
-    // Ensure that operation is always valid by checking length of both rows 
-    try{
-        // Find index of rows to add
-        const indexA = searchForRowIndex(table, rowA),
-        indexB = searchForRowIndex(table, rowB);
-         
-        if(indexA === null || indexB === null){ // Rows index may not be found
-            throw new Error("One or both row indexes were not found");
-        }
-        let row1 = tableArray[indexA];
-        let row2 = tableArray[indexB];
-        if(row1.length !== row2.length){ // Rows may not be of same length
-            throw new Error("Rows are not of the same length and cannot be added");
-        }
-        // Note that this loop changes the values of tableArray and not its copy 
-        for(let i = 0; i < rowA.length; i++){
-            row2[i] += row1[i];
-        }
-        updateTableFromArray(table,tableArray,[indexB],"input", "value");
-        sessionStorage.setItem("currentTable", JSON.stringify(tableArray)); // Update global table array objects
-        pushToHistory(tableArray);
-    }
-    catch(error){
-        console.log(`${error.message}`);
-    }
-}
-*/
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
  * The ith row in the table uses the ith element from the array of arrays and copies one entry from the subarray into every table cell.
@@ -117,8 +80,9 @@ function addRows(table, rowA, rowB, tableArray){
  */
 function updateTableFromArray(table, tableArray, options, query, attribute){
     //get an iterable list of rows in the table
-    let rows = table.querySelectorAll("tr");
-    console.log(`Table is "${table}\nWill try to update it to look like ${tableArray}\nSelected rows are ${options}`);
+    //making rows into a normal array instead of a nodelist so we can index it
+    let rows = Array.from(table.querySelectorAll("tr"));
+    console.log(`Table is "${table}\nWill try to update it to look like ${tableArray}\nSpec     ific rows given are ${options}`);
     //check if there are any specific rows to update and trim the row list if there is
     if(Array.isArray(options)){
 
@@ -127,8 +91,6 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
         //which allows the use of negative integers and counts from the back of the array instead of the front
         const trimmedRows = new Array;
 
-        //making rows into a normal array instead of a nodelist so we can index it
-        rows = Array.from(rows);
         console.log(`Row(s) targeted by updateTable is ${options}`);
         options.forEach(element => {
             trimmedRows.push(rows.at(element));
@@ -136,7 +98,7 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
         //overwrite rows with the trimmed version
         rows = trimmedRows;
     }
-    console.log(`Trimmed rows are\n${rows}`);
+    console.log(`Rows are ${rows} after trimming`);
     if(!attribute || attribute.length < 0){
         attribute = "innerHTML";
     }
@@ -155,9 +117,9 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
         case 3: //both options and query are given:
             console.log(`Got query:${query} and options: ${options}`);
             rows.forEach((row, i) => { //Consider if options is [0,1,4,3], then rows is [Row0, Row1, Row4, Row3] but tableArray is still [Row0, Row1, Row2, Row3, Row4]. We must use options[i] instead of i to index tableArray if we want to modify the ith row
-                console.log(`Working on row #${i} which is ${row} with id ${row.id}`)
+                console.log(`Working on row #${i} which is ${row} with id ${row.id}\nThis row should look like ${tableArray[i]}`)
                 row.querySelectorAll("td").forEach((cell, j) => {
-                    console.log(`Working on cell${j} with id ${cell.id}`);
+                    console.log(`Working on cell #${j} with id ${cell.id}`);
                     cell.querySelector(query)[attribute] = tableArray[options[i]][j];   //accessing the property with a string in square brackets can be done for any object 
                 })
             });
@@ -173,7 +135,9 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
         case 1: //query is given but options is not
             console.log(`Got query:${query} and no options`);
             rows.forEach((row, i) => {
+                console.log(`Working on row #${i} which is ${row} with id ${row.id}`)
                 row.querySelectorAll("td").forEach((cell, j) => {
+                    console.log(`Working on cell #${j} with id ${cell.id}`);
                     cell.querySelector(query)[attribute] = tableArray[i][j];
                 })
             });
@@ -186,7 +150,7 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
                 })
             });
     }
-
+    
     //note: We use .innerHTML as our default at tribute to set in each cell. This adds flexibility to what we can put in the table
     //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.
     //The data we set might need sanitizing first. We assume another function has done that before this function is run.
@@ -213,7 +177,7 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
  */
 function fillTable(table, content, options, query, attribute){
     //get an iterable list of rows in the table
-    let rows = table.querySelectorAll("tr");
+    let rows = Array.from(table.querySelectorAll("tr"));
 
     //define the content if it is not specified
     if(!content || content.length < 0){
@@ -360,7 +324,7 @@ function createAddInterface(table){
     // Create a table to hold the row we're going to add and hide it for later
     const row_holder = document.createElement("table");
     row_holder.style.visibility = "hidden";
-    row_holder.style.backgroundColor = "red";    //temporary styling to make it visible
+    row_holder.style.backgroundColor = "red";    //temporary styling to make it visible without a row in it
     row_holder.style.width = "300px";
     row_holder.style.height = "20px";            //who knows if this is big enough
 
@@ -400,12 +364,7 @@ function createAddInterface(table){
                 scale_field.style.visibility = "hidden";
                 row_holder.style.visibility = "hidden";
                 go_button.style.visibility = "hidden";
-                const current_row = row_holder.querySelector(`#${sessionStorage.getItem("secondaryRow")}`)
-                if(current_row){
-                    const replacement_row = document.createElement("tr");
-                    document.body.appendChild(replacement_row);
-                    row_holder.querySelector("tbody").replaceChild(replacement_row, current_row);
-                }
+                scale_field.querySelector("input").value = 1;
                 sessionStorage.setItem("secondaryScaleFactor", "1");
                 sessionStorage.setItem("secondaryRow", "");
                 sessionStorage.setItem("allowInterfaceMoving", "true");
@@ -421,36 +380,22 @@ function createAddInterface(table){
         held_row.style.position = "static";     //setting the held row to static so its offset is ignored
         
         console.log(`Held row is ${held_row} and contains ${typeof held_row.lastChild.firstChild}, ${typeof held_row.firstChild.firstChild}\n${event.detail.lastChild.firstChild} ${event.detail.firstChild.firstChild}`);
-        //the following code is a workaround to get the row and its inputs into the row_holder
-        //since it just does not work to put held_row into the row_holder directly
+        
+        //check if there is a tbody to place the row in and create one if there isn't
         let table_body = row_holder.querySelector("tbody");
         if(!table_body){
             table_body = document.createElement("tbody");
             row_holder.appendChild(table_body);
         }
 
-        let current_row = table_body.querySelector("tr");
-        if(!current_row){
-            current_row = document.createElement("tr");
-            table_body.replaceChildren(current_row)
-        }
-
-        const inputs = held_row.querySelectorAll("input");
-        const cells = [];
-
-        inputs.forEach(input => {
-            const element = document.createElement("td");
-            element.appendChild(input);
-            cells.push(input)
-        });
-        current_row.id = held_row.id;
-        current_row.replaceChildren(...cells);
-        //end of workaround
+        table_body.replaceChildren(held_row);
 
         sessionStorage.setItem("secondaryRow", held_row.id);
         //get the ID from the held_row and copy its backend version (obtained by indexing currentTable with the result from extractRowIndex) into sessionStorage for use with the safe scalefield
         sessionStorage.setItem("bufferRow", JSON.stringify(JSON.parse(sessionStorage.getItem("currentTable"))[extractRowIndex(held_row)]));
-        //updateTableFromArray(row_holder, [JSON.parse(sessionStorage.getItem("bufferRow"))]);    //fix for elements becoming undefined. not needed anymore
+        //clear held_row's ID to prevent conflicts, just in case
+        held_row.id = "";
+        updateTableFromArray(row_holder, [JSON.parse(sessionStorage.getItem("bufferRow"))], null, "input", "value");    //fix for elements becoming undefined.
         go_button.style.visibility = "visible";
         attachToParent(go_button);
         console.log(`Caught a row: ${sessionStorage.getItem("bufferRow")}`);
@@ -462,12 +407,7 @@ function createAddInterface(table){
         scale_field.style.visibility = "hidden";
         row_holder.style.visibility = "hidden";
         go_button.style.visibility = "hidden";
-        const current_row = row_holder.querySelector(`#${sessionStorage.getItem("secondaryRow")}`)
-            if(current_row){
-                const replacement_row = document.createElement("tr");
-                document.body.appendChild(replacement_row);
-                row_holder.querySelector("tbody").replaceChild(replacement_row, current_row);
-            }
+        scale_field.querySelector("input").value = 1;
         sessionStorage.setItem("secondaryScaleFactor", "1");
         sessionStorage.setItem("secondaryRow", "");
         sessionStorage.setItem("allowInterfaceMoving", "true");
@@ -484,9 +424,10 @@ function createAddInterface(table){
  * @param {event} event - mouseover event that checks if the scale field, add button and the add button's children should be moved to another row.  
  */
 function moveInterface(event){
-    if(sessionStorage.getItem("allowInterfaceMoving")){ // 
-        const target_row = event.currentTarget; 
+    if(sessionStorage.getItem("allowInterfaceMoving")){
+        const target_row = event.currentTarget;
         if(target_row.id !== sessionStorage.getItem("primaryRow")){
+            console.log("New primary row found! Attempting to move the interface.");
             sessionStorage.setItem("primaryRow", target_row.id);
             sessionStorage.setItem("primaryScaleFactor", "1");
             sessionStorage.setItem("secondaryRow", "");
@@ -538,9 +479,11 @@ function createSafeScaleField(table){
 
     const scalar_input = document.createElement("input");
     scalar_input.type = "number";
+    scalar_input.value = 1;
+    sessionStorage.setItem("secondaryScaleFactor", "1");
     scalar_input.classList.add("scale_field");
     scalar_input.addEventListener("change", event => {
-        sessionStorage.setItem("bufferScaleFactor", event.currentTarget.value);
+        sessionStorage.setItem("secondaryScaleFactor", event.currentTarget.value); // We used to use "bufferScaleFactor" instead of "secondaryScaleFactor"
     });
     // We create the scale button that is attached to scalefield
     const scale_button = document.createElement("button");
@@ -553,10 +496,10 @@ function createSafeScaleField(table){
             console.warn(`Expected a row copy to scale`);
         } else {
         //scale the buffered row and put it back in sessionStorage
-            const scalar = JSON.parse(sessionStorage.getItem("bufferScaleFactor"));
+            const scalar = Number(sessionStorage.getItem("secondaryScaleFactor"));
             row_copy.forEach((value, i) => {row_copy[i] = value * scalar}); 
             sessionStorage.setItem("bufferRow", JSON.stringify(row_copy)) // Places the row that is scaled in buffer 
-            console.log(`${row_copy} has been scaled by ${sessionStorage.getItem("bufferScaleFactor")} to produce ${sessionStorage.getItem("bufferRow")}`);
+            console.log(`Row has been scaled by ${sessionStorage.getItem("secondaryScaleFactor")} to produce ${sessionStorage.getItem("bufferRow")}`);
             }
             // Update the rows in the secondary scale field to match the contents of bufferRow  
             // Update the frontend using the buffered row
@@ -583,8 +526,9 @@ function addRows(table,tableArray,row){
         const index = extractRowIndex(row);
         const target_row = tableArray[index];
         const buffer_row = JSON.parse(sessionStorage.getItem("bufferRow"));
-        target_row.forEach((value, i) => {target_row[i] = value + buffer_row[i]});
+        target_row.forEach((value, i) => {tableArray[index][i] = value + buffer_row[i]});
         updateTableFromArray(table, tableArray, [index], "input", "value");
+        sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
         pushToHistory(tableArray);
     }
     catch(error){

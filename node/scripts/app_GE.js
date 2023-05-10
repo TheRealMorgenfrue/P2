@@ -280,6 +280,7 @@ function createBackendTable(table) {
             });
             backend_rows.push(backend_row);
         });
+        console.warn(`Created the following array:\n${JSON.stringify(backend_rows)}`);
         pushToHistory(backend_rows);
         return backend_rows;
     } catch (error) {
@@ -292,6 +293,7 @@ function createBackendTable(table) {
 function pushToHistory(item){
     const history = JSON.parse(sessionStorage.getItem("tableHistory"));
     history.push(item);
+    console.warn(`Pushing the following to tableHistory:\n${JSON.stringify(item)}`);
     sessionStorage.setItem("tableHistory", JSON.stringify(history));
 }
 
