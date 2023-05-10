@@ -332,11 +332,10 @@ function addTableButtons() {
     const Input = {
         div: document.createElement("div"),
         confirm_button: document.createElement("a"),
-        reset_button: document.createElement("input"),
-        rewind_button: document.createElement("input"),
-        randomize_button: document.createElement("input")
+        reset_button: document.createElement("a"),
+        rewind_button: document.createElement("a"),
+        randomize_button: document.createElement("a")
     };
-
     // Do NOT use the global id for the buttons here. 
     // That could cause a serious issue with the definition in the 'Input' object
     addButtonAttributes("rewind", Input);
@@ -344,14 +343,10 @@ function addTableButtons() {
     addButtonAttributes("randomize", Input);
     addButtonAttributes("confirm", Input);
     Input.div.classList.add("buttonContainer");
-    createSVG("M 10,30\
-    A 20,20 0,0,1 50,30\
-    A 20,20 0,0,1 90,30\
-    Q 90,60 50,90\
-    Q 10,60 10,30 z",
-    "0 0 100 100", document.body);
 
-    // document.body.appendChild( Input.div);
+    createSVG("M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z",
+    "0 0 512 512", Input.confirm_button);
+
     appendToParent(Input.div, document.getElementById("table_container"));
 }
 /**
@@ -359,15 +354,14 @@ function addTableButtons() {
  */
 function addButtonAttributes(type, Input) {
     // [`${type}`] Makes it possible to use a variable to access properties of an object
-    Input[`${type}_button`].id = SETTINGS.READONLY.BUTTONS[`${type}_button_id`];       // Set its ID
-    if(type === "confirm") {
+    if(Input[`${type}_button`].nodeName.toLowerCase() === "a") {
         Input[`${type}_button`].text = SETTINGS.READONLY.BUTTONS[`${type}_button_value`];
     }
     else {
         Input[`${type}_button`].value = SETTINGS.READONLY.BUTTONS[`${type}_button_value`]; // Set its value
         Input[`${type}_button`].type = SETTINGS.READONLY.BUTTONS[`${type}_button_type`];   // Make it a "button" type
     }
-
+    Input[`${type}_button`].id = SETTINGS.READONLY.BUTTONS[`${type}_button_id`];       // Set its ID
     Input[`${type}_button`].classList.add(`${type}Button`);
     Input.div.append(Input[`${type}_button`]); // Add to button container div
     Input[`${type}_button`].addEventListener("click", SETTINGS.READONLY.BUTTONS[`${type}_Table`]); // Add EventListener
@@ -393,6 +387,8 @@ function lockTable() {
     // Hide unusable buttons
     document.getElementById("randomizebutton").style.visibility = "hidden";
     document.getElementById("confirmbutton").style.visibility = "hidden";
+
+    toggleDisableInputBoxes();
 }
 /**  
  * Helper function for the "reset" button that makes all cells in the table writeable again
@@ -413,7 +409,28 @@ function unlockTable() {
     }
     document.getElementById("randomizebutton").style.visibility = "visible";
     document.getElementById("confirmbutton").style.visibility = "visible";
+
+    toggleDisableInputBoxes();
 }
+/**
+ * Disables the input boxes so the table's dimentions remain constant while doing row operations
+ */
+function toggleDisableInputBoxes() {
+    const container = document.getElementsByClassName("inputBox");
+    const input_boxes = container[0].children;
+
+    for(const element of input_boxes) {
+        if(element.nodeName.toLowerCase() === "input") {
+            if(element.disabled === false) {
+                element.disabled = true;
+            }
+            else {
+                element.disabled = false;
+            }
+        }
+    }
+}
+
 /**
  * Removes all undesired characters from a string given. 
  * @param {string} str 
@@ -673,7 +690,7 @@ function appendToParent(child_element, parent_element) {
     }
 }
 
-function createSVG(path, view_box, parent) {
+function createSVG(path, viewBox, parent) {
     try {
         if(!path) {
             throw new Error(`Path must not be ${path}.`);
@@ -681,11 +698,11 @@ function createSVG(path, view_box, parent) {
         else if(typeof path !== "string") {
             throw new Error(`Path must be a string, not "${typeof path}".`);
         }
-        if(!view_box) {
-            throw new Error(`viewBox must not be ${view_box}.`);
+        if(!viewBox) {
+            throw new Error(`viewBox must not be ${viewBox}.`);
         }
-        else if(typeof view_box !== "string") {
-            throw new Error(`viewBox must be a string, not "${typeof view_box}".`);
+        else if(typeof viewBox !== "string") {
+            throw new Error(`viewBox must be a string, not "${typeof viewBox}".`);
         }
         if(!parent) {
             throw new Error(`Parent must not be ${parent}.`);
@@ -694,15 +711,16 @@ function createSVG(path, view_box, parent) {
         console.error(error);
         return;
     }
-    const svg = document.createElement("svg");
-    const path_element = document.createElement("path");
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const svgNS = svg.namespaceURI; 
+    const path_element = document.createElementNS(svgNS, "path");
 
-    svg.setAttribute("viewBox", view_box);
-    svg.setAttribute("xlmns", "http://www.w3.org/2000/svg");
+    svg.setAttribute("aria-hidden","true");
+    svg.setAttribute("viewBox", viewBox);
 
     path_element.setAttribute("d", path);
     
-    svg.append(path_element);
+    svg.appendChild(path_element);
     parent.append(svg);
 }
 

@@ -56,6 +56,16 @@ td > input {
 	background-color: transparent;
 }
 
+input[readonly] {
+	cursor: pointer;
+	color: #777;
+}
+
+input[disabled] {
+	cursor: not-allowed;
+	color: #777;
+}
+
 /* Styling for th */
 th {
 	text-align: left;
