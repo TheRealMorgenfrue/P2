@@ -88,7 +88,6 @@ function initTableGE(tableID, element) {
     
     tbody.addEventListener("change", (event) => {
         // Validate input in the cell the user modified 
-        console.log(`target value = ${event.target.value}`);
         let cell_value = event.target.value;
         let sanitized_cell_value = sanitize(cell_value);
         event.target.value = sanitized_cell_value;
@@ -320,12 +319,11 @@ function undoTable(undo_count) {
             const deleted_tables = tables.splice(tables.length-undo_count, undo_count);
 
             const new_table = deleted_tables.pop();
-            //CURRENT_TABLE = deleted_tables.pop()
             sessionStorage.setItem("currentTable", JSON.stringify(new_table));
             sessionStorage.setItem("tableHistory", JSON.stringify(tables));
             // Testing 
-            console.table(tables);
-            console.table(new_table);
+            console.warn(`Undo complete. New array is ${JSON.stringify(new_table)}`)
+            console.warn(`History modified. History is now ${JSON.stringify(tables)}`);
         }
         else {
             console.warn(`Array has length ${tables.length}. Going back ${undo_count} would cause the array to underflow`);
@@ -414,11 +412,9 @@ function lockTable() {
 
         tbl.dispatchEvent(new CustomEvent("GEstarted", {bubbles: true, detail: backend_table}));
         console.log("Table is now locked");
-    }
-    else {
+    } else {
         console.warn("Table is already locked");
     }
-    createBackendTable(tbl);
     // Hide unusable buttons
     document.getElementById("randomizebutton").style.visibility = "hidden";
     document.getElementById("confirmbutton").style.visibility = "hidden";
@@ -444,6 +440,9 @@ function unlockTable() {
             disableDrag(row);
         });
         console.log("Table is now unlocked");
+        const final_table = JSON.parse(sessionStorage.getItem("currentTable"));
+        tbl.dispatchEvent(new CustomEvent("GEstopped", {bubbles: true, detail: final_table})); // Event is used to check whether the moveInterface should be removed - if this event is not fired, the move event does not disappear after clicking the "Reset matrix" button
+        sessionStorage.setItem("currentTable", ""); // When the user is done manipulating a matrix, we don't want to keep it. 
     }
     else {
         console.warn("Table is already unlocked");

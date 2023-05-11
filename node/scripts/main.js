@@ -1,7 +1,7 @@
 'use strict'
 import{initTableGE, populateIDs} from "./app_GE.js";
 import{initDrag} from "./draganddrop.js";
-import{createScaleField, createSafeScaleField, moveInterface, createAddInterface, swapTableRows} from "./rowoperations.js";
+import{createScaleField, createSafeScaleField, moveInterface, createAddInterface, swapTableRows, resetAddInterface} from "./rowoperations.js";
 import{attachToParent, lineUpAncestors} from "./positioning.js";
 
 /**
@@ -72,44 +72,68 @@ window.addEventListener("load", () => {
     // Defining the table and adding drag functionality
     let TABLE = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
 
-    //remove anything that's not a cell from the row's list of children when we start dragging
+    
     TABLE.addEventListener("draggingStarted", event => {
+        //remove anything that's not a cell from the row's list of children when we start dragging
         Array.from(event.detail.children).forEach(element => {
             if(element.tagName.toUpperCase() !== "TD"){
                 element.remove();
-            }   
+            }
         });
+        //ensures that moveInterface will not place the interface on the dragged row while its being dragged
+        event.detail.classList.add("interfaceBlacklist");
     })
 
     //define what the primary row is
     console.log(TABLE.querySelector("tr"));
     //sessionStorage.setItem("primaryRow", TABLE.querySelector("tr").id); // ERROR IS HERE - SESSION STORAGE ITEM IS EMPTY AFTER THIS ASSIGNMENT
 
-    // We select all rows so an event listener can be attached that moves/reattaches the scale field to a target row - we assume that the table is non-empty 
-    TABLE.querySelectorAll("tr").forEach(row => {
-        row.addEventListener("mouseover", moveInterface);
-        row.addEventListener("draggingStopped", swapTableRows);
-    });
-    // We create a scale field with a target row specified by argument 
-    let scale_field = createScaleField("primaryRow", "primaryScaleFactor", TABLE);
-    //ROW_OPERATION_MANAGER.primaryScaleField = scale_field;
-    sessionStorage.setItem("primaryScaleField", scale_field.id);
+    //we select all rows so an event listener can be attached that moves/reattaches the scale field to a target row - we assume that the table is non-empty 
+    document.addEventListener("GEstarted", event => {
+        TABLE.querySelectorAll("tr").forEach(row => {
+            row.addEventListener("mouseover", moveInterface);
+            row.addEventListener("draggingStopped", swapTableRows);
+            sessionStorage.setItem("allowInterfaceMoving", "true");
+        });
 
-    let add_interface = createAddInterface(TABLE);
-    //ROW_OPERATION_MANAGER.addButton = add_interface[0];
-    sessionStorage.setItem("addButton", add_interface[0].id);
+        //we create a scale field with a target row specified by argument 
+        let scale_field = createScaleField("primaryRow", "primaryScaleFactor", TABLE);
+        scale_field.style.position = "absolute";    //setting position to absolute to prevent screenspace from being allocated when it becomes a child of something
+        sessionStorage.setItem("primaryScaleField", scale_field.id);
 
-    //TABLE.querySelector("tr").appendChild(ROW_OPERATION_MANAGER.addButton); // Note: The return value of add interface is an array. The 0'th element is the add button
-    TABLE.querySelector("tr").appendChild(document.getElementById(sessionStorage.getItem("addButton")));
-    TABLE.querySelector("tr").appendChild(document.getElementById(sessionStorage.getItem("primaryScaleField")));
-    attachToParent(scale_field, true);
+        let add_interface = createAddInterface(TABLE);
+        //return statement makes an array: [add_button, scale_field, row_holder, go_button]
+        add_interface[0].style.position = "absolute";
+        sessionStorage.setItem("addButton", add_interface[0].id);
 
-    //lineUpAncestors(add_interface[add_interface.length-1], add_interface.length); // Adds descendents in a linear order starting from the element that is supposed to be the further descendent from the root element.
+        //Note: The return value of add interface is an array. The 0'th element is the add button
+        /*document.addEventListener("draggingStopped", event => {
+            resetAddInterface(add_interface[1], add_interface[2], add_interface[3]);
+        });*/
 
-    //eventListener updates the scale factor whenever the user changes it
-    scale_field.addEventListener("change", event => {
-    sessionStorage.setItem("primaryScaleFactor", String(event.target.value));
-    });
-}, {capture: true});
+        //placing the addInterface and primary scale field on the first row in the TABLE
+        TABLE.querySelector("tr").appendChild(document.getElementById(sessionStorage.getItem("addButton")));
+        TABLE.querySelector("tr").appendChild(document.getElementById(sessionStorage.getItem("primaryScaleField")));
+        attachToParent(scale_field, true);
+        
+        //eventListener updates the scale factor whenever the user changes it
+        scale_field.addEventListener("change", event => {
+            sessionStorage.setItem("primaryScaleFactor", String(event.target.value));
+        });
+    }, {capture: true});
 
-// Scale field skal kun sættes på en enkelt gang; når vi locker table, skal man ikke kunne gøre mere!!
+    document.addEventListener("GEstopped", event =>{
+        //removing the interface and clearing the listeners from the table
+        document.getElementById(sessionStorage.getItem("primaryScaleField")).remove();
+        document.getElementById("add_button_id").remove();
+        TABLE.querySelectorAll("tr").forEach(row => {
+            row.removeEventListener("mouseover", moveInterface);
+            row.removeEventListener("draggingStopped", swapTableRows);
+            //add all listeners that are not automatically deleted to this forEach-loop!
+        }); 
+        primary_scale_field.remove();
+        add_interface.remove();
+     })
+})
+//quick thing to see what's dropped on what
+document.addEventListener("draggingStopped", event => console.log(`${event.detail} dropped on ${event.target}`))

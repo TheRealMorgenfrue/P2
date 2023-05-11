@@ -45,17 +45,15 @@ function extractRowIndex(row){
  * We also assume that "currentTable" represents a tbody-element that is a parent of both rows.
  */
 function swapTableRows(event){
-    
     const indexA = extractRowIndex(event.currentTarget),   //the index of the row where the drag ended
           indexB = extractRowIndex(event.detail),          //the index of the row that was dragged to event.target
           tableArray = JSON.parse(sessionStorage.getItem("currentTable"));
     //reusing swapRows from app_math.js to swap the rows in the backend
     swapRows(indexA, indexB, tableArray);
-
+    console.log(`Dropped ID: ${event.detail.id} on ID: ${event.currentTarget.id}`);
     //with the array elements swapped, we move on to swapping the rows in the HTML-table.
     //we use updateTableFromArray for this task, with event.target.parentElement being the tbody-element where _both_ rows are
     updateTableFromArray(event.currentTarget.parentElement, tableArray, [indexA, indexB], "input", "value");
-    console.log(`Swapping row ${indexA} with row ${indexB}. New matrix is ${tableArray}`);
     sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
     pushToHistory(tableArray);
 }
@@ -82,7 +80,7 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
     //get an iterable list of rows in the table
     //making rows into a normal array instead of a nodelist so we can index it
     let rows = Array.from(table.querySelectorAll("tr"));
-    console.log(`Table is "${table}\nWill try to update it to look like ${tableArray}\nSpec     ific rows given are ${options}`);
+    console.log(`Will try to update table to look like ${tableArray}\nSpecific rows given are ${options}`);
     //check if there are any specific rows to update and trim the row list if there is
     if(Array.isArray(options)){
 
@@ -98,7 +96,7 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
         //overwrite rows with the trimmed version
         rows = trimmedRows;
     }
-    console.log(`Rows are ${rows} after trimming`);
+    //console.log(`Rows are ${rows} after trimming`);
     if(!attribute || attribute.length < 0){
         attribute = "innerHTML";
     }
@@ -117,9 +115,9 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
         case 3: //both options and query are given:
             console.log(`Got query:${query} and options: ${options}`);
             rows.forEach((row, i) => { //Consider if options is [0,1,4,3], then rows is [Row0, Row1, Row4, Row3] but tableArray is still [Row0, Row1, Row2, Row3, Row4]. We must use options[i] instead of i to index tableArray if we want to modify the ith row
-                console.log(`Working on row #${i} which is ${row} with id ${row.id}\nThis row should look like ${tableArray[i]}`)
+                //console.log(`Working on row #${i} which is ${row} with id ${row.id}\nThis row should look like ${tableArray[i]}`)
                 row.querySelectorAll("td").forEach((cell, j) => {
-                    console.log(`Working on cell #${j} with id ${cell.id}`);
+                    //console.log(`Working on cell #${j} with id ${cell.id}`);
                     cell.querySelector(query)[attribute] = tableArray[options[i]][j];   //accessing the property with a string in square brackets can be done for any object 
                 })
             });
@@ -135,9 +133,9 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
         case 1: //query is given but options is not
             console.log(`Got query:${query} and no options`);
             rows.forEach((row, i) => {
-                console.log(`Working on row #${i} which is ${row} with id ${row.id}`)
+                //console.log(`Working on row #${i} which is ${row} with id ${row.id}`)
                 row.querySelectorAll("td").forEach((cell, j) => {
-                    console.log(`Working on cell #${j} with id ${cell.id}`);
+                    //console.log(`Working on cell #${j} with id ${cell.id}`);
                     cell.querySelector(query)[attribute] = tableArray[i][j];
                 })
             });
@@ -276,6 +274,7 @@ function createScaleField(target_row, factor_name, table){
     // We create input box that becomes child of scale field  
     const scalar_input = document.createElement("input");
     scalar_input.type = "number";
+    scalar_input.value = 1;
     scalar_input.classList.add("scale_field");
     scalar_input.addEventListener("change", event => {
         sessionStorage.setItem(factor_name, event.currentTarget.value);
@@ -320,6 +319,8 @@ function createAddInterface(table){
     const add_button = document.createElement("button");
     add_button.innerHTML = "+";
     add_button.id = "add_button_id";
+    add_button.style.height = "20px"; // IF YOU SEE THIS COMMENT, MOVE THE STYLING TO CSS - VALUES ARE PICKED ARBITRARILY
+    add_button.style.width = "20px";
 
     // Create a table to hold the row we're going to add and hide it for later
     const row_holder = document.createElement("table");
@@ -361,15 +362,10 @@ function createAddInterface(table){
             //preparing a listener to cancel the addition operation if the user clicks outside the interface or table
             //note that dragging or dropping elements does not produce click events that reach the document
             document.addEventListener("click", () => {
-                scale_field.style.visibility = "hidden";
-                row_holder.style.visibility = "hidden";
-                go_button.style.visibility = "hidden";
-                scale_field.querySelector("input").value = 1;
-                sessionStorage.setItem("secondaryScaleFactor", "1");
-                sessionStorage.setItem("secondaryRow", "");
-                sessionStorage.setItem("allowInterfaceMoving", "true");
-                console.log("Cancelling addition operation");
-            }, {once: true})    //might need to be capturing. Testing required
+
+                resetAddInterface(scale_field, row_holder, go_button);
+
+            }, {once: true})
         }
     });
     //creating a variable to hold the row we need to add to the other one
@@ -396,27 +392,61 @@ function createAddInterface(table){
         //clear held_row's ID to prevent conflicts, just in case
         held_row.id = "";
         updateTableFromArray(row_holder, [JSON.parse(sessionStorage.getItem("bufferRow"))], null, "input", "value");    //fix for elements becoming undefined.
+        scale_field.style.visibility = "visible";
+        attachToParent(scale_field);
+        row_holder.style.visibility = "visible";
+        attachToParent(row_holder);
         go_button.style.visibility = "visible";
         attachToParent(go_button);
         console.log(`Caught a row: ${sessionStorage.getItem("bufferRow")}`);
+
+        //prepare to cancel if the user clicks outside
+        document.addEventListener("click", () => {
+
+            resetAddInterface(scale_field, row_holder, go_button);
+
+        }, {once: true})
     });
 
     //performing the actual addition and resetting the interface when the go_button is clicked
     go_button.addEventListener("click", () => {
+        //clean up the interface to prevent extra row being found by updateTableFromArray - this creates issues with swapping rows that updateTableFromArray
+        resetAddInterface(scale_field, row_holder, go_button);
+        
         addRows(table, JSON.parse(sessionStorage.getItem("currentTable")), document.getElementById(sessionStorage.getItem("primaryRow")));
-        scale_field.style.visibility = "hidden";
-        row_holder.style.visibility = "hidden";
-        go_button.style.visibility = "hidden";
-        scale_field.querySelector("input").value = 1;
-        sessionStorage.setItem("secondaryScaleFactor", "1");
-        sessionStorage.setItem("secondaryRow", "");
-        sessionStorage.setItem("allowInterfaceMoving", "true");
-        console.log("Adding rows and packing up");
     });
     
     return [add_button, scale_field, row_holder, go_button];
 }
 
+/**
+ * helper function to reset the addInterface properly and prevent repeat code
+ * this function currently changes
+ * the secondary scaling factor to 1,
+ * the secondary row to "",
+ * and sets allowInterfaceMoving to true
+ * @param {HTMLelement} scale_field - div container for table that contains rowB, a scale button to scale rowB and an add button that adds RowB to rowA
+ * @param {HTMLelement} row_holder - Table that can only contain one row which is found by listening for the draggingStopped event. 
+ * @param {HTMLelement} go_button - Button that adds rowB to rowB on click event. 
+ */
+
+
+function resetAddInterface(scale_field, row_holder, go_button){
+    //hide the elements
+    scale_field.style.visibility = "hidden";
+    row_holder.style.visibility = "hidden";
+    go_button.style.visibility = "hidden";
+    //reset all the variables in sessionstorage (and on the frontend for the scale_field)
+    scale_field.querySelector("input").value = 1;
+    sessionStorage.setItem("secondaryScaleFactor", "1");
+    sessionStorage.setItem("secondaryRow", "");
+    sessionStorage.setItem("allowInterfaceMoving", "true");
+    //remove the row left over from the addition operation in row holder if it's there
+    const extra_row = row_holder.querySelector("tr");
+    if(extra_row){
+        extra_row.remove();
+    }
+}
 
 /**
  * A function designed for use in a mouseover-eventhandler
@@ -424,19 +454,23 @@ function createAddInterface(table){
  * @param {event} event - mouseover event that checks if the scale field, add button and the add button's children should be moved to another row.  
  */
 function moveInterface(event){
+    //we only reset and move the interface if we are allowed to, and if the row we're hovering over is not the one the interface is on currently i.e. the one with ID primaryRow
     if(sessionStorage.getItem("allowInterfaceMoving")){
         const target_row = event.currentTarget;
-        if(target_row.id !== sessionStorage.getItem("primaryRow")){
-            console.log("New primary row found! Attempting to move the interface.");
-            sessionStorage.setItem("primaryRow", target_row.id);
+        if(target_row.id !== sessionStorage.getItem("primaryRow") && !target_row.classList.contains("interfaceBlacklist")){     //interfaceBlacklist is a class added to things that the interface
+            console.log("Trying to move interface!")
+            //setting a new primaryRow and resetting scaling factors to 1
+            //we're also resetting secondaryRow and what primaryScaleField's value is on the front end
+            sessionStorage.setItem("primaryRow", target_row.id);                                                                //should not be able to attach to, despite other conditions being true
             sessionStorage.setItem("primaryScaleFactor", "1");
             sessionStorage.setItem("secondaryRow", "");
             sessionStorage.setItem("secondaryScaleFactor", "1");
+            document.getElementById(sessionStorage.getItem("primaryScaleField")).querySelector("input").value = 1;
+            //changing what the interface elements' parent is and running attachToParent to get them positioned
             document.getElementById(sessionStorage.getItem("primaryRow")).appendChild(document.getElementById(sessionStorage.getItem("primaryScaleField")));
             document.getElementById(sessionStorage.getItem("primaryRow")).appendChild(document.getElementById(sessionStorage.getItem("addButton")));
             attachToParent(document.getElementById(sessionStorage.getItem("primaryScaleField")), true);
             attachToParent(document.getElementById(sessionStorage.getItem("addButton")));
-            console.log("Moving interface and updating/resetting");        
         }
     }
 }
@@ -536,4 +570,4 @@ function addRows(table,tableArray,row){
     }
 }
 
-export {updateTableFromArray, fillTable, createScaleField, createSafeScaleField, moveInterface, createAddInterface, swapTableRows}
+export {updateTableFromArray, fillTable, createScaleField, createSafeScaleField, moveInterface, createAddInterface, swapTableRows, resetAddInterface}
