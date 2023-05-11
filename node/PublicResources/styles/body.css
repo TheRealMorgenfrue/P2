@@ -1,0 +1,34 @@
+/* All element types without a leading "." means they apply to all elements in the DOM of that type.
+   (Unless another operator is present) */
+
+/* Applies to both the HTML page and the document body */
+html, body {
+	height: 100%;
+}
+
+/* Applies to the document body */
+body {
+	margin: 0;
+	background: linear-gradient(45deg, #49a09d, #5f2c82);
+  /* background: linear-gradient(45deg, #49a09d, #00ffb3); */
+	font-family: sans-serif;
+	font-weight: 100;
+}
+
+/* Applies to all "h1" in the HTML */
+h1 {
+    color: white;
+    text-align: center;
+    padding-top: 10px;
+}
+
+/* Class to stop highlighting of text with the mouse */
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Edge, Opera and Firefox */
+  }

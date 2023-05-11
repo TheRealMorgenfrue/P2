@@ -4,7 +4,6 @@ Global:     VARIABLECASE   / VARIABLE_CASE
 Function:   variableCase   / "N/A"
 Objects:    VariableCase   / "N/A"
 Primitives: "N/A"          / variable_case
-
 *****************************************
 */
 import {initDrag, disableDrag} from "./draganddrop.js";
@@ -36,18 +35,16 @@ const SETTINGS = new function() {
             this.title = `Input desired size - max ${this.max_matrix_size}`;
         }
         this.BUTTONS = new function() {
-            this.lock_button_id = "lockbutton";
-            this.lock_button_value = "Lock";
-            this.lock_button_type = "button";
-            this.lock_Table = function() { lockTable(); };    // We can have functions as keys in objects by wrapping them in a function
-            this.unlock_button_id = "unlockbutton";
-            this.unlock_button_value = "Unlock";
-            this.unlock_button_type = "button";
-            this.unlock_Table = function() { unlockTable(); };
-            this.clear_button_id = "clearbutton";
-            this.clear_button_value = "Clear matrix";
-            this.clear_button_type = "button";
-            this.clear_Table = function() { fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id)); };
+            this.confirm_button_id = "confirmbutton";
+            this.confirm_button_value = "Confirm matrix";
+            this.confirm_button_type = "button";
+            this.confirm_Table = function() { lockTable(); };    // We can have functions as keys in objects by wrapping them in a function
+            this.reset_button_id = "resetbutton";
+            this.reset_button_value = "Reset matrix";
+            this.reset_button_type = "button";
+            this.reset_Table = function() {
+                fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id), "", false, "input", "value");
+                unlockTable(); };
             this.rewind_button_id = "rewindbutton";
             this.rewind_button_value = "Go back";
             this.rewind_button_type = "button";
@@ -66,25 +63,27 @@ const SETTINGS = new function() {
 
 Object.freeze(SETTINGS.READONLY);  // Make the "readonly_settings" object readonly
 
-
+/**
+ * Initialises the table at page load 
+ * @param {string} tableID ID of the table created
+ * @param {HTMLElement|string} element Optional (Defaults to document body). The HTML element which the table should be a child of.
+ */
 function initTableGE(tableID, element) {
     // Create a table and add it to the page
     const table = document.createElement("table");
     const tbody = document.createElement("tbody");
-    if(element){
-        element.appendChild(table);
-    } else {
-        document.body.appendChild(table);
-    }
 
-    table.classList.add("tbl")
+    // Always append table to the document body. This is changed later if an element is specified.
+    // The reason for this is to avoid the problem where the table is not actually appended to the given element (for some weird reason).
+    document.body.appendChild(table);
     table.appendChild(tbody);
-    
+
     // Set the table's ID if one is given
     if(tableID) {
         table.id = `${tableID}`;
     }
-    resizeTableBody(tbody, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}" class="tblCells"}>`);
+
+    resizeTableBody(tbody, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}">`);
     
     tbody.addEventListener("change", (event) => {
         // Validate input in the cell the user modified 
@@ -93,8 +92,15 @@ function initTableGE(tableID, element) {
         let sanitized_cell_value = sanitize(cell_value);
         event.target.value = sanitized_cell_value;
     });
+
+    addResizeButtons(); // The ordering of the buttons is important.
+    if(element) { // Wrap the table in an element container
+        appendToParent(table, element);
+    }
+    else { // If no element is given the table itself is the container
+        table.classList.add("tableContainer");
+    }
     addTableButtons();
-    addResizeButtons();
 }
 /**
  * Creates a 2D array and fills it with empty strings. 
@@ -114,7 +120,6 @@ function createArray(row_value, column_value) {
     }
     return array;
 }
-
 /**
  * Create two input buttons separated by an "x" string.
  *  
@@ -128,17 +133,17 @@ function addResizeButtons() {
         row: document.createElement('input'),
         column: document.createElement('input')
     };
-    // Span used to avoid unintended behaviour with CSS when moving a 'div' where the 'x' does not move with the rest of the buttons.
+    const div = document.createElement("div");
     const span = document.createElement("span"); 
-
-    // Formats input boxes as "${rows} x ${columns}"
     const cdot = document.createTextNode(' x ');
 
-    // In order to apply CSS to a TextNode it has to be a child of an element where CSS can be applied, e.g. 'span'
-   
+    // Formats input boxes as "${rows} x ${columns}"
+    div.appendChild(Input.row);
+    span.appendChild(cdot);
+    div.appendChild(span);
+    div.appendChild(Input.column);
 
-    // Add two classes to cdot to ensure correct CSS-styling 
-    span.classList.add("tbl", "inputbox");  
+    div.classList.add("inputBox"); // Apply CSS to container element
 
     // Adds attributes to row and column elements.
     // Do NOT use the global row_id here instead of "row" (equivalent for columns). 
@@ -146,10 +151,8 @@ function addResizeButtons() {
     addAttributes("row", Input);
     addAttributes("column", Input);
 
-    // When done editing the element, add it to the html body. This is crucial for stuff like getElementById
-    body.appendChild(Input.row);
-    body.appendChild(cdot);
-    body.appendChild(Input.column);
+    const container_div = document.getElementById("table_container");
+    container_div.appendChild(div);
 
     // Make eventlisteners for row and column elements
     createEventListener(SETTINGS.READONLY.TABLE.row_id, "row_change");
@@ -158,7 +161,7 @@ function addResizeButtons() {
     createEventListener(SETTINGS.READONLY.TABLE.column_id, "click");
 }
 /**
- * Helper function for getTableSize() that adds various attributes to row and column objects that are part of the "Input" object. 
+ * Helper function for addResizeButtons() that adds various attributes to row and column objects that are part of the "Input" object. 
  * @param {string} type 
  * @param {object} Input 
  */
@@ -170,7 +173,6 @@ function addAttributes(type, Input) {
     Input[`${type}`].type = SETTINGS.READONLY.TABLE.type;
     Input[`${type}`].setAttribute('max', SETTINGS.READONLY.TABLE.max_matrix_size);
     Input[`${type}`].min = SETTINGS.READONLY.TABLE.min_matrix_size;
-    Input[`${type}`].classList.add("tbl", "inputBox"); // Ensure that buttons follow table when table is moved or manipulated
 }
 /**
  * Add an event listener to the element with type_id 
@@ -178,7 +180,7 @@ function addAttributes(type, Input) {
  * @param {string} listener_type 
  * @returns 
  */
-function createEventListener(type_id, listener_type, table) {
+function createEventListener(type_id, listener_type) {
     try {   // Catch all errors in the function 
         let element;
         try {
@@ -222,8 +224,8 @@ function createEventListener(type_id, listener_type, table) {
                         event.target.value = SETTINGS.READONLY.TABLE.min_matrix_size;
                     }
                     SETTINGS.WRITABLE.row_value = Number(event.target.value); // Convert to number since strings behave weird with logical operators
-                    resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, "<input>");
-                });   
+                    resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}">`);
+                });
                 break;
             } 
             case "column_change": {
@@ -240,7 +242,7 @@ function createEventListener(type_id, listener_type, table) {
                         event.target.value = SETTINGS.READONLY.TABLE.min_matrix_size;
                     }
                     SETTINGS.WRITABLE.column_value = Number(event.target.value); // Convert to number since strings behave weird with logical operators
-                    resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, "<input>");
+                    resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}">`);
                 });   
                 break;
             }
@@ -265,6 +267,8 @@ function createEventListener(type_id, listener_type, table) {
 /**
  * Converts the value in the input cells in the table into an array of arrays of numbers.
  * Also pushes the array of arrays it creates onto an array TABLES for use with the undo-feature.
+ * @param {HTMLTableElement} table The table from which the backend array is updated
+ * @returns 
  */
 function createBackendTable(table) {
     try {
@@ -339,22 +343,24 @@ function undoTable(undo_count) {
 function addTableButtons() {
     // Object that contains the button's element type. This compresses the code to Input.id (instead of having to write e.g. 'lock_button.id' and 'unlock_button.id')
     const Input = {
-        body: document.body,
-        tbl: document.getElementById(`${SETTINGS.READONLY.TABLE.table_id}`),
-        lock_button: document.createElement("input"),
-        unlock_button: document.createElement("input"),
-        clear_button: document.createElement("input"),
+        div: document.createElement("div"),
+        confirm_button: document.createElement("input"),
+        reset_button: document.createElement("input"),
         rewind_button: document.createElement("input"),
         randomize_button: document.createElement("input")
     };
 
     // Do NOT use the global id for the buttons here. 
     // That could cause a serious issue with the definition in the 'Input' object
-    addButtonAttributes("lock", Input);
-    addButtonAttributes("unlock", Input);   
-    addButtonAttributes("clear", Input);
+
     addButtonAttributes("rewind", Input);
+    addButtonAttributes("reset", Input);
     addButtonAttributes("randomize", Input);
+    addButtonAttributes("confirm", Input);
+    Input.div.classList.add("buttonContainer");
+
+    // document.body.appendChild( Input.div);
+    appendToParent(Input.div, document.getElementById("table_container"));
 }
 /**
  * Helper function to addTableButtons() that adds attributes/event listeners to the buttons and places them after the table 
@@ -364,8 +370,7 @@ function addButtonAttributes(type, Input) {
     Input[`${type}_button`].id = SETTINGS.READONLY.BUTTONS[`${type}_button_id`];       // Set its ID
     Input[`${type}_button`].value = SETTINGS.READONLY.BUTTONS[`${type}_button_value`]; // Set its value
     Input[`${type}_button`].type = SETTINGS.READONLY.BUTTONS[`${type}_button_type`];   // Make it a "button" type
-    Input[`${type}_button`].classList.add("tbl", "buttons"); // Add CSS
-    Input.body.after(Input.tbl, Input[`${type}_button`]);    // Add to body after the table
+    Input.div.append(Input[`${type}_button`]); // Add to button container div
     Input[`${type}_button`].addEventListener("click", SETTINGS.READONLY.BUTTONS[`${type}_Table`]); // Add EventListener
 }
 /**
@@ -403,9 +408,13 @@ function lockTable() {
     else {
         console.warn("Table is already locked");
     }
+    createBackendTable(tbl);
+    // Hide unusable buttons
+    document.getElementById("randomizebutton").style.visibility = "hidden";
+    document.getElementById("confirmbutton").style.visibility = "hidden";
 }
 /**  
- * Helper function for the "unlock" button that makes all cells in the table writeable again
+ * Helper function for the "reset" button that makes all cells in the table writeable again
  */
 function unlockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
@@ -428,8 +437,9 @@ function unlockTable() {
     else {
         console.warn("Table is already unlocked");
     }
+    document.getElementById("randomizebutton").style.visibility = "visible";
+    document.getElementById("confirmbutton").style.visibility = "visible";
 }
-
 /**
  * Removes all undesired characters from a string given. 
  * @param {string} str 
@@ -440,7 +450,7 @@ function sanitize(str){
     // Keep any negative scalars in input 
     if(str[0] === "-"){
         negation_operator = "-";
-    };
+    }
     str = str
     .replace(/[^0-9]/g, "").trim();
 //   .replace(/&/g, "")
@@ -451,7 +461,6 @@ function sanitize(str){
 //   .replace(/`/g, "")
     return `${negation_operator}`+ `${str}`;
 }
-
 /**
  * Generates random numbers from -9 to 9 and fills the backend array with them
  */
@@ -503,7 +512,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
         };
         //initialise the number of cells we need to add for various operations
         //we can use this variable for both row- and column-changes
-        let cellsNeeded = 0;
+        let cells_needed = 0;
 
         //add or remove rows if requested
         console.log(`Need to add ${dimensions.row_value - tableRows.length} rows`);
@@ -511,13 +520,14 @@ function resizeTableBody(table, dimensions, HTMLcode){
             //we need to add rows, since the requested number of rows is larger than the current number of rows
             //first we find the number of columns we need to add to the new rows
             if(table.lastElementChild){
-                cellsNeeded = table.lastElementChild.querySelectorAll("td").length;
+                cells_needed = table.lastElementChild.querySelectorAll("td").length;
             } else {
-                cellsNeeded = 0;
+                cells_needed = 0;
             }
             //then we add a number of rows equal to the difference between the current row count and the requested row count
             for (let i = 0; i < (dimensions.row_value - tableRows.length); i++) {
                 const newRow = document.createElement("tr");
+
                 table.appendChild(newRow);
 
                 //add the row to our list of changes
@@ -525,7 +535,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
                 
                 /*Turns out we didn't need this, since the column-adding code below does it for us
                     HOWEVER, if all rows are the same length, this could be readded and the column-adding code could be simplified...
-                for (let j = 0; j < cellsNeeded; j++) {
+                for (let j = 0; j < cells_needed; j++) {
                     const newCell = document.createElement("td");
                     newCell.innerHTML = HTMLcode;
                     newRow.appendChild(newCell);
@@ -549,14 +559,14 @@ function resizeTableBody(table, dimensions, HTMLcode){
         //we update our list of rows before moving on to columns if we did something with the rows
         if(dimensions.row_value - tableRows.length !== 0){
             tableRows = table.querySelectorAll("tr");
-        };
+        }
         //add or remove columns if needed. It is important to do this after adding or removing any rows
         //we do this for every row to ensure we end up with the same number of columns in every row
         tableRows.forEach(row => {
-            cellsNeeded = dimensions.column_value - row.querySelectorAll("td").length;
-            console.log(`Need ${cellsNeeded} cells on this row`);
-            if(cellsNeeded > 0){
-                for (let i = 0; i < cellsNeeded; i++) {
+            cells_needed = dimensions.column_value - row.querySelectorAll("td").length;
+            console.log(`Need ${cells_needed} cells on this row`);
+            if(cells_needed > 0){
+                for (let i = 0; i < cells_needed; i++) {
                     const newCell = document.createElement("td");
                     newCell.innerHTML = HTMLcode;
                     row.appendChild(newCell);
@@ -564,8 +574,8 @@ function resizeTableBody(table, dimensions, HTMLcode){
                     //add the cell to our list of changes
                     changes.tdAdded.push(newCell);
                 }
-            } else if(cellsNeeded < 0){
-                for (let i = cellsNeeded; i < 0; i++) {
+            } else if(cells_needed < 0){
+                for (let i = cells_needed; i < 0; i++) {
                     //once again using removeChild to get a reference to the element
                     const removedCell = row.removeChild(row.lastElementChild);
                     
@@ -581,7 +591,6 @@ function resizeTableBody(table, dimensions, HTMLcode){
         console.error(error)
         return null;
     }
-    
 }
 
 //convert an HTML-table or tbody into an array of arrays of its elements and return it
@@ -620,6 +629,92 @@ function populateIDs(table){
         })
     })
 }
+/**
+ * Appends a child to a parent element.
+ *
+ * If the parent does not exist in the DOM tree, append it to the document body.
+ * @param {HTMLElement|string} parent_element Append child to this element. If a string is given, e.g. "div", a new parent element is created instead.
+ * @param {HTMLElement|string} child_element The child that'll be appended to the parent element. If a string is given, e.g. "div", a new child element is created instead.
+ */
+function appendToParent(child_element, parent_element) {
+    let wrapper, parent_parent, child_parent;
+
+    // If errors occur, stop execution immediately
+    try {
+        if(!parent_element) { // Make sure parent element is defined
+            throw new Error(`Cannot attach child element to parent. Parent element is ${parent_element}`);
+        }
+        else if(!child_element) { // Make sure child element is defined
+            throw new Error(`Cannot attach child element to parent. Child element is ${child_element}`);
+        }
+    } catch (error) {
+        console.error(error);
+        return;
+    }
+
+    // If errors occur, try to continue anyway
+    try {
+        // If the parent element is a string, assume it's the element to be created
+        if(typeof parent_element === "string") {
+            wrapper = document.createElement(parent_element); // Create new element type (e.g. <div>)
+        }
+        // The document object in Internet Explorer does not have a contains() method - to ensure cross-browser compatibility, also use document.body.contains().
+        // If the parent element already exists in the DOM tree, remove it
+        // (to prevent page crash when trying to append an element to the DOM when it's already appended to the DOM).
+        else if(document.contains(parent_element) || document.body.contains(parent_element)) {
+            parent_parent = parent_element.parentElement; // Get the parent of the parent element which a child will be attached to
+            wrapper = parent_parent.removeChild(parent_element); // Remove the child from the DOM and return it for later use (as opposed to element.remove() which just terminates the child)
+            console.info(`Parent element "${parent_element}" already exists in DOM, removing.`);
+
+            // If the child element already exists in the DOM tree, remove it
+            // (to prevent page crash when trying to append an element to the DOM when it's already appended to the DOM).
+            if(document.contains(child_element) || document.body.contains(child_element)) {
+                child_parent = child_element.parentElement; // Get the parent of the child element
+                child_element = child_parent.removeChild(child_element); // Remove the child from the DOM and return it for later use (as opposed to element.remove() which just terminates the child)
+                console.info(`Child element "${child_element}" already exists in DOM, removing.`);
+            }
+        }
+        // The parent element is the HTML element which to wrap the child in
+        else {
+            wrapper = parent_element
+        }
+
+        // If the child element is a string, assume it's the element to be created
+        if(typeof child_element === "string") {
+            child_element = document.createElement(child_element);
+        }
+        wrapper.appendChild(child_element);
+
+        // Append element to its parent element if it has one
+        if(parent_parent) {
+            parent_parent.append(wrapper);
+        }
+        // Append to body, since no parent was found
+        else {
+            document.body.append(wrapper);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// Running The Program
+// Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
+window.addEventListener("load", (event) => {
+    // Set-up for the table
+    // const outerdiv = document.createElement("div");
+    // outerdiv.appendChild(innerdiv);
+    // outerdiv.id = "outer_table_container";
+    // outerdiv.classList.add("outerTableContainer");
+    // document.body.appendChild(outerdiv);
+    const innerdiv = document.createElement("div");
+    innerdiv.id = "table_container";
+    innerdiv.classList.add("tableContainer");
+    document.body.appendChild(innerdiv);
+
+    initTableGE(SETTINGS.READONLY.TABLE.table_id, innerdiv);
+
+});
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
 export {createArray, sanitize, initTableGE, populateIDs, pushToHistory};

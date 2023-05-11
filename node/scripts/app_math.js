@@ -227,8 +227,6 @@ function scaleArray(array, scalar){
  * @returns {number}
  */
 function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
     return Math.floor(Math.random() * (max - min) + min); // Max is exclusive and min is inclusive
 }
 
@@ -248,7 +246,6 @@ function generateEquation(rows, columns) {
             equations[i][j] = getRandomInt(-9,10);
         }
     }
-    console.table(equations);
     return equations;
 }
 
