@@ -25,7 +25,7 @@
 }
 
 /* Styling for the table */
-table {
+.geTable {
 	display: flex;
 	justify-content: center;
     width: auto;
@@ -35,13 +35,13 @@ table {
 }
 
 /* Styling for tbody */
-tbody {
+.geTable tbody {
 	background-color: white;
 }
 
 /* Styling for th and td */
-th,
-td {
+.geTable th, 
+.geTable td {
 	padding: 5px;
 	z-index: 1; /* Ensure that td, and thus the children of td, are always displayed on top */
 	/* background-color: rgba(255,255,255,0.2); */
@@ -49,16 +49,17 @@ td {
 
 /* Select all input elements that are children of a td element. 
 Styling for the table input cells */
-td > input {
+.geTable td > input {
 	width: 20px;
 	text-align: center;
 	border-color: transparent;
 	background-color: transparent;
+	color: black;
 }
 
 input[readonly] {
 	cursor: pointer;
-	color: #777;
+	/* color: #777; */
 }
 
 input[disabled] {
@@ -67,39 +68,40 @@ input[disabled] {
 }
 
 /* Styling for th */
-th {
+.geTable th {
 	text-align: left;
 }
 
 /* Styling for th which is a decendant of thead */
-thead th {
+.geTable thead th {
     background-color: #55608f;
 }
 
 /* Styling for tr which is a decendant of tbody.
 Uses the pseudo-class ":hover" to determine if a user hovers over a tr element */
-tbody tr:hover {
+.geTable tbody tr:hover {
 	background-color: rgba(0, 0, 0, 0.3);
 }
 
 /* Styling for td which is a decendant of tbody. */
-tbody td {
+.geTable tbody td {
     position: relative;
 }
 
 /* Styling for td which is a decendant of tbody. */
 /* Uses the pseudo-class ":hover" to determine if a user hovers over a tr element.
 Then, "::before" creates a pseudo-element that is the first child of the selected element */
-tbody td:hover::before { /* :hover is a pseudo-element created on top of td */
-content: "";
-position: absolute;
-left: 0;
-right: 0;
-top: -100vh;
-bottom: -100vh;
-background-color: rgba(0, 0, 0, 0.2);
-z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on */
-}
+.geTable tbody td:hover::before { /* :hover is a pseudo-element created on top of td */
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -100vh;
+	bottom: -100vh;
+	background-color: rgba(0, 0, 0, 0.2);
+	z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on */
+	}
+
 
 /* .mcontainer {
 	position: absolute;
