@@ -375,6 +375,7 @@ function lockTable() {
 
     // Since this function sets all elements in table to "readonly", only the first element in the "table_rows" array has to be checked 
     if(table_rows[0].getAttribute("readonly") !== "true") {
+        toggleDisableInputBoxes();
         table_rows.forEach(element => {
             element.setAttribute("readonly", "true");
         });
@@ -387,8 +388,6 @@ function lockTable() {
     // Hide unusable buttons
     document.getElementById("randomizebutton").style.visibility = "hidden";
     document.getElementById("confirmbutton").style.visibility = "hidden";
-
-    toggleDisableInputBoxes();
 }
 /**  
  * Helper function for the "reset" button that makes all cells in the table writeable again
@@ -399,6 +398,7 @@ function unlockTable() {
 
     // Since lockTable() sets all elements to readonly, only the first element in the "table_rows" array has to be checked 
     if(table_rows[0].getAttribute("readonly") === "true") {
+        toggleDisableInputBoxes();
         table_rows.forEach(element => {
             element.removeAttribute("readonly");
         });
@@ -410,7 +410,6 @@ function unlockTable() {
     document.getElementById("randomizebutton").style.visibility = "visible";
     document.getElementById("confirmbutton").style.visibility = "visible";
 
-    toggleDisableInputBoxes();
 }
 /**
  * Disables the input boxes so the table's dimentions remain constant while doing row operations
