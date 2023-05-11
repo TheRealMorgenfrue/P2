@@ -6,16 +6,17 @@ Objects:    VariableCase   / "N/A"
 Primitives: "N/A"          / variable_case
 *****************************************
 */
-import {initDrag} from "./draganddrop.js";
+import {initDrag, disableDrag} from "./draganddrop.js";
 import {updateTableFromArray, fillTable} from "./rowoperations.js";
 import {generateEquation} from "./app_math.js";
 
-let CURRENT_TABLE;
+//let CURRENT_TABLE;
 // CURRENT_TABLE is an array of arrays (2D array). It is global since it'll be used across all functions 
 // It is denoted as "backend array" in comments since it, at all times, contains the backend values of the table shown on screen - i.e. the frontend table
 // Note that it still functions at the backend level; the values in it need to be written to the frontend by external means - e.g. element.value = CURRENT_TABLE[i][j]  
 
-let TABLES = []; 
+//let TABLES = []; 
+sessionStorage.setItem("tableHistory", JSON.stringify([]));
 // Array used to contain copies of the backend array - ensures the user can go back to a previous iteration of the matrix - i.e. the table on the frontend
 // It is global since it'll be used across all functions 
 
@@ -271,25 +272,35 @@ function createEventListener(type_id, listener_type) {
  */
 function createBackendTable(table) {
     try {
-        const number_rows = [];
+        const backend_rows = [];
         const rows = convertTableToArray(table)
         if(!rows){
             throw new Error(`Could not create array from table!\nGot ${rows}`);
         }
         rows.forEach(row => {
-            const number_row = [];
+            const backend_row = [];
             row.forEach(cell => {
-                number_row.push(Number(cell.querySelector("input").value));
+                backend_row.push(Number(cell.querySelector("input").value));
             });
-            number_rows.push(number_row);
+            backend_rows.push(backend_row);
         });
-        TABLES.push(number_rows);
-        return number_rows;
+        console.warn(`Created the following array:\n${JSON.stringify(backend_rows)}`);
+        pushToHistory(backend_rows);
+        return backend_rows;
     } catch (error) {
         console.error(error);
         return null;
     }
 }
+//get the current tableHistory and parse it, push an item to it, stringify it again and update tableHistory
+//tableHistory is assumed to be an array and the item is assumed to be fully JSON-compatible
+function pushToHistory(item){
+    const history = JSON.parse(sessionStorage.getItem("tableHistory"));
+    history.push(item);
+    console.warn(`Pushing the following to tableHistory:\n${JSON.stringify(item)}`);
+    sessionStorage.setItem("tableHistory", JSON.stringify(history));
+}
+
 /**
  * Reverts the values of the current frontend table to match a previous instance of the frontend table.
  * 
@@ -299,26 +310,28 @@ function createBackendTable(table) {
  */
 function undoTable(undo_count) {
     undo_count = Number(undo_count); // Convert to a number just in case
-
+    let tables = JSON.parse(sessionStorage.getItem("tableHistory"));
     // Make sure the array actually contains something
-    if(TABLES.length > 0) {
+    if(tables.length > 0) {
         // Check if the array is large enough to go back undo_count times   
-        if(undo_count < TABLES.length) {
+        if(undo_count < tables.length) {
             // Go back undo_count times in the holding array amd remove all succeeding elements - e.g. [1,2,3,4,5] with undo_count = 2 becomes [1,2,3] 
-            const deleted_tables = TABLES.splice(TABLES.length-undo_count, undo_count);
+            const deleted_tables = tables.splice(tables.length-undo_count, undo_count);
 
-            CURRENT_TABLE = deleted_tables.pop();
-
+            const new_table = deleted_tables.pop();
+            //CURRENT_TABLE = deleted_tables.pop()
+            sessionStorage.setItem("currentTable", JSON.stringify(new_table));
+            sessionStorage.setItem("tableHistory", JSON.stringify(tables));
             // Testing 
-            console.table(TABLES);
-            console.table(CURRENT_TABLE);
+            console.table(tables);
+            console.table(new_table);
         }
         else {
-            console.warn(`Array has length ${TABLES.length}. Going back ${undo_count} would cause the array to underflow`);
+            console.warn(`Array has length ${tables.length}. Going back ${undo_count} would cause the array to underflow`);
         }
     }
     else {
-        console.warn(`Array underflow!: Array has length ${TABLES.length}`);
+        console.warn(`Array underflow!: Array has length ${tables.length}`);
     }
 }
 /**
@@ -365,13 +378,31 @@ function addButtonAttributes(type, Input) {
  */   
 function lockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
-    const table_rows = tbl.querySelectorAll("input");
-
+    const table_rows = Array.from(tbl.querySelectorAll("td"));
+    table_rows.forEach((cell, index) => {
+        table_rows[index] = cell.querySelector("input");   
+    });
     // Since this function sets all elements in table to "readonly", only the first element in the "table_rows" array has to be checked 
     if(table_rows[0].getAttribute("readonly") !== "true") {
         table_rows.forEach(element => {
-            element.setAttribute("readonly", "true");
+            element.setAttribute("readonly", "true");   
         });
+
+        //add IDs to the rows and cells
+        populateIDs(tbl);
+    
+        //set the primary row
+        sessionStorage.setItem("primaryRow", tbl.querySelector("tr").id);
+
+        //enable dragging
+        tbl.querySelectorAll("tr").forEach(row => {
+            initDrag(row);
+        });
+
+        const backend_table = createBackendTable(tbl);
+        sessionStorage.setItem("currentTable", JSON.stringify(backend_table)); // Create string representation of current matrix to be used by other .js files/script files. - We have to do this because imports only allow non-mutable/changeable items. 
+
+        tbl.dispatchEvent(new CustomEvent("GEstarted", {bubbles: true, detail: backend_table}));
         console.log("Table is now locked");
     }
     else {
@@ -387,12 +418,19 @@ function lockTable() {
  */
 function unlockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
-    const table_rows = tbl.querySelectorAll("input");
-
+    const table_rows = Array.from(tbl.querySelectorAll("td"));
+    table_rows.forEach((cell, index) => {
+        table_rows[index] = cell.querySelector("input");   
+    });
     // Since lockTable() sets all elements to readonly, only the first element in the "table_rows" array has to be checked 
     if(table_rows[0].getAttribute("readonly") === "true") {
         table_rows.forEach(element => {
             element.removeAttribute("readonly");
+        });
+
+        tbl.querySelectorAll("tr").forEach(row => {
+            //disable dragging
+            disableDrag(row);
         });
         console.log("Table is now unlocked");
     }
@@ -427,9 +465,8 @@ function sanitize(str){
  * Generates random numbers from -9 to 9 and fills the backend array with them
  */
 function randomize_Table() {
-    CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
-    const table = document.getElementById("gaussian_elimination_matrix");
-    updateTableFromArray(table, CURRENT_TABLE, false, "input", "value");
+    //CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
+    sessionStorage.setItem("currentTable", JSON.stringify(generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value)));
 }
 
 //we assume the table has at least one tbody if a tbody is not passed as that argument
@@ -680,4 +717,4 @@ window.addEventListener("load", (event) => {
 });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
-export {createArray, sanitize};
+export {createArray, sanitize, initTableGE, populateIDs, pushToHistory};
