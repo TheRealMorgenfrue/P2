@@ -98,7 +98,7 @@
 .scale_field {
   width: 40px;
   margin-left: 1px;
-  visibility: hidden;
+  visibility: visible;
 }
 
 

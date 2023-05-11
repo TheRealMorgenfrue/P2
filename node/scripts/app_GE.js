@@ -82,6 +82,7 @@ function initTableGE(tableID, element) {
     if(tableID) {
         table.id = `${tableID}`;
     }
+    table.classList.add("geTable");
 
     resizeTableBody(tbody, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}">`);
     
@@ -344,6 +345,8 @@ function addTableButtons() {
     // Object that contains the button's element type. This compresses the code to Input.id (instead of having to write e.g. 'lock_button.id' and 'unlock_button.id')
     const Input = {
         div: document.createElement("div"),
+        // We're using anchor elements as buttons instead of <input type=button>. 
+        // This ensures that SVG icons are displayed properly inside 
         confirm_button: document.createElement("a"),
         reset_button: document.createElement("a"),
         rewind_button: document.createElement("a"),
@@ -357,9 +360,6 @@ function addTableButtons() {
     addButtonAttributes("confirm", Input);
     Input.div.classList.add("buttonContainer");
 
-    createSVG("M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z",
-    "0 0 512 512", Input.confirm_button);
-
     appendToParent(Input.div, document.getElementById("table_container"));
 }
 /**
@@ -367,6 +367,8 @@ function addTableButtons() {
  */
 function addButtonAttributes(type, Input) {
     // [`${type}`] Makes it possible to use a variable to access properties of an object
+
+    // Anchor elements uses different attributes than "input". (e.g. "value" is "text" in anchors)
     if(Input[`${type}_button`].nodeName.toLowerCase() === "a") {
         Input[`${type}_button`].text = SETTINGS.READONLY.BUTTONS[`${type}_button_value`];
     }
@@ -375,6 +377,7 @@ function addButtonAttributes(type, Input) {
         Input[`${type}_button`].type = SETTINGS.READONLY.BUTTONS[`${type}_button_type`];   // Make it a "button" type
     }
     Input[`${type}_button`].id = SETTINGS.READONLY.BUTTONS[`${type}_button_id`];       // Set its ID
+    sessionStorage.setItem(`${type}_button`, SETTINGS.READONLY.BUTTONS[`${type}_button_id`]); // Add IDs to sessionStorage
     Input[`${type}_button`].classList.add(`${type}Button`);
     Input.div.append(Input[`${type}_button`]); // Add to button container div
     Input[`${type}_button`].addEventListener("click", SETTINGS.READONLY.BUTTONS[`${type}_Table`]); // Add EventListener
@@ -726,51 +729,17 @@ function appendToParent(child_element, parent_element) {
     }
 }
 
-function createSVG(path, viewBox, parent) {
-    try {
-        if(!path) {
-            throw new Error(`Path must not be ${path}.`);
-        }
-        else if(typeof path !== "string") {
-            throw new Error(`Path must be a string, not "${typeof path}".`);
-        }
-        if(!viewBox) {
-            throw new Error(`viewBox must not be ${viewBox}.`);
-        }
-        else if(typeof viewBox !== "string") {
-            throw new Error(`viewBox must be a string, not "${typeof viewBox}".`);
-        }
-        if(!parent) {
-            throw new Error(`Parent must not be ${parent}.`);
-        }
-    } catch (error) {
-        console.error(error);
-        return;
-    }
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const svgNS = svg.namespaceURI; 
-    const path_element = document.createElementNS(svgNS, "path");
-
-    svg.setAttribute("aria-hidden","true");
-    svg.setAttribute("viewBox", viewBox);
-
-    path_element.setAttribute("d", path);
-    
-    svg.appendChild(path_element);
-    parent.append(svg);
-}
-
 // Running The Program
 // Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
-window.addEventListener("load", (event) => {
-    // Set-up for the table
-    const table_container_div = document.createElement("div");
-    table_container_div.id = "table_container";
-    table_container_div.classList.add("tableContainer");
-    document.body.appendChild(table_container_div);
+// window.addEventListener("load", (event) => {
+//     // Set-up for the table
+//     const table_container_div = document.createElement("div");
+//     table_container_div.id = "table_container";
+//     table_container_div.classList.add("tableContainer");
+//     document.body.appendChild(table_container_div);
 
-    initTableGE(SETTINGS.READONLY.TABLE.table_id, table_container_div);
-});
+//     initTableGE(SETTINGS.READONLY.TABLE.table_id, table_container_div);
+// });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
 export {createArray, sanitize, initTableGE, populateIDs, pushToHistory};

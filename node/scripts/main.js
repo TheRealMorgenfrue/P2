@@ -61,7 +61,13 @@ Object.freeze(SETTINGS.READONLY);  // Make the "readonly_settings" object readon
 
 // Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
 window.addEventListener("load", () => {
-    initTableGE(SETTINGS.READONLY.TABLE.table_id);
+    // Set-up for the table
+    const table_container_div = document.createElement("div");
+    table_container_div.id = "table_container";
+    table_container_div.classList.add("tableContainer");
+    document.body.appendChild(table_container_div);
+
+    initTableGE(SETTINGS.READONLY.TABLE.table_id, table_container_div);
 
     // Defining the table and adding drag functionality
     let TABLE = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
@@ -104,6 +110,6 @@ window.addEventListener("load", () => {
     scale_field.addEventListener("change", event => {
     sessionStorage.setItem("primaryScaleFactor", String(event.target.value));
     });
-});
+}, {capture: true});
 
 // Scale field skal kun sættes på en enkelt gang; når vi locker table, skal man ikke kunne gøre mere!!
