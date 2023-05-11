@@ -57,11 +57,13 @@ Styling for the table input cells */
 	color: black;
 }
 
+/* Do this to all input elements that are read only */
 input[readonly] {
 	cursor: pointer;
 	/* color: #777; */
 }
 
+/* Do this to all input elements that are disabled */
 input[disabled] {
 	cursor: not-allowed;
 	color: #777;
@@ -88,10 +90,12 @@ Uses the pseudo-class ":hover" to determine if a user hovers over a tr element *
     position: relative;
 }
 
+/* THIS IS UNUSED ATM. DUE TO ISSUES.*/
 /* Styling for td which is a decendant of tbody. */
 /* Uses the pseudo-class ":hover" to determine if a user hovers over a tr element.
 Then, "::before" creates a pseudo-element that is the first child of the selected element */
-.geTable tbody td:hover::before { /* :hover is a pseudo-element created on top of td */
+/* :hover is a pseudo-element created on top of td */
+/* .geTable tbody td:hover::before {
 	content: "";
 	position: absolute;
 	left: 0;
@@ -99,9 +103,12 @@ Then, "::before" creates a pseudo-element that is the first child of the selecte
 	top: -100vh;
 	bottom: -100vh;
 	background-color: rgba(0, 0, 0, 0.2);
-	z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on */
-	}
+	z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on 
+} */
 
+
+
+/* This below is used in the event that math tables become operational - which is unlikely */
 
 /* .mcontainer {
 	position: absolute;

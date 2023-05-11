@@ -82,7 +82,7 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
     //get an iterable list of rows in the table
     //making rows into a normal array instead of a nodelist so we can index it
     let rows = Array.from(table.querySelectorAll("tr"));
-    console.log(`Table is "${table}\nWill try to update it to look like ${tableArray}\nSpec     ific rows given are ${options}`);
+    console.log(`Table is "${table}\nWill try to update it to look like ${tableArray}\nSpecific rows given are ${options}`);
     //check if there are any specific rows to update and trim the row list if there is
     if(Array.isArray(options)){
 
@@ -309,12 +309,12 @@ function createScaleField(target_row, factor_name, table){
     return scale_field;
 }
 /**
- * @param {HTMLelement} table - frontend representation of 
- * @returns {Array} - is an array of the HTML-elements used to create and addInterfact. '
- * Note that this may be used to attach an add button to table and attach children to this button using LineUp ancestors
+ * Create a set of HTML elements to act as the row addition interface.
+ * 
+ * Note that this may be used to attach an add button to table and attach children to this button using LineUp ancestors.
+ * @param {HTMLelement} table frontend representation of 
+ * @returns {Array} is an array of the HTML-elements used to create and addInterfact.
  */
-
-//create a set of HTML elements to act as the row addition interface
 function createAddInterface(table){
     // Create add button
     const add_button = document.createElement("button");
@@ -416,8 +416,6 @@ function createAddInterface(table){
     
     return [add_button, scale_field, row_holder, go_button];
 }
-
-
 /**
  * A function designed for use in a mouseover-eventhandler
  * it checks if the addition/scaling interface is allowed to move and moves it if the row that's being moused over is not where the interface is at
@@ -518,7 +516,6 @@ function createSafeScaleField(table){
     
         
         return scale_field;    
-
 }
 
 function addRows(table,tableArray,row){

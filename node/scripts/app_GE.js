@@ -285,7 +285,7 @@ function createBackendTable(table) {
             });
             backend_rows.push(backend_row);
         });
-        console.warn(`Created the following array:\n${JSON.stringify(backend_rows)}`);
+        console.info(`Created the following array:\n${JSON.stringify(backend_rows)}`);
         pushToHistory(backend_rows);
         return backend_rows;
     } catch (error) {
@@ -298,7 +298,7 @@ function createBackendTable(table) {
 function pushToHistory(item){
     const history = JSON.parse(sessionStorage.getItem("tableHistory"));
     history.push(item);
-    console.warn(`Pushing the following to tableHistory:\n${JSON.stringify(item)}`);
+    console.info(`Pushing the following to tableHistory:\n${JSON.stringify(item)}`);
     sessionStorage.setItem("tableHistory", JSON.stringify(history));
 }
 
@@ -360,10 +360,14 @@ function addTableButtons() {
     addButtonAttributes("confirm", Input);
     Input.div.classList.add("buttonContainer");
 
+    // This function is used instead of append() or appendChild() in order to "force" the appending.
+    // Because for some reason, the appending didn't happen with the library functions.
     appendToParent(Input.div, document.getElementById("table_container"));
 }
 /**
- * Helper function to addTableButtons() that adds attributes/event listeners to the buttons and places them after the table 
+ * Helper function to addTableButtons() that adds attributes/event listeners to the buttons and places them after the table
+ * @param {string} type The name of the button
+ * @param {object} Input The object containing the button HTML elements
  */
 function addButtonAttributes(type, Input) {
     // [`${type}`] Makes it possible to use a variable to access properties of an object
@@ -410,10 +414,11 @@ function lockTable() {
         });
 
         const backend_table = createBackendTable(tbl);
-        sessionStorage.setItem("currentTable", JSON.stringify(backend_table)); // Create string representation of current matrix to be used by other .js files/script files. - We have to do this because imports only allow non-mutable/changeable items. 
+        // Create string representation of current matrix to be used by other .js files/script files. - We have to do this because imports only allow non-mutable/changeable items. 
+        sessionStorage.setItem("currentTable", JSON.stringify(backend_table));
 
         tbl.dispatchEvent(new CustomEvent("GEstarted", {bubbles: true, detail: backend_table}));
-        console.log("Table is now locked");
+        console.info("Table is now locked");
     }
     else {
         console.warn("Table is already locked");
@@ -443,24 +448,23 @@ function unlockTable() {
             //disable dragging
             disableDrag(row);
         });
-        console.log("Table is now unlocked");
+        console.info("Table is now unlocked");
     }
     else {
         console.warn("Table is already unlocked");
     }
     document.getElementById("randomizebutton").style.visibility = "visible";
     document.getElementById("confirmbutton").style.visibility = "visible";
-
 }
 /**
  * Disables the input boxes so the table's dimentions remain constant while doing row operations
  */
 function toggleDisableInputBoxes() {
     const container = document.getElementsByClassName("inputBox");
-    const input_boxes = container[0].children;
+    const input_boxes = container[0].children; // Get the children of the first element of the HTML collection 
 
     for(const element of input_boxes) {
-        if(element.nodeName.toLowerCase() === "input") {
+        if(element.nodeName.toLowerCase() === "input") { // Only target input elements
             if(element.disabled === false) {
                 element.disabled = true;
             }
@@ -647,11 +651,12 @@ function convertTableToArray(table){
     } catch(error){
         console.error(error);
         return null;
-    }
-    
+    }   
 }
-
-//assigns an ID to every row and cell in a table, provided they exist. Should mostly be used for testing
+/**
+ * Assigns an ID to every row and cell in a table, provided they exist. Should mostly be used for testing.
+ * @param {HTMLTableElement} table The HTML table which IDs should be assigned to .
+ */
 function populateIDs(table){
     table.querySelectorAll("tr").forEach((row, i) => {
         row.id = `${SETTINGS.READONLY.TABLE.table_id}_${i}`;
@@ -728,18 +733,6 @@ function appendToParent(child_element, parent_element) {
         console.error(error);
     }
 }
-
-// Running The Program
-// Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
-// window.addEventListener("load", (event) => {
-//     // Set-up for the table
-//     const table_container_div = document.createElement("div");
-//     table_container_div.id = "table_container";
-//     table_container_div.classList.add("tableContainer");
-//     document.body.appendChild(table_container_div);
-
-//     initTableGE(SETTINGS.READONLY.TABLE.table_id, table_container_div);
-// });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
 export {createArray, sanitize, initTableGE, populateIDs, pushToHistory};
