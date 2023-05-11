@@ -8,14 +8,14 @@ Primitives: "N/A"          / variable_case
 */
 import {initDrag, disableDrag} from "./draganddrop.js";
 import {updateTableFromArray, fillTable} from "./rowoperations.js";
-import {generateEquation} from "./app_math.js";
+import {gaussianElimination, generateEquation, hasSolutions, isRowEchelonForm} from "./app_math.js";
 
 //let CURRENT_TABLE;
 // CURRENT_TABLE is an array of arrays (2D array). It is global since it'll be used across all functions 
 // It is denoted as "backend array" in comments since it, at all times, contains the backend values of the table shown on screen - i.e. the frontend table
 // Note that it still functions at the backend level; the values in it need to be written to the frontend by external means - e.g. element.value = CURRENT_TABLE[i][j]  
 
-//let TABLES = []; 
+//let TABLES = [];
 sessionStorage.setItem("tableHistory", JSON.stringify([]));
 // Array used to contain copies of the backend array - ensures the user can go back to a previous iteration of the matrix - i.e. the table on the frontend
 // It is global since it'll be used across all functions 
@@ -48,7 +48,10 @@ const SETTINGS = new function() {
             this.rewind_button_id = "rewindbutton";
             this.rewind_button_value = "Go back";
             this.rewind_button_type = "button";
-            this.rewind_Table = function() { undoTable(1); };
+            this.rewind_Table = function() {
+                undoTable(1);
+                tableIsRowEchelon(CURRENT_TABLE);
+            };
             this.randomize_button_id = "randomizebutton";
             this.randomize_button_value = "Randomize";
             this.randomize_button_type = "button";
@@ -87,7 +90,7 @@ function initTableGE(tableID, element) {
     resizeTableBody(tbody, SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}">`);
     
     tbody.addEventListener("change", (event) => {
-        // Validate input in the cell the user modified 
+        // Validate input in the cell the user modified
         let cell_value = event.target.value;
         let sanitized_cell_value = sanitize(cell_value);
         event.target.value = sanitized_cell_value;
@@ -343,8 +346,8 @@ function addTableButtons() {
     // Object that contains the button's element type. This compresses the code to Input.id (instead of having to write e.g. 'lock_button.id' and 'unlock_button.id')
     const Input = {
         div: document.createElement("div"),
-        // We're using anchor elements as buttons instead of <input type=button>. 
-        // This ensures that SVG icons are displayed properly inside 
+        // We're using anchor elements as buttons instead of <input type=button>.
+        // This ensures that SVG icons are displayed properly inside
         confirm_button: document.createElement("a"),
         reset_button: document.createElement("a"),
         rewind_button: document.createElement("a"),
@@ -391,18 +394,18 @@ function lockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
     const table_rows = Array.from(tbl.querySelectorAll("td"));
     table_rows.forEach((cell, index) => {
-        table_rows[index] = cell.querySelector("input");   
+        table_rows[index] = cell.querySelector("input");
     });
     // Since this function sets all elements in table to "readonly", only the first element in the "table_rows" array has to be checked 
     if(table_rows[0].getAttribute("readonly") !== "true") {
         toggleDisableInputBoxes();
         table_rows.forEach(element => {
-            element.setAttribute("readonly", "true");   
+            element.setAttribute("readonly", "true");
         });
 
         //add IDs to the rows and cells
         populateIDs(tbl);
-    
+
         //set the primary row
         sessionStorage.setItem("primaryRow", tbl.querySelector("tr").id);
 
@@ -412,8 +415,8 @@ function lockTable() {
         });
 
         const backend_table = createBackendTable(tbl);
-        // Create string representation of current matrix to be used by other .js files/script files. - We have to do this because imports only allow non-mutable/changeable items. 
-        sessionStorage.setItem("currentTable", JSON.stringify(backend_table));
+        sessionStorage.setItem("currentTable", JSON.stringify(backend_table)); // Create string representation of current matrix to be used by other .js files/script files. - We have to do this because imports only allow non-mutable/changeable items.
+        // Create string representation of current matrix to be used by other .js files/script files. - We have to do this because imports only allow non-mutable/changeable items.sessionStorage.setItem("currentTable", JSON.stringify(backend_table));
 
         tbl.dispatchEvent(new CustomEvent("GEstarted", {bubbles: true, detail: backend_table}));
         console.info("Table is now locked");
@@ -421,9 +424,14 @@ function lockTable() {
     else {
         console.warn("Table is already locked");
     }
+    // Lock resize buttons
+    document.getElementById("row").setAttribute("readonly", "true");
+    document.getElementById("column").setAttribute("readonly", "true");
+    createBackendTable(tbl);
     // Hide unusable buttons
-    document.getElementById("randomizebutton").style.visibility = "hidden";
-    document.getElementById("confirmbutton").style.visibility = "hidden";
+    document.getElementById("randomizebutton").style.visibility = "collapse";
+    document.getElementById("confirmbutton").style.visibility = "collapse";
+    // Check if matrix is already row echelon
 }
 /**  
  * Helper function for the "reset" button that makes all cells in the table writeable again
@@ -432,7 +440,7 @@ function unlockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
     const table_rows = Array.from(tbl.querySelectorAll("td"));
     table_rows.forEach((cell, index) => {
-        table_rows[index] = cell.querySelector("input");   
+        table_rows[index] = cell.querySelector("input");
     });
     // Since lockTable() sets all elements to readonly, only the first element in the "table_rows" array has to be checked 
     if(table_rows[0].getAttribute("readonly") === "true") {
@@ -448,20 +456,31 @@ function unlockTable() {
         console.info("Table is now unlocked");
         const final_table = JSON.parse(sessionStorage.getItem("currentTable"));
         tbl.dispatchEvent(new CustomEvent("GEstopped", {bubbles: true, detail: final_table})); // Event is used to check whether the moveInterface should be removed - if this event is not fired, the move event does not disappear after clicking the "Reset matrix" button
-        sessionStorage.setItem("currentTable", ""); // When the user is done manipulating a matrix, we don't want to keep it. 
+        sessionStorage.setItem("currentTable", ""); // When the user is done manipulating a matrix, we don't want to keep it.
     }
     else {
         console.warn("Table is already unlocked");
     }
+
+    const row = document.getElementById("row"), column = document.getElementById("column");
+    if(row.getAttribute("readonly") === "true"){
+        row.removeAttribute("readonly");
+    }
+    if(column.getAttribute("readonly") === "true"){
+        column.removeAttribute("readonly");
+    }
+
     document.getElementById("randomizebutton").style.visibility = "visible";
     document.getElementById("confirmbutton").style.visibility = "visible";
+    // Remove message for matrix being row echelon form if it exists
+    removeRowEchelonMsg();
 }
 /**
  * Disables the input boxes so the table's dimentions remain constant while doing row operations
  */
 function toggleDisableInputBoxes() {
     const container = document.getElementsByClassName("inputBox");
-    const input_boxes = container[0].children; // Get the children of the first element of the HTML collection 
+    const input_boxes = container[0].children; // Get the children of the first element of the HTML collection
 
     for(const element of input_boxes) {
         if(element.nodeName.toLowerCase() === "input") { // Only target input elements
@@ -488,6 +507,7 @@ function sanitize(str){
     }
     str = str
     .replace(/[^0-9]/g, "").trim();
+    str = str.slice(0,3);
 //   .replace(/&/g, "")
 //   .replace(/</g, "")
 //   .replace(/>/g, "")
@@ -496,6 +516,7 @@ function sanitize(str){
 //   .replace(/`/g, "")
     return `${negation_operator}`+ `${str}`;
 }
+
 /**
  * Generates random numbers from -9 to 9 and fills the backend array with them
  */
@@ -515,6 +536,7 @@ function randomize_Table() {
 //HTMLcode is a string of HTML-code that will be placed in every cell this function creates
 function resizeTableBody(table, dimensions, HTMLcode){
     try{
+        removeRowEchelonMsg();
         //make sure we're dealing with a table or tbody
         if(table.tagName.toUpperCase() !== "TABLE" && table.tagName.toUpperCase() !== "TBODY"){
             throw new Error(`Argument "table" is not a table- or tbody-element.`)
@@ -651,7 +673,7 @@ function convertTableToArray(table){
     } catch(error){
         console.error(error);
         return null;
-    }   
+    }
 }
 /**
  * Assigns an ID to every row and cell in a table, provided they exist. Should mostly be used for testing.
@@ -665,6 +687,7 @@ function populateIDs(table){
         })
     })
 }
+
 /**
  * Appends a child to a parent element.
  *
@@ -734,5 +757,88 @@ function appendToParent(child_element, parent_element) {
     }
 }
 
+/**
+ * Appends a message letting the user know if the table is currently in row echelon form
+ * or removes the message if it no longer is
+ * @param equations
+ */
+function tableIsRowEchelon (equations) {
+    if(isRowEchelonForm(equations) && !document.getElementById("row_echelon_msg")) {
+        const solution_msg = document.getElementById("solution_msg");
+        if(solution_msg) solution_msg.remove(); //Removes message telling user if matrix is consistent
+        const solution = hasSolutions(equations);
+        let str = "Matrix is in row echelon form and ";
+        switch(solution.solutions) {
+            case "none":
+                str += "has no solutions";
+                break;
+            case "infinite":
+                str += "has infinite solutions";
+                break;
+            case "unique":
+                str += "has a unique solution";
+                break;
+            default:
+                console.error("Did not receive solution");
+        }
+        const message = document.createElement("div");
+        message.innerHTML = `<p>${str}</p>`;
+        message.id = "row_echelon_msg"
+        document.getElementById("table_container").append(message);
+    }
+    else if(!isRowEchelonForm(equations)) {
+        removeRowEchelonMsg();
+    }
+}
+
+function removeRowEchelonMsg () {
+    const message = document.getElementById("row_echelon_msg");
+    if(message) message.remove();
+}
+
+// Running The Program
+// Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
+window.addEventListener("load", (event) => {
+    // Set-up for the table
+    // const outerdiv = document.createElement("div");
+    // outerdiv.appendChild(innerdiv);
+    // outerdiv.id = "outer_table_container";
+    // outerdiv.classList.add("outerTableContainer");
+    // document.body.appendChild(outerdiv);
+    const innerdiv = document.createElement("div");
+    innerdiv.id = "table_container";
+    innerdiv.classList.add("tableContainer");
+    document.body.appendChild(innerdiv);
+
+    initTableGE(SETTINGS.READONLY.TABLE.table_id, innerdiv);
+
+});
+
+// Outputs a message to the user about the given matrix after they click confirm
+document.addEventListener("GEstarted", () => {
+    tableIsRowEchelon(CURRENT_TABLE);
+    if(!document.getElementById("row_echelon_msg")) {
+        // If the matrix is not in row echelon form we still tell the user if it is consistent
+        let array_cpy = CURRENT_TABLE;
+        let str = "Matrix is "
+        gaussianElimination(array_cpy);
+        const solution = hasSolutions(array_cpy);
+        switch (solution.consistent) {
+            case true:
+                str += "consistent";
+                break;
+            case false:
+                str += "inconsistent";
+                break;
+            default:
+                console.error("Did not receive solutions");
+        }
+        const solution_msg = document.createElement("div");
+        solution_msg.innerHTML = `<p>${str}</p>`;
+        solution_msg.id = "solution_msg";
+        document.getElementById("table_container").append(solution_msg);
+    }
+});
+
 // Export function(s) to test suite (brackets matter, see drag.test.js)
-export {createArray, sanitize, initTableGE, populateIDs, pushToHistory};
+export {createArray, sanitize, initTableGE, populateIDs, pushToHistory, tableIsRowEchelon};
