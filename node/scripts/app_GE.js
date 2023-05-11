@@ -344,22 +344,22 @@ function addTableButtons() {
     // Object that contains the button's element type. This compresses the code to Input.id (instead of having to write e.g. 'lock_button.id' and 'unlock_button.id')
     const Input = {
         div: document.createElement("div"),
-        confirm_button: document.createElement("input"),
-        reset_button: document.createElement("input"),
-        rewind_button: document.createElement("input"),
-        randomize_button: document.createElement("input")
+        confirm_button: document.createElement("a"),
+        reset_button: document.createElement("a"),
+        rewind_button: document.createElement("a"),
+        randomize_button: document.createElement("a")
     };
-
     // Do NOT use the global id for the buttons here. 
     // That could cause a serious issue with the definition in the 'Input' object
-
     addButtonAttributes("rewind", Input);
     addButtonAttributes("reset", Input);
     addButtonAttributes("randomize", Input);
     addButtonAttributes("confirm", Input);
     Input.div.classList.add("buttonContainer");
 
-    // document.body.appendChild( Input.div);
+    createSVG("M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z",
+    "0 0 512 512", Input.confirm_button);
+
     appendToParent(Input.div, document.getElementById("table_container"));
 }
 /**
@@ -367,9 +367,15 @@ function addTableButtons() {
  */
 function addButtonAttributes(type, Input) {
     // [`${type}`] Makes it possible to use a variable to access properties of an object
+    if(Input[`${type}_button`].nodeName.toLowerCase() === "a") {
+        Input[`${type}_button`].text = SETTINGS.READONLY.BUTTONS[`${type}_button_value`];
+    }
+    else {
+        Input[`${type}_button`].value = SETTINGS.READONLY.BUTTONS[`${type}_button_value`]; // Set its value
+        Input[`${type}_button`].type = SETTINGS.READONLY.BUTTONS[`${type}_button_type`];   // Make it a "button" type
+    }
     Input[`${type}_button`].id = SETTINGS.READONLY.BUTTONS[`${type}_button_id`];       // Set its ID
-    Input[`${type}_button`].value = SETTINGS.READONLY.BUTTONS[`${type}_button_value`]; // Set its value
-    Input[`${type}_button`].type = SETTINGS.READONLY.BUTTONS[`${type}_button_type`];   // Make it a "button" type
+    Input[`${type}_button`].classList.add(`${type}Button`);
     Input.div.append(Input[`${type}_button`]); // Add to button container div
     Input[`${type}_button`].addEventListener("click", SETTINGS.READONLY.BUTTONS[`${type}_Table`]); // Add EventListener
 }
@@ -384,6 +390,7 @@ function lockTable() {
     });
     // Since this function sets all elements in table to "readonly", only the first element in the "table_rows" array has to be checked 
     if(table_rows[0].getAttribute("readonly") !== "true") {
+        toggleDisableInputBoxes();
         table_rows.forEach(element => {
             element.setAttribute("readonly", "true");   
         });
@@ -424,6 +431,7 @@ function unlockTable() {
     });
     // Since lockTable() sets all elements to readonly, only the first element in the "table_rows" array has to be checked 
     if(table_rows[0].getAttribute("readonly") === "true") {
+        toggleDisableInputBoxes();
         table_rows.forEach(element => {
             element.removeAttribute("readonly");
         });
@@ -439,7 +447,27 @@ function unlockTable() {
     }
     document.getElementById("randomizebutton").style.visibility = "visible";
     document.getElementById("confirmbutton").style.visibility = "visible";
+
 }
+/**
+ * Disables the input boxes so the table's dimentions remain constant while doing row operations
+ */
+function toggleDisableInputBoxes() {
+    const container = document.getElementsByClassName("inputBox");
+    const input_boxes = container[0].children;
+
+    for(const element of input_boxes) {
+        if(element.nodeName.toLowerCase() === "input") {
+            if(element.disabled === false) {
+                element.disabled = true;
+            }
+            else {
+                element.disabled = false;
+            }
+        }
+    }
+}
+
 /**
  * Removes all undesired characters from a string given. 
  * @param {string} str 
@@ -698,22 +726,50 @@ function appendToParent(child_element, parent_element) {
     }
 }
 
+function createSVG(path, viewBox, parent) {
+    try {
+        if(!path) {
+            throw new Error(`Path must not be ${path}.`);
+        }
+        else if(typeof path !== "string") {
+            throw new Error(`Path must be a string, not "${typeof path}".`);
+        }
+        if(!viewBox) {
+            throw new Error(`viewBox must not be ${viewBox}.`);
+        }
+        else if(typeof viewBox !== "string") {
+            throw new Error(`viewBox must be a string, not "${typeof viewBox}".`);
+        }
+        if(!parent) {
+            throw new Error(`Parent must not be ${parent}.`);
+        }
+    } catch (error) {
+        console.error(error);
+        return;
+    }
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const svgNS = svg.namespaceURI; 
+    const path_element = document.createElementNS(svgNS, "path");
+
+    svg.setAttribute("aria-hidden","true");
+    svg.setAttribute("viewBox", viewBox);
+
+    path_element.setAttribute("d", path);
+    
+    svg.appendChild(path_element);
+    parent.append(svg);
+}
+
 // Running The Program
 // Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
 window.addEventListener("load", (event) => {
     // Set-up for the table
-    // const outerdiv = document.createElement("div");
-    // outerdiv.appendChild(innerdiv);
-    // outerdiv.id = "outer_table_container";
-    // outerdiv.classList.add("outerTableContainer");
-    // document.body.appendChild(outerdiv);
-    const innerdiv = document.createElement("div");
-    innerdiv.id = "table_container";
-    innerdiv.classList.add("tableContainer");
-    document.body.appendChild(innerdiv);
+    const table_container_div = document.createElement("div");
+    table_container_div.id = "table_container";
+    table_container_div.classList.add("tableContainer");
+    document.body.appendChild(table_container_div);
 
-    initTableGE(SETTINGS.READONLY.TABLE.table_id, innerdiv);
-
+    initTableGE(SETTINGS.READONLY.TABLE.table_id, table_container_div);
 });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)

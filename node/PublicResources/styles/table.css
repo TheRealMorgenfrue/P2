@@ -12,6 +12,7 @@
 
 /* All element types without a leading "." means they apply to all elements in the DOM of that type.
    (Unless another operator is present) */
+ 
 
 
 /* Container class for the table. All children of the container inherit these by default. */
@@ -26,7 +27,7 @@
 /* Styling for the table */
 table {
 	display: flex;
-	justify-content: space-evenly;
+	justify-content: center;
     width: auto;
 	border-collapse: collapse;
 	overflow: hidden;
@@ -53,6 +54,16 @@ td > input {
 	text-align: center;
 	border-color: transparent;
 	background-color: transparent;
+}
+
+input[readonly] {
+	cursor: pointer;
+	color: #777;
+}
+
+input[disabled] {
+	cursor: not-allowed;
+	color: #777;
 }
 
 /* Styling for th */
@@ -84,10 +95,10 @@ content: "";
 position: absolute;
 left: 0;
 right: 0;
-top: -9999px;
-bottom: -9999px;
+top: -100vh;
+bottom: -100vh;
 background-color: rgba(0, 0, 0, 0.2);
-z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on*/
+z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on */
 }
 
 /* .mcontainer {

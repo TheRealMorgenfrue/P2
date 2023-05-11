@@ -1,6 +1,7 @@
 /* All element types without a leading "." means they apply to all elements in the DOM of that type.
    (Unless another operator is present) */
 
+
 /* Applies to both the HTML page and the document body */
 html, body {
 	height: 100%;
