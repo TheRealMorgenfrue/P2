@@ -86,8 +86,7 @@ window.addEventListener("load", () => {
 
     //define what the primary row is
     console.log(TABLE.querySelector("tr"));
-    //sessionStorage.setItem("primaryRow", TABLE.querySelector("tr").id); // ERROR IS HERE - SESSION STORAGE ITEM IS EMPTY AFTER THIS ASSIGNMENT
-
+    
     //we select all rows so an event listener can be attached that moves/reattaches the scale field to a target row - we assume that the table is non-empty 
     document.addEventListener("GEstarted", event => {
         TABLE.querySelectorAll("tr").forEach(row => {
@@ -106,11 +105,6 @@ window.addEventListener("load", () => {
         add_interface[0].style.position = "absolute";
         sessionStorage.setItem("addButton", add_interface[0].id);
 
-        //Note: The return value of add interface is an array. The 0'th element is the add button
-        /*document.addEventListener("draggingStopped", event => {
-            resetAddInterface(add_interface[1], add_interface[2], add_interface[3]);
-        });*/
-
         //placing the addInterface and primary scale field on the first row in the TABLE
         TABLE.querySelector("tr").appendChild(document.getElementById(sessionStorage.getItem("addButton")));
         TABLE.querySelector("tr").appendChild(document.getElementById(sessionStorage.getItem("primaryScaleField")));
@@ -126,13 +120,13 @@ window.addEventListener("load", () => {
         //removing the interface and clearing the listeners from the table
         document.getElementById(sessionStorage.getItem("primaryScaleField")).remove();
         document.getElementById("add_button_id").remove();
-        TABLE.querySelectorAll("tr").forEach(row => {
+        TABLE.querySelectorAll("tr").forEach(row => {   
             row.removeEventListener("mouseover", moveInterface);
             row.removeEventListener("draggingStopped", swapTableRows);
             //add all listeners that are not automatically deleted to this forEach-loop!
-        }); 
-        primary_scale_field.remove();
-        add_interface.remove();
+        })
+        //resetting the history
+        sessionStorage.setItem("tableHistory", JSON.stringify([]));
      })
 })
 //quick thing to see what's dropped on what

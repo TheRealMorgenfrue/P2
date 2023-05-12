@@ -49,6 +49,16 @@ function swapTableRows(event){
           indexB = extractRowIndex(event.detail),          //the index of the row that was dragged to event.target
           tableArray = JSON.parse(sessionStorage.getItem("currentTable"));
     //reusing swapRows from app_math.js to swap the rows in the backend
+
+    //removing the addInterface if it's there. Not the fastest way, since we use 3 querySelectors, but it works
+    const add_button = document.getElementById("add_button_id");
+    //check if the addInterface is shown by checking if anything after add_button has been made visible
+    if(add_button.firstElementChild.style.visibility !== "hidden"){
+        resetAddInterface(add_button.querySelector("div"), add_button.querySelector("table"), add_button.querySelector("table > button"));
+        //moving the interface to the row we just clicked on since the interface is locked at this point
+        moveInterface(event);
+    }
+    
     swapRows(indexA, indexB, tableArray);
     console.log(`Dropped ID: ${event.detail.id} on ID: ${event.currentTarget.id}`);
     //with the array elements swapped, we move on to swapping the rows in the HTML-table.
@@ -258,7 +268,7 @@ sessionStorage.setItem("bufferRow","");             // The elements of the buffe
 sessionStorage.setItem("addButton", "");
 sessionStorage.setItem("primaryScaleField", "");
 sessionStorage.setItem("allowInterfaceMoving", "");
-sessionStorage.setItem("allowRowSwap", "true");
+sessionStorage.setItem("allowRowSwap", "true");     //currently unused
 sessionStorage.setItem("currentTable", "");         // Table representation of the current table
 
 /**
@@ -491,6 +501,12 @@ function scaleRow(table,row,scalar,tableArray){
             throw new Error(`Row ${row_to_scale} not found`);
         }
         row_to_scale.forEach((element, i) => (row_to_scale[i] = element * scalar));
+
+        //check if the addInterface is shown by checking if anything after add_button has been made visible and reset it to prevent issues with updateTableFromArray
+        const add_button = document.getElementById("add_button_id");
+        if(add_button.firstElementChild.style.visibility !== "hidden"){
+            resetAddInterface(add_button.querySelector("div"), add_button.querySelector("table"), add_button.querySelector("table > button"));
+        }
         updateTableFromArray(table, tableArray, [index], "input", "value");
         sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
         pushToHistory(tableArray);
@@ -535,8 +551,6 @@ function createSafeScaleField(table){
             sessionStorage.setItem("bufferRow", JSON.stringify(row_copy)) // Places the row that is scaled in buffer 
             console.log(`Row has been scaled by ${sessionStorage.getItem("secondaryScaleFactor")} to produce ${sessionStorage.getItem("bufferRow")}`);
             }
-            // Update the rows in the secondary scale field to match the contents of bufferRow  
-            // Update the frontend using the buffered row
             updateTableFromArray(table, [row_copy], null, "input", "value");            
         });
     
