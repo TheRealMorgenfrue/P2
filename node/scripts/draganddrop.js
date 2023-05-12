@@ -42,7 +42,8 @@ function dragFunctionality(event){
     function updatePositionEvent(event){
         newElement.style.left = `${event.pageX}px`;
         newElement.style.top = `${event.pageY}px`;
-        if(dropTarget !== document.elementFromPoint(event.pageX, event.pageY)){
+        //update the dropTarget and dispatch events if the cursor is not over the current dropTarget and whatever the cursor is over is defined
+        if(dropTarget !== document.elementFromPoint(event.pageX, event.pageY) && document.elementFromPoint(event.pageX, event.pageY)){
             dropTarget.dispatchEvent(dragOffEvent);
             dropTarget = document.elementFromPoint(event.pageX, event.pageY);
             dropTarget.dispatchEvent(dragOntoEvent);

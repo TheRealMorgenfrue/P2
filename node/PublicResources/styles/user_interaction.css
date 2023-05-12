@@ -6,7 +6,6 @@
 /* https://moderncss.dev/css-button-styling-guide/
    https://css-tricks.com/how-to-stack-elements-in-css/ */
 
-
 /* Button icons gallore: */
 /* https://fontawesome.com/icons/circle-check?f=classic&s=solid&pc=%2300ff40 */
 
@@ -15,94 +14,74 @@
 /* All element types without a leading "." means they apply to all elements in the DOM of that type.
    (Unless another operator is present) */
 
-/* input box =  the ${rows} x ${colums} fields*/
-
-
+/* input box = the ${rows} x ${colums} fields*/
 
 
 /* This is the container class for the input box. All children of the container inherit these by default */
 .inputBox {
   position: relative;
   text-align: center;
-  transform: translateY(-50%); /* Add padding corresponding to 50% of the container height */
+  transform: translateY(-50%); /* Move the box 50% of its height in the Y-direction */
 }
 
 /* This directly applies to the input box */
 .inputBox > input {
   width: 35px;
-  cursor: pointer;
+  cursor: pointer; /* Sets the cursor look to a specific icon */
 }
 
 /* Controls the textNode "x" */
 .inputBox > span {
-  color: white;
+  color: white; /* Text color */
 }
 
 /* This is the container class for the buttons. All children of the container inherit these by default */
 .buttonContainer {
   position: relative;
-	display: flex;
-	justify-content: center;
-  align-items: center;
-  transform: translateY(50%); /* Add padding corresponding to 50% of the container height */
-/*  */
-
+	display: flex; /* Easy way to ensure correct, dynamic positioning of elements */
+	justify-content: center; /* Positions flex elements on the Y-axsis */
+  align-items: center; /* Positions flex elements on the X-axsis */
+  transform: translateY(50%); /* Move the box 50% of its height in the Y-direction */
 }
 
 /* This directly applies to the buttons */
-/* Vanilla CSS with not support for "&&" or "||". Just great. Unless it's classes: https://stackoverflow.com/questions/2797091/css-and-and-or */
 .buttonContainer input, .buttonContainer a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-
-  box-sizing: border-box;
-  cursor: pointer;
+  display: flex; /* Easy way to ensure correct, dynamic positioning of elements */
+  align-items: center; /* Positions flex elements on the X-axsis */
+  justify-content: center; /* Positions flex elements on the Y-axsis */
+  text-decoration: none; /* Ensure that e.g. anchor elements don't have text styling by default (e.g. hyperlinks) */
+  box-sizing: border-box; /* Make sure that the size of the box does not get extended by padding/margin etc. */
+  cursor: pointer; /* Sets the cursor look to a specific icon */
   margin-right: 10px; /* Add padding to the right of each button */
-
   background-color: #28a3b9;
-  color: white;
+  color: white; /* Text color */
   box-shadow: 0 3px 5px rgba(0, 0, 0, 0.18);
-
-  line-height: 1.1;
-  padding: 0.25em 0.75em;
-  min-width: 10ch;
-  min-height: 44px;
+  line-height: 1.1; /* Sets the height between lines of text */
+  padding: 0.25em 0.75em; /* "em" is a unit that scales with font size */
+  min-width: 10ch; /* Sets the minimum width of the box */
+  min-height: 44px; /* Sets the minimum height of the box */
 	/* border-radius: 8px; */ /* Rounded square */ 
   border-radius: 25px; /* Rounded*/
 }
 
-/* .confirmButton {
-  align-self: start;
-} */
-
+/* When you hover over an input or an anchor element */
 .buttonContainer > input:hover, .buttonContainer a:hover {
   background-image: linear-gradient(45deg, #FFC107 0%, #f76a35 100%);
 }
 
-/* Buttons with svg */
-/* https://stackoverflow.com/a/67000346 */
-
+/* Applies the SVG element of confirmbutton */
 .confirmButton svg {
-  width: 1.5em;
-  height: 1.5em;
-  fill: greenyellow;
+  width: 1.5em; /* "em" is a unit that scales with font size */
+  height: 1.5em; /* "em" is a unit that scales with font size */
+  fill: greenyellow; /* SVGs are black by default. Fill the SVG with this color */
   /* margin-right: 0; */
-  margin-left: 0.5em;
+  margin-left: 0.5em; /* "em" is a unit that scales with font size */
 }
-
-
-
 
 .scale_field {
   width: 40px;
   margin-left: 1px;
-  visibility: visible;
 }
-
-
-
 
 
 
