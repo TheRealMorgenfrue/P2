@@ -50,7 +50,7 @@ const SETTINGS = new function() {
             this.rewind_button_type = "button";
             this.rewind_Table = function() {
                 undoTable(1);
-                tableIsRowEchelon(CURRENT_TABLE);
+                tableIsRowEchelon(JSON.parse(sessionStorage.getItem("currentTable")));
             };
             this.randomize_button_id = "randomizebutton";
             this.randomize_button_value = "Randomize";
@@ -507,7 +507,6 @@ function sanitize(str){
     }
     str = str
     .replace(/[^0-9]/g, "").trim();
-    str = str.slice(0,3);
 //   .replace(/&/g, "")
 //   .replace(/</g, "")
 //   .replace(/>/g, "")
@@ -523,6 +522,7 @@ function sanitize(str){
 function randomize_Table() {
     //CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
     sessionStorage.setItem("currentTable", JSON.stringify(generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value)));
+    updateTableFromArray(document.getElementById("gaussian_elimination_matrix"), JSON.parse(sessionStorage.getItem("currentTable")), false, "input", "value");
 }
 
 //we assume the table has at least one tbody if a tbody is not passed as that argument
@@ -792,8 +792,12 @@ function tableIsRowEchelon (equations) {
 }
 
 function removeRowEchelonMsg () {
-    const message = document.getElementById("row_echelon_msg");
+    let message = document.getElementById("row_echelon_msg");
     if(message) message.remove();
+    else {
+        message = document.getElementById("solution_msg");
+        if(message) message.remove();
+    }
 }
 
 // Running The Program
@@ -816,10 +820,10 @@ window.addEventListener("load", (event) => {
 
 // Outputs a message to the user about the given matrix after they click confirm
 document.addEventListener("GEstarted", () => {
-    tableIsRowEchelon(CURRENT_TABLE);
+    tableIsRowEchelon(JSON.parse(sessionStorage.getItem("currentTable")));
     if(!document.getElementById("row_echelon_msg")) {
         // If the matrix is not in row echelon form we still tell the user if it is consistent
-        let array_cpy = CURRENT_TABLE;
+        let array_cpy = JSON.parse(sessionStorage.getItem("currentTable"));
         let str = "Matrix is "
         gaussianElimination(array_cpy);
         const solution = hasSolutions(array_cpy);
