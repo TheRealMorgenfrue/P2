@@ -42,7 +42,7 @@
 /* Styling for th and td */
 .geTable th, 
 .geTable td {
-	padding: 5px;
+	padding: 2px;
 	z-index: 1; /* Ensure that td, and thus the children of td, are always displayed on top */
 	/* background-color: rgba(255,255,255,0.2); */
 }
@@ -81,9 +81,9 @@ input[disabled] {
 
 /* Styling for tr which is a decendant of tbody.
 Uses the pseudo-class ":hover" to determine if a user hovers over a tr element */
-.geTable tbody tr:hover {
+/* .geTable tbody tr:hover {
 	background-color: rgba(0, 0, 0, 0.3);
-}
+} */
 
 /* Styling for td which is a decendant of tbody. */
 .geTable tbody td {
@@ -100,8 +100,8 @@ Then, "::before" creates a pseudo-element that is the first child of the selecte
 	position: absolute;
 	left: 0;
 	right: 0;
-	top: -100vh;
-	bottom: -100vh;
+	/* top: -100vh; */
+	/* bottom: -100vh; */
 	background-color: rgba(0, 0, 0, 0.2);
 	z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on 
 } */
