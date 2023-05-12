@@ -100,8 +100,8 @@ Then, "::before" creates a pseudo-element that is the first child of the selecte
 	position: absolute;
 	left: 0;
 	right: 0;
-	/* top: -100vh; */
-	/* bottom: -100vh; */
+	top: -100vh;
+	bottom: -100vh;
 	background-color: rgba(0, 0, 0, 0.2);
 	z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on 
 } */
