@@ -12,7 +12,7 @@
 
 /* All element types without a leading "." means they apply to all elements in the DOM of that type.
    (Unless another operator is present) */
- 
+
 
 
 /* Container class for the table. All children of the container inherit these by default. */
@@ -40,7 +40,7 @@
 }
 
 /* Styling for th and td */
-.geTable th, 
+.geTable th,
 .geTable td {
 	padding: 2px;
 	z-index: 1; /* Ensure that td, and thus the children of td, are always displayed on top */
@@ -103,7 +103,7 @@ Then, "::before" creates a pseudo-element that is the first child of the selecte
 	top: -100vh;
 	bottom: -100vh;
 	background-color: rgba(0, 0, 0, 0.2);
-	z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on 
+	z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on
 } */
 
 

@@ -122,7 +122,9 @@ function backSubstitution(equations) {
  */
 function hasSolutions(equations) {
     const solution = new Object();
-    // Check for singular matrix (row with all zeroes except the last element)
+    let variables = equations[0].length - 1;
+    let nonZeroRows = 0;
+
     for (let i = 0; i < equations.length; i++) {
         let row = equations[i];
         let allZeroes = row.slice(0, -1).every((val) => val === 0);
@@ -132,16 +134,21 @@ function hasSolutions(equations) {
             solution.consistent = false;
             solution.solutions = "none";
             return solution;
-        } else if (allZeroes) {
-            // Row with all zeroes indicates infinite solutions
-            solution.consistent = true;
-            solution.solutions = "infinite";
-            return solution;
+        } else if (!allZeroes) {
+            // Non zero row
+            nonZeroRows++;
         }
     }
-    // No rows with all zeroes, unique solution
-    solution.consistent = true;
-    solution.solutions = "unique";
+
+    if (nonZeroRows < variables) {
+        // There are free variables, so infinite solutions
+        solution.consistent = true;
+        solution.solutions = "infinite";
+    } else {
+        // No free variables, unique solution
+        solution.consistent = true;
+        solution.solutions = "unique";
+    }
     return solution;
 }
 
