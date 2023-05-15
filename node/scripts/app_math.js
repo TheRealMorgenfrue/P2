@@ -250,5 +250,5 @@ function generateEquation(rows, columns) {
 }
 
 export {gaussianElimination, backSubstitution, hasSolutions,
-    swapRows, isRowEchelonForm, isUpperTriangular, generateEquation};
+    swapRows, isRowEchelonForm, isUpperTriangular, generateEquation, roundTo};
 // Export function(s) to test suite (brackets matter, see drag.test.js)

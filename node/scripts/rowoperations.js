@@ -1,8 +1,7 @@
 
-import {sanitize, pushToHistory} from "./app_GE.js"
+import {pushToHistory} from "./app_GE.js"
 import {attachToParent, lineUpAncestors} from "./positioning.js" // Used for positioning buttons
 import {swapRows} from "./app_math.js"
-//import {sanitize} from "../scripts/app_GE.js" // Used for scale button input 
 /**
  * This function takes a table and a row-element for said table and finds its base-0 index as if the table was an array of arrays.
  * If an index is found, it is returned as an integer, but if no index is found, the function returns a null-value.
