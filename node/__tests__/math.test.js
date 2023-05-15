@@ -48,7 +48,7 @@ test('under-determined matrix with multiple solutions: hasSolutions returns "uni
         [0,1,1,2]]
     gaussianElimination(wide_matrix);
     let solution = hasSolutions(wide_matrix);
-    expect(solution.solutions).toEqual("unique");
+    expect(solution.solutions).toEqual("infinite");
 });
 
 test('Checks if isRowEchelon correctly identifies matrices', () => {

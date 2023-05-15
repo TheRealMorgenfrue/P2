@@ -44,7 +44,9 @@ const SETTINGS = new function() {
             this.reset_button_type = "button";
             this.reset_Table = function() {
                 fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id), "", false, "input", "value");
-                unlockTable(); };
+                unlockTable();
+                removeSolutionMsg();
+            };
             this.rewind_button_id = "rewindbutton";
             this.rewind_button_value = "Go back";
             this.rewind_button_type = "button";
@@ -790,9 +792,12 @@ function tableIsRowEchelon (equations) {
 }
 
 function removeRowEchelonMsg () {
-    let message = document.getElementById("row_echelon_msg");
+    const message = document.getElementById("row_echelon_msg");
     if(message) message.remove();
-    message = document.getElementById("solution_msg");
+}
+
+function removeSolutionMsg() {
+    const message = document.getElementById("solution_msg");
     if(message) message.remove();
 }
 
