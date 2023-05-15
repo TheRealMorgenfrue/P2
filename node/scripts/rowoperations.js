@@ -287,6 +287,7 @@ function createScaleField(target_row, factor_name, table){
     scalar_input.type = "number";
     scalar_input.value = 1;
     scalar_input.classList.add("scale_field");
+    scalar_input.id = `${target_row}_scale_input`;
     scalar_input.addEventListener("change", event => {
         sessionStorage.setItem(factor_name, event.currentTarget.value);
     })
@@ -294,6 +295,7 @@ function createScaleField(target_row, factor_name, table){
     // We create the scale button that is attached to scalefield
     const scale_button = document.createElement("button");
     scale_button.innerHTML = "Scale";
+    scale_button.id = `${target_row}_scale_button`;
 
     // When scale button is clicked, the target row is scaled if it exists.
     scale_button.addEventListener("click", event => {
@@ -339,6 +341,7 @@ function createAddInterface(table){
     row_holder.style.backgroundColor = "red";    //temporary styling to make it visible without a row in it
     row_holder.style.width = "300px";
     row_holder.style.height = "20px";            //who knows if this is big enough
+    row_holder.id = "row_holder_id";
 
     // Create scale field and make it hidden
     const scale_field = createSafeScaleField(row_holder);
@@ -351,6 +354,7 @@ function createAddInterface(table){
     const go_button = document.createElement("button");
     go_button.innerHTML = "Add!";
     go_button.style.visibility = "hidden";
+    go_button.id = "go_button_id";
 
     // Setup relationships between the elements
     document.body.appendChild(add_button);
@@ -534,12 +538,14 @@ function createSafeScaleField(table){
     scalar_input.value = 1;
     sessionStorage.setItem("secondaryScaleFactor", "1");
     scalar_input.classList.add("scale_field");
+    scalar_input.id = "safe_scale_input";
     scalar_input.addEventListener("change", event => {
         sessionStorage.setItem("secondaryScaleFactor", event.currentTarget.value); // We used to use "bufferScaleFactor" instead of "secondaryScaleFactor"
     });
     // We create the scale button that is attached to scalefield
     const scale_button = document.createElement("button");
     scale_button.innerHTML = "Scale";
+    scale_button.id = "safe_scale_button";
 
     // When scale button is clicked, the target row is scaled if it exists.
     scale_button.addEventListener("click", event => {
