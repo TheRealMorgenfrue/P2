@@ -67,6 +67,7 @@ function swapTableRows(event){
     updateTableFromArray(event.currentTarget.parentElement, tableArray, [indexA, indexB], "input", "value");
     sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
     pushToHistory(tableArray);
+    tableIsRowEchelon(tableArray);
 }
 
 /**
@@ -159,8 +160,6 @@ function updateTableFromArray(table, tableArray, options, query, attribute){
                 })
             });
     }
-
-    tableIsRowEchelon(tableArray);
     //note: We use .innerHTML as our default attribute to set in each cell. This adds flexibility to what we can put in the table
     //through the tableArray i.e. any HTML-code we want. We use setAttribute to access attributes, since it allows for strings to be passed.
     //The data we set might need sanitizing first. We assume another function has done that before this function is run.
@@ -512,6 +511,7 @@ function scaleRow(table,row,scalar,tableArray){
         updateTableFromArray(table, tableArray, [index], "input", "value");
         sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
         pushToHistory(tableArray);
+        tableIsRowEchelon(tableArray);
     }
     catch(error){
         console.log(`${error.message}\n${error.lineNumber}`);
@@ -579,6 +579,7 @@ function addRows(table,tableArray,row){
         updateTableFromArray(table, tableArray, [index], "input", "value");
         sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
         pushToHistory(tableArray);
+        tableIsRowEchelon(tableArray);
     }
     catch(error){
         console.error(error);

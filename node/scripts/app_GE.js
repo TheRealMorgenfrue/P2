@@ -764,8 +764,6 @@ function appendToParent(child_element, parent_element) {
  */
 function tableIsRowEchelon (equations) {
     if(isRowEchelonForm(equations) && !document.getElementById("row_echelon_msg")) {
-        const solution_msg = document.getElementById("solution_msg");
-        if(solution_msg) solution_msg.remove(); //Removes message telling user if matrix is consistent
         const solution = hasSolutions(equations);
         let str = "Matrix is in row echelon form and ";
         switch(solution.solutions) {
@@ -794,29 +792,9 @@ function tableIsRowEchelon (equations) {
 function removeRowEchelonMsg () {
     let message = document.getElementById("row_echelon_msg");
     if(message) message.remove();
-    else {
-        message = document.getElementById("solution_msg");
-        if(message) message.remove();
-    }
+    message = document.getElementById("solution_msg");
+    if(message) message.remove();
 }
-
-// Running The Program
-// Adding an event listener to window with type "load" ensures that the script only begins when the page is fully loaded (with CSS and everything)
-window.addEventListener("load", (event) => {
-    // Set-up for the table
-    // const outerdiv = document.createElement("div");
-    // outerdiv.appendChild(innerdiv);
-    // outerdiv.id = "outer_table_container";
-    // outerdiv.classList.add("outerTableContainer");
-    // document.body.appendChild(outerdiv);
-    const innerdiv = document.createElement("div");
-    innerdiv.id = "table_container";
-    innerdiv.classList.add("tableContainer");
-    document.body.appendChild(innerdiv);
-
-    initTableGE(SETTINGS.READONLY.TABLE.table_id, innerdiv);
-
-});
 
 // Outputs a message to the user about the given matrix after they click confirm
 document.addEventListener("GEstarted", () => {
