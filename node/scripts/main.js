@@ -3,6 +3,7 @@ import{initTableGE, populateIDs} from "./app_GE.js";
 import{initDrag} from "./draganddrop.js";
 import{createScaleField, createSafeScaleField, moveInterface, createAddInterface, swapTableRows, resetAddInterface} from "./rowoperations.js";
 import{attachToParent, lineUpAncestors} from "./positioning.js";
+import {displayTutorial} from "./info_to_user.js";
 
 /**
  * This file is meant to run the entire program on the main page, index.html. 
@@ -128,6 +129,8 @@ window.addEventListener("load", () => {
         //resetting the history
         sessionStorage.setItem("tableHistory", JSON.stringify([]));
      })
+     // Show the tutorial to the user after we create all elements. 
+    displayTutorial();
 })
 //quick thing to see what's dropped on what
 document.addEventListener("draggingStopped", event => console.log(`${event.detail} dropped on ${event.target}`))
