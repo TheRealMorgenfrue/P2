@@ -98,18 +98,7 @@
 
 }
 
-/*.matrixOperationsContainer {
-  background-color: transparent; /*styling is similar to user_instructions class
-  color: white;
-  position: relative;
-  left: 525px; /*Arbitrary shift by 500px from instructions contain
-  transform: translateY(-550%); /*FIND OUT HOW TO PLACE ELEMENT RELATIVE TO OTHER
-  overflow-wrap: break-word; /*Makes linebreaks on words, not on letters - see https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-wrap
-  display: flex; /*Flexbox to fit content - see https://developer.mozilla.org/en-US/docs/Web/CSS/flex
-  flex-direction: column; /* Each HTML is put into a single column one at time
-  overflow: auto; /*Make a scroll box in case there is more text than can fit
-}*/
-
+/* The container that holds the header and log of matrix operations */
 .matrixOperationsContainerOuter {
   background-color: transparent;
   color: white;
@@ -119,6 +108,7 @@
   transform: translateY(-50%);
 }
 
+/* The container that holds the log of matrix operations  */
 .matrixOperationsContainerInner {
   position: relative;
   text-align: center;
@@ -128,4 +118,12 @@
   width: 300px;
   overflow: auto; /*Make a scroll box in case there is more text than can fit*/
   overflow-wrap: break-word; /*Makes linebreaks on words, not on letters - see https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-wrap*/
+}
+
+/* Styling for the solutions check */
+.solution {
+  position: relative;
+  color: white;
+  text-align: center;
+  top: 20px;
 }

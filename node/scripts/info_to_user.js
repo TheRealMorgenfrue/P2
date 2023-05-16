@@ -1,5 +1,6 @@
 
-let ROWOPERATIONS_INDEX = 0;
+// The index of row operations is handled by session storage to allow other functions to modify it
+sessionStorage.setItem("rowOperationsIndex", 0);
 
 /** This is not a pretty function. It just has to work for now. 
  * Ideas for improvement: 
@@ -65,7 +66,7 @@ function displayTutorial() {
 
 function displayMatrixOperations(){
     
-     // We make a container to ensure that we can move and manipulate how the user sees operations
+    // We make a container to ensure that we can move and manipulate how the user sees operations
     const matrix_operations_container_outer = document.createElement("div");
     const matrix_operations_container_inner = document.createElement("div");
     const matrix_operations_header = document.createElement("h1");
@@ -82,17 +83,14 @@ function displayMatrixOperations(){
     matrix_operations_container_inner.classList.add("matrixOperationsContainerInner");
     //document.body.appendChild(matrix_operations_container);
 
-    // We want to dynamically add a line each time we make an event 
+    // We want to dynamically add a line each time we make a row operation 
     document.addEventListener("GEoperation", (event) => {
-        //const operations_field = document.createElement("a"); // The "button" elements where each row operation is written
+        //const operations_field = document.createElement("a"); // The "button" elements where each row operation is written. This version makes fancy buttons. Currently WIP.
         const operation_line = document.createElement("p");
-        operation_line.innerText = `[${ROWOPERATIONS_INDEX}] ` + event.detail; // This should be a p with the format specified by our design documentation 
+        operation_line.innerText = `[${sessionStorage.getItem("rowOperationsIndex")}] ` + event.detail; // This should be a p with the format specified by our design documentation 
         matrix_operations_container_inner.append(operation_line); // Add the line when the event triggers 
 
-        // Testing whether event is correctly dispatched - REMOVE IF FOUND ON MAIN 
-        console.warn(event.detail);
-
-        ROWOPERATIONS_INDEX++;
+        sessionStorage.setItem("rowOperationsIndex", Number(sessionStorage.getItem("rowOperationsIndex"))+1); // Increment the index by 1 each time this eventlistener is triggered
     });
     return matrix_operations_container_outer;
 }

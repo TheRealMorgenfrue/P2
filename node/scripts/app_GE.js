@@ -46,13 +46,19 @@ const SETTINGS = new function() {
                 fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id), "", false, "input", "value");
                 unlockTable();
                 removeSolutionMsg();
+                removeRowOperations("all");
+                sessionStorage.setItem("rowOperationsIndex", 0); // Reset the index counter
             };
             this.rewind_button_id = "rewindbutton";
             this.rewind_button_value = "Go back";
             this.rewind_button_type = "button";
             this.rewind_Table = () => {
                 undoTable(1);
-                tableIsRowEchelon(JSON.parse(sessionStorage.getItem("currentTable")));
+                // Ensure we do not JSON.parse an empty array.
+                let current_table = sessionStorage.getItem("currentTable");
+                if(current_table) {
+                    tableIsRowEchelon(JSON.parse(current_table));
+                }
             };
             this.randomize_button_id = "randomizebutton";
             this.randomize_button_value = "Randomize";
@@ -316,55 +322,45 @@ function pushToHistory(item){
 function undoTable(undo_count) {
     undo_count = Number(undo_count); // Convert to a number just in case
 
-    if(UNDO_TABLE_FIRST_TIME) {
-        // set delete count to special case - see line 330
-    }
-
-
     let tables = JSON.parse(sessionStorage.getItem("tableHistory"));
-    // Make sure the array actually contains something
+    
+    // Make sure the array actually contains something. 
     if(tables.length > 0) {
-        // Check if the array is large enough to go back undo_count times   
-        if(undo_count <= tables.length) {
+        // Check if the array is large enough to go back n times   
+        if(undo_count < tables.length) {
+            let new_table;
 
-            let new_table, 
-                delete_count = undo_count; // This is a special case of undo_count to make sure the first time we go back we don't go back to the current frontend but the actual expected behavior of "go back"
-            if(tables.length < 2) {
-                delete_count = 0;
+            // To go back n times we remove the last element in the holding array n times. 
+            // In practice this means that we stop removing once we reach our "target"; i.e. n = 1, array = [1,2,3], new_array = [1,2]; 
+            // but we don't remove it from the holding array (which was the previous behavior).
+            for(let i = 0; i < undo_count; i++) {
+                tables.pop();
             }
-            for(let i = 0; i <= delete_count; i++) {
-                new_table = tables.pop();
-            }
-            // Go back undo_count times in the holding array amd remove all succeeding elements - e.g. [1,2,3,4,5] with undo_count = 2 becomes [1,2,3] 
-            //const remaining_tables = tables.splice(tables.length-undo_count, undo_count).slice();
-            //console.warn(tables.length-undo_count);
-            //console.warn(JSON.stringify(remaining_tables));
+            /*
+            Slice(-1) makes a copy of the last element in the array (i.e. array.length-1)
+            This ensures that when we go back n times, the last array element in "tableHistory" will always be the table shown to the user.
+            Thus, all (knocks on wood) standing issues with the go back button are resolved (even "go back n times").
+                Since tables is a holding array and slice returns said holding array (whereas pop does not), 
+                this wacky method extracts the last (and only) element of the holding array which slice returns.
+            */
+            new_table = tables.slice(-1).pop();
 
             sessionStorage.setItem("currentTable", JSON.stringify(new_table));
             sessionStorage.setItem("tableHistory", JSON.stringify(tables));
 
+            // Update the frontend table with the table loaded from tableHistory
             const table_element = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
             updateTableFromArray(table_element, new_table, null,"input","value");
+
+            // Remove logs of rowoperations which becomes invalid when we go back n times.
+            removeRowOperations(undo_count);
+
+            sessionStorage.setItem("rowOperationsIndex", Number(sessionStorage.getItem("rowOperationsIndex"))-undo_count); // Remove undo_count from our index
 
             // Testing 
             console.info(`Undo complete. New array is ${JSON.stringify(new_table)}`)
             console.info(`History modified. History is now ${JSON.stringify(tables)}`);
-            
-            /* Remove the item last added from the history that the user sees - Note that we have an element from an HTML-collection.
-               To remove a child, the HTML-collection is converted to an array. Then we get the last child of the first (and only) element in this array.
-               Lastly, a check is made to ensure that we cannot remove more elements than what exists in the DOM.
-               Then we remove the last child. 
-            */
-            let matrix_operations_container_inner = document.getElementsByClassName("matrixOperationsContainerInner");
-            matrix_operations_container_inner = Array.from(matrix_operations_container_inner);
-            // Make sure that the last time we go back the last of the p elements are removed as well
-            // Perhaps get all children and see if there's only 1 left, then make a special case of removal.
-            for(let i = 0; i < undo_count; i++) {
-                let last_child = matrix_operations_container_inner[0].lastElementChild;
-                if(last_child) {
-                    last_child.remove();
-                }   
-            }         
+        
         }
         else {
             console.warn(`Array has length ${tables.length}. Going back ${undo_count} would cause the array to underflow`);
@@ -372,6 +368,60 @@ function undoTable(undo_count) {
     }
     else {
         console.warn(`Array underflow!: Array has length ${tables.length}`);
+    }
+}
+/**
+ * Removes entries of the log of row operations performed (shown on the frontend).
+ * 
+ * When given Number, removes Number of entries starting from the last child entry.
+ * 
+ * When given a variation of the string "all", remove all child entries (i.e. clear the log).
+ * @param {number|string} elements_to_be_removed Can be either a number or a variation of the string "all".
+ * @returns 
+ */
+function removeRowOperations(elements_to_be_removed) {
+    // If errors occur, stop execution immediately
+    try {
+        if(!elements_to_be_removed) {
+            throw new Error(`Illegal operation. Cannot remove ${elements_to_be_removed} elements`);
+        }
+        if(typeof elements_to_be_removed !== "string" && typeof elements_to_be_removed !== "number") {
+            throw new Error(`The input must either be a string or number, not ${elements_to_be_removed}`);
+        }
+        if(typeof elements_to_be_removed === "string" && elements_to_be_removed.toUpperCase() !== "ALL") {
+            throw new Error(`The string must be a variation of "all", not ${elements_to_be_removed}`);
+        }
+    } catch (error) {
+        console.error(error);
+        return;
+    }
+
+    let matrix_operations_container_inner = document.getElementsByClassName("matrixOperationsContainerInner");
+
+    // Remove all children of the element "matrix_operations_container_inner"
+    if(typeof elements_to_be_removed === "string" && elements_to_be_removed.toUpperCase() === "ALL") {
+        // getElementByClassName returns a live HTMLCollection, which changes size when its contents are manipulated.
+        // This causes problems with deletion in a loop. Thus, a static copy of the HTMLCollection is made which the loop uses. 
+        const children_to_remove = Array.from(matrix_operations_container_inner[0].children)
+        const child_count = children_to_remove.length;
+        // Remove until all children are gone
+        for(let i = 0; i < child_count; i++) {
+            children_to_remove[i].remove();
+        }
+    }
+    // Remove the last child n times
+    else {
+        /* Remove the item last added from the history that the user sees - Note that we have an element from an HTML-collection.
+        To remove a child, the HTML-collection is converted to a static array. Then we get the last child of the first (and only) element in this array.
+        Lastly, a check is made to ensure that we cannot remove more elements than what exists in the DOM.
+        Then we remove the last child. 
+        */
+        for(let i = 0; i < elements_to_be_removed; i++) {
+            let last_child = matrix_operations_container_inner[0].lastElementChild;
+            if(last_child) {
+                last_child.remove();
+            }   
+        } 
     }
 }
 /**
@@ -457,6 +507,8 @@ function lockTable() {
         // Create string representation of current matrix to be used by other .js files/script files. - We have to do this because imports only allow non-mutable/changeable items.sessionStorage.setItem("currentTable", JSON.stringify(backend_table));
 
         tbl.dispatchEvent(new CustomEvent("GEstarted", {bubbles: true, detail: backend_table}));
+        document.dispatchEvent(new CustomEvent("GEoperation", {bubbles: true, detail: `Initial Matrix`})); // When the user locks the table, create the first "row operation". Ensures consistency with the current implementation of go back n.
+
         console.info("Table is now locked");
     }
     else {
@@ -499,15 +551,6 @@ function unlockTable() {
     else {
         console.warn("Table is already unlocked");
     }
-
-    const row = document.getElementById("row"), column = document.getElementById("column");
-    if(row.getAttribute("readonly") === "true"){
-        row.removeAttribute("readonly");
-    }
-    if(column.getAttribute("readonly") === "true"){
-        column.removeAttribute("readonly");
-    }
-
     document.getElementById("randomizebutton").style.visibility = "visible";
     document.getElementById("confirmbutton").style.visibility = "visible";
     // Remove message for matrix being row echelon form if it exists
@@ -821,6 +864,7 @@ function tableIsRowEchelon (equations) {
         const message = document.createElement("div");
         message.innerHTML = `<p>${str}</p>`;
         message.id = "row_echelon_msg"
+        message.classList.add("solution");
         document.getElementById("table_container").append(message);
     }
     else if(!isRowEchelonForm(equations)) {
@@ -860,6 +904,7 @@ document.addEventListener("GEstarted", () => {
         const solution_msg = document.createElement("div");
         solution_msg.innerHTML = `<p>${str}</p>`;
         solution_msg.id = "solution_msg";
+        solution_msg.classList.add("solution");
         document.getElementById("table_container").append(solution_msg);
     }
 });

@@ -584,8 +584,7 @@ function addRows(table,tableArray,row){
 
         let event_string;
         if(Number(sessionStorage.getItem("secondaryScaleFactor")) !== 1) {
-            event_string = `Row ${extractRowIndex(document.getElementById((sessionStorage.getItem("secondaryRow"))))} scaled 
-                            by ${sessionStorage.getItem("secondaryScaleFactor")} and added to row ${index}.`
+            event_string = `Row ${extractRowIndex(document.getElementById((sessionStorage.getItem("secondaryRow"))))} scaled by ${sessionStorage.getItem("secondaryScaleFactor")} and added to row ${index}.`
         }
         else {
             event_string = `Row ${extractRowIndex(document.getElementById((sessionStorage.getItem("secondaryRow"))))} added to row ${index}.`
