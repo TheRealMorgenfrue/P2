@@ -1,3 +1,6 @@
+
+let ROWOPERATIONS_INDEX = 0;
+
 /** This is not a pretty function. It just has to work for now. 
  * Ideas for improvement: 
  * Make inner html read from files instead of directly in the program. 
@@ -31,8 +34,7 @@ function displayTutorial() {
     p1.innerHTML = 
     `Welcome to the Gaussian Elimination Helper! (GEH).`+ "<br/>" + 
     `It is meant to help you understand how to use Gaussian Elimination as a step towards solving systems of linear equations.`+ "<br/>" + 
-    `It features the same operations that you'd expect for instance swapping or adding.` + "<br/>" + 
-    `See the ${header_1.innerHTML} section for more details!`
+    `It features the same operations that you'd expect for instance swapping or adding.` + "<br/>"
 
     const p2 = document.createElement("p");
     p2.innerHTML = 
@@ -56,13 +58,43 @@ function displayTutorial() {
     `4. Comfirm Matrix - You enable the use of row operations on the matrix. Use it once you are sure that you have input the values that you'd like!`;
 
     // Add all elements to div container
-    div_container.append(p1,header_1,header_2,p2,header_3,p3,header_4,p4);
+    div_container.append(header_1,p1,header_2,p2,header_3,p3,header_4,p4);
 
     document.querySelector("body").appendChild(div_container);
 }
 
 function displayMatrixOperations(){
-    console.log("This function is a placeholder. When done, it should show the user the different matrix operations that have been made")
+    
+     // We make a container to ensure that we can move and manipulate how the user sees operations
+    const matrix_operations_container_outer = document.createElement("div");
+    const matrix_operations_container_inner = document.createElement("div");
+    const matrix_operations_header = document.createElement("h1");
+    const header_string = "Matrix operations";
+
+    /* We create two divs; one to contain the title and one to contain the row operation paragraphs.
+    This way we ensure that header is not hidden when the user scrolls in the text box*/
+    matrix_operations_header.innerText = header_string;
+
+    matrix_operations_container_outer.classList.add("matrixOperationsContainerOuter");
+    matrix_operations_container_outer.appendChild(matrix_operations_header);
+    matrix_operations_container_outer.appendChild(matrix_operations_container_inner);
+
+    matrix_operations_container_inner.classList.add("matrixOperationsContainerInner");
+    //document.body.appendChild(matrix_operations_container);
+
+    // We want to dynamically add a line each time we make an event 
+    document.addEventListener("GEoperation", (event) => {
+        //const operations_field = document.createElement("a"); // The "button" elements where each row operation is written
+        const operation_line = document.createElement("p");
+        operation_line.innerText = `[${ROWOPERATIONS_INDEX}] ` + event.detail; // This should be a p with the format specified by our design documentation 
+        matrix_operations_container_inner.append(operation_line); // Add the line when the event triggers 
+
+        // Testing whether event is correctly dispatched - REMOVE IF FOUND ON MAIN 
+        console.warn(event.detail);
+
+        ROWOPERATIONS_INDEX++;
+    });
+    return matrix_operations_container_outer;
 }
 
-export {displayTutorial}
+export {displayTutorial,displayMatrixOperations}

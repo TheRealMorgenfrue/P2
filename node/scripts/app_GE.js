@@ -95,7 +95,7 @@ function initTableGE(tableID, element) {
         // Validate input in the cell the user modified
         let cell_value = event.target.value;
         let sanitized_cell_value = sanitizeWithDots(cell_value);
-        event.target.value = roundTo(Number(sanitized_cell_value), 2);
+        event.target.value = Number(sanitized_cell_value);
     });
 
     addResizeButtons(); // The ordering of the buttons is important.
@@ -315,20 +315,56 @@ function pushToHistory(item){
  */
 function undoTable(undo_count) {
     undo_count = Number(undo_count); // Convert to a number just in case
+
+    if(UNDO_TABLE_FIRST_TIME) {
+        // set delete count to special case - see line 330
+    }
+
+
     let tables = JSON.parse(sessionStorage.getItem("tableHistory"));
     // Make sure the array actually contains something
     if(tables.length > 0) {
         // Check if the array is large enough to go back undo_count times   
-        if(undo_count < tables.length) {
-            // Go back undo_count times in the holding array amd remove all succeeding elements - e.g. [1,2,3,4,5] with undo_count = 2 becomes [1,2,3] 
-            const deleted_tables = tables.splice(tables.length-undo_count, undo_count);
+        if(undo_count <= tables.length) {
 
-            const new_table = deleted_tables.pop();
+            let new_table, 
+                delete_count = undo_count; // This is a special case of undo_count to make sure the first time we go back we don't go back to the current frontend but the actual expected behavior of "go back"
+            if(tables.length < 2) {
+                delete_count = 0;
+            }
+            for(let i = 0; i <= delete_count; i++) {
+                new_table = tables.pop();
+            }
+            // Go back undo_count times in the holding array amd remove all succeeding elements - e.g. [1,2,3,4,5] with undo_count = 2 becomes [1,2,3] 
+            //const remaining_tables = tables.splice(tables.length-undo_count, undo_count).slice();
+            //console.warn(tables.length-undo_count);
+            //console.warn(JSON.stringify(remaining_tables));
+
             sessionStorage.setItem("currentTable", JSON.stringify(new_table));
             sessionStorage.setItem("tableHistory", JSON.stringify(tables));
+
+            const table_element = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
+            updateTableFromArray(table_element, new_table, null,"input","value");
+
             // Testing 
-            console.warn(`Undo complete. New array is ${JSON.stringify(new_table)}`)
-            console.warn(`History modified. History is now ${JSON.stringify(tables)}`);
+            console.info(`Undo complete. New array is ${JSON.stringify(new_table)}`)
+            console.info(`History modified. History is now ${JSON.stringify(tables)}`);
+            
+            /* Remove the item last added from the history that the user sees - Note that we have an element from an HTML-collection.
+               To remove a child, the HTML-collection is converted to an array. Then we get the last child of the first (and only) element in this array.
+               Lastly, a check is made to ensure that we cannot remove more elements than what exists in the DOM.
+               Then we remove the last child. 
+            */
+            let matrix_operations_container_inner = document.getElementsByClassName("matrixOperationsContainerInner");
+            matrix_operations_container_inner = Array.from(matrix_operations_container_inner);
+            // Make sure that the last time we go back the last of the p elements are removed as well
+            // Perhaps get all children and see if there's only 1 left, then make a special case of removal.
+            for(let i = 0; i < undo_count; i++) {
+                let last_child = matrix_operations_container_inner[0].lastElementChild;
+                if(last_child) {
+                    last_child.remove();
+                }   
+            }         
         }
         else {
             console.warn(`Array has length ${tables.length}. Going back ${undo_count} would cause the array to underflow`);
@@ -429,7 +465,7 @@ function lockTable() {
     // Lock resize buttons
     document.getElementById("row").setAttribute("readonly", "true");
     document.getElementById("column").setAttribute("readonly", "true");
-    createBackendTable(tbl);
+    //createBackendTable(tbl); - !!!!!!!!!!!! BE SURE TO CHECK IF ERROR!
     // Hide unusable buttons
     document.getElementById("randomizebutton").style.visibility = "collapse";
     document.getElementById("confirmbutton").style.visibility = "collapse";
@@ -829,4 +865,4 @@ document.addEventListener("GEstarted", () => {
 });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
-export {createArray, sanitizeWithDots, initTableGE, populateIDs, pushToHistory, tableIsRowEchelon};
+export {createArray, sanitizeWithDots, initTableGE, populateIDs, pushToHistory, tableIsRowEchelon, appendToParent};

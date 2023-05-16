@@ -12,24 +12,24 @@
 
 /* All element types without a leading "." means they apply to all elements in the DOM of that type.
    (Unless another operator is present) */
-
+ 
 
 
 /* Container class for the table. All children of the container inherit these by default. */
 /* Controls the position of the table on the page */
 .tableContainer {
 	position: absolute;
-	top: 50%; /* Moves the box 50% down from top */
-	left: 50%; /* Moves the box 50% down from top */
-	transform: translate(-50%, -50%); /* Takes half of the height (=top) and half of the width (=left) of the box and moves the box that much. Combined with top 50% and left 50%, this ensures the box is placed exactly in the middle of the screen */
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 }
-
+	
 /* Styling for the table */
 .geTable {
-	display: flex; /* Easy way to ensure correct, dynamic positioning of elements */
-	justify-content: center; /* Positions flex elements on the Y-axsis */
+	display: flex;
+	justify-content: center;
     width: auto;
-	border-collapse: collapse; /* Removes padding around table borders */
+	border-collapse: collapse;
 	overflow: hidden;
 	/* box-shadow: 0 0 20px rgba(0,0,0,0.1); */
 }
@@ -40,7 +40,7 @@
 }
 
 /* Styling for th and td */
-.geTable th,
+.geTable th, 
 .geTable td {
 	padding: 2px;
 	z-index: 1; /* Ensure that td, and thus the children of td, are always displayed on top */
@@ -50,22 +50,20 @@
 /* Select all input elements that are children of a td element. 
 Styling for the table input cells */
 .geTable td > input {
-	width: 30px;
+	width: 20px;
 	text-align: center;
 	border-color: transparent;
 	background-color: transparent;
 	color: black;
 }
 
-/* Do this to all input elements that are read only */
 input[readonly] {
-	cursor: pointer; /* Sets the cursor look to a specific icon */
+	cursor: pointer;
 	/* color: #777; */
 }
 
-/* Do this to all input elements that are disabled */
 input[disabled] {
-	cursor: not-allowed; /* Sets the cursor look to a specific icon */
+	cursor: not-allowed;
 	color: #777;
 }
 
@@ -90,12 +88,11 @@ Uses the pseudo-class ":hover" to determine if a user hovers over a tr element *
     position: relative;
 }
 
-/* THIS IS UNUSED ATM. DUE TO ISSUES.*/
 /* Styling for td which is a decendant of tbody. */
 /* Uses the pseudo-class ":hover" to determine if a user hovers over a tr element.
 Then, "::before" creates a pseudo-element that is the first child of the selected element */
 /* :hover is a pseudo-element created on top of td */
-/* .geTable tbody td:hover::before {
+/*.geTable tbody td:hover::before {
 	content: "";
 	position: absolute;
 	left: 0;
@@ -103,49 +100,5 @@ Then, "::before" creates a pseudo-element that is the first child of the selecte
 	top: -100vh;
 	bottom: -100vh;
 	background-color: rgba(0, 0, 0, 0.2);
-	z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on
-} */
-
-
-
-/* This below is used in the event that math tables become operational - which is unlikely */
-
-/* .mcontainer {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-}
-s
-mtable {
-    width: auto;
-	border-collapse: collapse;
-	
-	overflow: hidden;
-	z-index: -100;
-} */
-
-/* mtd {
-	padding: 5px;
-	background-color: rgba(255,255,255,0.2);
-	color: #fff;
-}
-
-mrow mtr:hover {
-    background-color: rgba(255,255,255,0.3);
-}
-
-mrow mtd {
-    position: relative;
-}
-
-mrow mtd:hover::before {
-content: "";
-position: absolute;
-left: 0;
-right: 0;
-top: -9999px;
-bottom: -9999px;
-background-color: rgba(255,255,255,0.2);
-z-index: -1;
-} */
+	z-index: -1; /* Makes the pseudo-element render just beneath (on the z-axis) the element which it is was created on 
+}*/
