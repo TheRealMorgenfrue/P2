@@ -483,13 +483,14 @@ function moveInterface(event){
 }
 /**
  * Multiplies every element in a row with a given scalar and updates the frontend to reflect this.
- * @param {HTMLelement} table is an HTML table- or tbody-element that holds the row that is being scaled
- * @param {HTMLelement} row is an HTML tr-element and holds the elements that should be scaled
- * @param {Number} scalar is the number all elements in the row should be multiplied with
+ * @param {HTMLElement} table is an HTML table- or tbody-element that holds the row that is being scaled
+ * @param {HTMLElement} row is an HTML tr-element and holds the elements that should be scaled
+ * @param {String} scalar is the number all elements in the row should be multiplied with
  * @param {Array} tableArray is an array of arrays where the backend representation of the row is stored. This is where the actual scaling happens
  */
 function scaleRow(table,row,scalar,tableArray){
     try{
+        if(scalar === "0") return;
         const index = extractRowIndex(row);
         const row_to_scale = tableArray[index];
         console.log(`Scaling row #${index} by multiplying with ${scalar}\nRow to scale looks like ${row_to_scale}`);
