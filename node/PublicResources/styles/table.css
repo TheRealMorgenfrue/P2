@@ -50,7 +50,7 @@
 /* Select all input elements that are children of a td element. 
 Styling for the table input cells */
 .geTable td > input {
-	width: 20px;
+	width: 30px;
 	text-align: center;
 	border-color: transparent;
 	background-color: transparent;

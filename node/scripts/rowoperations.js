@@ -1,9 +1,7 @@
 
-import {sanitize, pushToHistory, tableIsRowEchelon} from "./app_GE.js"
-import {attachToParent, lineUpAncestors} from "./positioning.js" // Used for positioning buttons
+import {pushToHistory, tableIsRowEchelon} from "./app_GE.js"
+import {attachToParent} from "./positioning.js" // Used for positioning buttons
 import {swapRows} from "./app_math.js"
-//import {sanitize} from "../scripts/app_GE.js" // Used for scale button input 
-// import {sanitize} from "./app_GE.js"
 /**
  * This function takes a table and a row-element for said table and finds its base-0 index as if the table was an array of arrays.
  * If an index is found, it is returned as an integer, but if no index is found, the function returns a null-value.
@@ -69,7 +67,6 @@ function swapTableRows(event){
     pushToHistory(tableArray);
     tableIsRowEchelon(tableArray);
 }
-
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
  * The ith row in the table uses the ith element from the array of arrays and copies one entry from the subarray into every table cell.
@@ -317,7 +314,6 @@ function createScaleField(target_row, factor_name, table){
     scale_field.appendChild(scale_button);
     scale_field.addEventListener("mouseover", event => {event.stopPropagation()}); // We stop the mouseOver-event from bubbling to target row to prevent unnecessary listeners - the scalefield has already been moved, we don't need to check whether it needs to move again.
 
-
     return scale_field;
 }
 /**
@@ -433,7 +429,6 @@ function createAddInterface(table){
 
     return [add_button, scale_field, row_holder, go_button];
 }
-
 /**
  * helper function to reset the addInterface properly and prevent repeat code
  * this function currently changes
@@ -444,8 +439,6 @@ function createAddInterface(table){
  * @param {HTMLelement} row_holder - Table that can only contain one row which is found by listening for the draggingStopped event.
  * @param {HTMLelement} go_button - Button that adds rowB to rowB on click event.
  */
-
-
 function resetAddInterface(scale_field, row_holder, go_button){
     //hide the elements
     scale_field.style.visibility = "hidden";
@@ -459,10 +452,9 @@ function resetAddInterface(scale_field, row_holder, go_button){
     //remove the row left over from the addition operation in row holder if it's there
     const extra_row = row_holder.querySelector("tr");
     if(extra_row){
-extra_row.remove();
+        extra_row.remove();
     }
 }
-
 /**
  * A function designed for use in a mouseover-eventhandler
  * it checks if the addition/scaling interface is allowed to move and moves it if the row that's being moused over is not where the interface is at
@@ -489,9 +481,8 @@ function moveInterface(event){
         }
     }
 }
-
-//multiplies every element in a row with a given scalar and updates the frontend to reflect this
 /**
+ * Multiplies every element in a row with a given scalar and updates the frontend to reflect this.
  * @param {HTMLelement} table is an HTML table- or tbody-element that holds the row that is being scaled
  * @param {HTMLelement} row is an HTML tr-element and holds the elements that should be scaled
  * @param {Number} scalar is the number all elements in the row should be multiplied with
@@ -527,7 +518,6 @@ function scaleRow(table,row,scalar,tableArray){
  * @param {HTMLelement} table is the element holding the row that's scaled
  * @returns
  */
-
 function createSafeScaleField(table){
     // // Copy row from backend
     // const target_row_index = searchForRowIndex(table,target_row);
@@ -571,7 +561,6 @@ function createSafeScaleField(table){
         scale_field.appendChild(scalar_input);
         scale_field.appendChild(scale_button);
         scale_field.addEventListener("mouseover", event => {event.stopPropagation()}); // We stop the mouseOver-event from bubbling to target row to prevent unnecessary listeners - the scalefield has already been moved, we don't need to check whether it needs to move again.
-
 
         return scale_field;
 }

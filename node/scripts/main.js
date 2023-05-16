@@ -1,5 +1,5 @@
 'use strict'
-import{initTableGE, populateIDs} from "./app_GE.js";
+import{initTableGE, populateIDs, sanitizeWithDots} from "./app_GE.js";
 import{initDrag} from "./draganddrop.js";
 import{createScaleField, createSafeScaleField, moveInterface, createAddInterface, swapTableRows, resetAddInterface} from "./rowoperations.js";
 import{attachToParent, lineUpAncestors} from "./positioning.js";
@@ -33,23 +33,23 @@ const SETTINGS = new function() {
             this.lock_button_id = "lockbutton";
             this.lock_button_value = "Lock";
             this.lock_button_type = "button";
-            this.lock_Table = function() { lockTable(); };    // We can have functions as keys in objects by wrapping them in a function
+            this.lock_Table = () => { lockTable(); };    // We can have functions as keys in objects by wrapping them in a function
             this.unlock_button_id = "unlockbutton";
             this.unlock_button_value = "Unlock";
             this.unlock_button_type = "button";
-            this.unlock_Table = function() { unlockTable(); };
+            this.unlock_Table = () => { unlockTable(); };
             this.clear_button_id = "clearbutton";
             this.clear_button_value = "Clear matrix";
             this.clear_button_type = "button";
-            this.clear_Table = function() { fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id)); };
+            this.clear_Table = () => { fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id)); };
             this.rewind_button_id = "rewindbutton";
             this.rewind_button_value = "Go back";
             this.rewind_button_type = "button";
-            this.rewind_Table = function() { undoTable(1); };
+            this.rewind_Table = () => { undoTable(1); };
             this.randomize_button_id = "randomizebutton";
             this.randomize_button_value = "Randomize";
             this.randomize_button_type = "button";
-            this.randomize_Table = function() { randomize_Table(); };
+            this.randomize_Table = () => { randomize_Table(); };
         }
     }
     this.WRITABLE = new function() {
@@ -113,7 +113,7 @@ window.addEventListener("load", () => {
         
         //eventListener updates the scale factor whenever the user changes it
         scale_field.addEventListener("change", event => {
-            sessionStorage.setItem("primaryScaleFactor", String(event.target.value));
+            sessionStorage.setItem("primaryScaleFactor", sanitizeWithDots(String(event.target.value)));
         });
     }, {capture: true});
 
