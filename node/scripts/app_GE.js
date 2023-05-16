@@ -8,7 +8,7 @@ Primitives: "N/A"          / variable_case
 */
 import {initDrag, disableDrag} from "./draganddrop.js";
 import {updateTableFromArray, fillTable} from "./rowoperations.js";
-import {gaussianElimination, generateEquation, hasSolutions, isRowEchelonForm} from "./app_math.js";
+import {gaussianElimination, generateEquation, roundTo, hasSolutions, isRowEchelonForm} from "./app_math.js";
 
 //let CURRENT_TABLE;
 // CURRENT_TABLE is an array of arrays (2D array). It is global since it'll be used across all functions 
@@ -38,11 +38,11 @@ const SETTINGS = new function() {
             this.confirm_button_id = "confirmbutton";
             this.confirm_button_value = "Confirm matrix";
             this.confirm_button_type = "button";
-            this.confirm_Table = function() { lockTable(); };    // We can have functions as keys in objects by wrapping them in a function
+            this.confirm_Table = () => { lockTable(); };    // We can have functions as keys in objects by wrapping them in a function
             this.reset_button_id = "resetbutton";
             this.reset_button_value = "Reset matrix";
             this.reset_button_type = "button";
-            this.reset_Table = function() {
+            this.reset_Table = () => {
                 fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id), "", false, "input", "value");
                 unlockTable();
                 removeSolutionMsg();
@@ -50,14 +50,14 @@ const SETTINGS = new function() {
             this.rewind_button_id = "rewindbutton";
             this.rewind_button_value = "Go back";
             this.rewind_button_type = "button";
-            this.rewind_Table = function() {
+            this.rewind_Table = () => {
                 undoTable(1);
                 tableIsRowEchelon(JSON.parse(sessionStorage.getItem("currentTable")));
             };
             this.randomize_button_id = "randomizebutton";
             this.randomize_button_value = "Randomize";
             this.randomize_button_type = "button";
-            this.randomize_Table = function() { randomize_Table(); };
+            this.randomize_Table = () => { randomize_Table(); };
         }
     }
     this.WRITABLE = new function() {
@@ -94,8 +94,8 @@ function initTableGE(tableID, element) {
     tbody.addEventListener("change", (event) => {
         // Validate input in the cell the user modified
         let cell_value = event.target.value;
-        let sanitized_cell_value = sanitize(cell_value);
-        event.target.value = sanitized_cell_value;
+        let sanitized_cell_value = sanitizeWithDots(cell_value);
+        event.target.value = roundTo(Number(sanitized_cell_value), 2);
     });
 
     addResizeButtons(); // The ordering of the buttons is important.
@@ -495,29 +495,31 @@ function toggleDisableInputBoxes() {
         }
     }
 }
-
 /**
  * Removes all undesired characters from a string given. 
- * @param {string} str 
- * @returns {string} Where all undesired characters have been removed. 
+ * @param {string} string 
+ * @returns {string} String where all undesired characters have been removed. 
  */
-function sanitize(str){
-    let negation_operator = "";
-    // Keep any negative scalars in input 
-    if(str[0] === "-"){
-        negation_operator = "-";
-    }
-    str = str
-    .replace(/[^0-9]/g, "").trim();
-//   .replace(/&/g, "")
-//   .replace(/</g, "")
-//   .replace(/>/g, "")
-//   .replace(/"/g, "")
-//   .replace(/'/g, "")
-//   .replace(/`/g, "")
-    return `${negation_operator}`+ `${str}`;
-}
+function sanitizeWithDots(string) {
+    string = string
+    .trim()
 
+    // Deprecated - use if a calculator is implemented
+    // .replace(/^([*/+])/gm)
+    // .replace(/(?!([-](?=\d)|[+](?=\d)|[.](?=\d)|[*](?=\d)|[/](?=\d)|(\d)))./g, "");
+
+    .replace(/[.](?!\d)/g, "") // Remove all "." which aren't with a number
+    .replace(/(?!(^[-](?=\d)|[.](?=\d)|(\d)))./g, "");
+
+    // Cleanup of additional "."
+    let dot_count = string.match(/[.]/g);
+    if(dot_count && dot_count.length > 1) {
+        for(let i = 0; i < dot_count.length-1; i++) {
+            string = string.replace(/[.]/, "");
+        } 
+    }
+    return `${string}`.trim();
+}
 /**
  * Generates random numbers from -9 to 9 and fills the backend array with them
  */
@@ -689,7 +691,6 @@ function populateIDs(table){
         })
     })
 }
-
 /**
  * Appends a child to a parent element.
  *
@@ -828,4 +829,4 @@ document.addEventListener("GEstarted", () => {
 });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
-export {createArray, sanitize, initTableGE, populateIDs, pushToHistory, tableIsRowEchelon};
+export {createArray, sanitizeWithDots, initTableGE, populateIDs, pushToHistory, tableIsRowEchelon};
