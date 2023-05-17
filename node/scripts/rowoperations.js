@@ -1,5 +1,5 @@
 
-import {pushToHistory, tableIsRowEchelon} from "./app_GE.js"
+import {pushToHistory, writeSolutionMessage} from "./app_GE.js"
 import {attachToParent} from "./positioning.js" // Used for positioning buttons
 import {swapRows} from "./app_math.js"
 /**
@@ -65,7 +65,7 @@ function swapTableRows(event){
     updateTableFromArray(event.currentTarget.parentElement, tableArray, [indexA, indexB], "input", "value");
     sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
     pushToHistory(tableArray);
-    tableIsRowEchelon(tableArray);
+    writeSolutionMessage(tableArray);
     
     let add_rows_event = new CustomEvent("GEoperation", {bubbles:true, detail:`Row ${indexA} swapped with row ${indexB}.`}); 
     event.currentTarget.dispatchEvent(add_rows_event);
@@ -509,7 +509,7 @@ function scaleRow(table,row,scalar,tableArray){
         updateTableFromArray(table, tableArray, [index], "input", "value");
         sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
         pushToHistory(tableArray);
-        tableIsRowEchelon(tableArray);
+        writeSolutionMessage(tableArray);
 
         const scale_event = new CustomEvent("GEoperation", {bubbles:true, detail:`Row ${index} scaled with ${scalar}.`});
         row.dispatchEvent(scale_event); 
@@ -580,7 +580,7 @@ function addRows(table,tableArray,row){
         updateTableFromArray(table, tableArray, [index], "input", "value");
         sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
         pushToHistory(tableArray);
-        tableIsRowEchelon(tableArray);
+        writeSolutionMessage(tableArray);
 
         let event_string;
         if(Number(sessionStorage.getItem("secondaryScaleFactor")) !== 1) {

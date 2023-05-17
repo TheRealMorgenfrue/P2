@@ -57,7 +57,7 @@ const SETTINGS = new function() {
                 // Ensure we do not JSON.parse an empty array.
                 let current_table = sessionStorage.getItem("currentTable");
                 if(current_table) {
-                    tableIsRowEchelon(JSON.parse(current_table));
+                    writeSolutionMessage(JSON.parse(current_table));
                 }
             };
             this.randomize_button_id = "randomizebutton";
@@ -844,7 +844,7 @@ function appendToParent(child_element, parent_element) {
  * or removes the message if it no longer is
  * @param equations
  */
-function tableIsRowEchelon (equations) {
+function writeSolutionMessage (equations) {
     if(isRowEchelonForm(equations) && !document.getElementById("row_echelon_msg")) {
         const solution = hasSolutions(equations);
         let str = "Matrix is in row echelon form and ";
@@ -884,7 +884,7 @@ function removeSolutionMsg() {
 
 // Outputs a message to the user about the given matrix after they click confirm
 document.addEventListener("GEstarted", () => {
-    tableIsRowEchelon(JSON.parse(sessionStorage.getItem("currentTable")));
+    writeSolutionMessage(JSON.parse(sessionStorage.getItem("currentTable")));
     if(!document.getElementById("row_echelon_msg")) {
         // If the matrix is not in row echelon form we still tell the user if it is consistent
         let array_cpy = JSON.parse(sessionStorage.getItem("currentTable"));
@@ -910,4 +910,4 @@ document.addEventListener("GEstarted", () => {
 });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
-export {createArray, sanitizeWithDots, initTableGE, populateIDs, pushToHistory, tableIsRowEchelon, appendToParent};
+export {createArray, sanitizeWithDots, initTableGE, populateIDs, pushToHistory, writeSolutionMessage, appendToParent};
