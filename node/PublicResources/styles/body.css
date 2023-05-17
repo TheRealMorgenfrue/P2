@@ -16,8 +16,8 @@ body {
 	font-weight: 100;
 }
 
-/* Applies to all "h1" in the HTML */
-h1 {
+/* Applies to all "h1" that are a direct decendant of body */
+body > h1 {
     color: white; /* Text color */
     text-align: center;
     padding-top: 10px;

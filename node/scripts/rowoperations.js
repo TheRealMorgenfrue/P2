@@ -1,5 +1,5 @@
 
-import {pushToHistory, tableIsRowEchelon} from "./app_GE.js"
+import {pushToHistory, writeSolutionMessage} from "./app_GE.js"
 import {attachToParent} from "./positioning.js" // Used for positioning buttons
 import {swapRows} from "./app_math.js"
 /**
@@ -65,7 +65,10 @@ function swapTableRows(event){
     updateTableFromArray(event.currentTarget.parentElement, tableArray, [indexA, indexB], "input", "value");
     sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
     pushToHistory(tableArray);
-    tableIsRowEchelon(tableArray);
+    writeSolutionMessage(tableArray);
+    
+    let add_rows_event = new CustomEvent("GEoperation", {bubbles:true, detail:`Row ${indexA} swapped with row ${indexB}.`}); 
+    event.currentTarget.dispatchEvent(add_rows_event);
 }
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
@@ -422,9 +425,8 @@ function createAddInterface(table){
     //performing the actual addition and resetting the interface when the go_button is clicked
     go_button.addEventListener("click", () => {
         //clean up the interface to prevent extra row being found by updateTableFromArray - this creates issues with swapping rows that updateTableFromArray
-        resetAddInterface(scale_field, row_holder, go_button);
-
         addRows(table, JSON.parse(sessionStorage.getItem("currentTable")), document.getElementById(sessionStorage.getItem("primaryRow")));
+        resetAddInterface(scale_field, row_holder, go_button);
     });
 
     return [add_button, scale_field, row_holder, go_button];
@@ -507,7 +509,10 @@ function scaleRow(table,row,scalar,tableArray){
         updateTableFromArray(table, tableArray, [index], "input", "value");
         sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
         pushToHistory(tableArray);
-        tableIsRowEchelon(tableArray);
+        writeSolutionMessage(tableArray);
+
+        const scale_event = new CustomEvent("GEoperation", {bubbles:true, detail:`Row ${index} scaled with ${scalar}.`});
+        row.dispatchEvent(scale_event); 
     }
     catch(error){
         console.log(`${error.message}\n${error.lineNumber}`);
@@ -540,17 +545,17 @@ function createSafeScaleField(table){
 
     // When scale button is clicked, the target row is scaled if it exists.
     scale_button.addEventListener("click", event => {
-        const row_copy = JSON.parse(sessionStorage.getItem("bufferRow"));
-        if(!row_copy){ // Row has to exist in order to scale it.
+        if(!sessionStorage.getItem("bufferRow")){ // Row has to exist in order to scale it.
             console.warn(`Expected a row copy to scale`);
         } else {
         //scale the buffered row and put it back in sessionStorage
+            const row_copy = JSON.parse(sessionStorage.getItem("bufferRow"));
             const scalar = Number(sessionStorage.getItem("secondaryScaleFactor"));
             row_copy.forEach((value, i) => {row_copy[i] = value * scalar});
             sessionStorage.setItem("bufferRow", JSON.stringify(row_copy)) // Places the row that is scaled in buffer
             console.log(`Row has been scaled by ${sessionStorage.getItem("secondaryScaleFactor")} to produce ${sessionStorage.getItem("bufferRow")}`);
-            }
             updateTableFromArray(table, [row_copy], null, "input", "value");
+            }
         });
 
         // We create scale field and add attributes to it
@@ -575,7 +580,17 @@ function addRows(table,tableArray,row){
         updateTableFromArray(table, tableArray, [index], "input", "value");
         sessionStorage.setItem("currentTable", JSON.stringify(tableArray));
         pushToHistory(tableArray);
-        tableIsRowEchelon(tableArray);
+        writeSolutionMessage(tableArray);
+
+        let event_string;
+        if(Number(sessionStorage.getItem("secondaryScaleFactor")) !== 1) {
+            event_string = `Row ${extractRowIndex(document.getElementById((sessionStorage.getItem("secondaryRow"))))} scaled by ${sessionStorage.getItem("secondaryScaleFactor")} and added to row ${index}.`
+        }
+        else {
+            event_string = `Row ${extractRowIndex(document.getElementById((sessionStorage.getItem("secondaryRow"))))} added to row ${index}.`
+        }
+        let add_rows_event = new CustomEvent("GEoperation", {bubbles:true, detail:event_string}); 
+        row.dispatchEvent(add_rows_event); 
     }
     catch(error){
         console.error(error);

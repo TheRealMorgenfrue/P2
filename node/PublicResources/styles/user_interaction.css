@@ -83,48 +83,47 @@
   margin-left: 1px;
 }
 
-
-
-/*dent around button*/
-/* .btn{
-  display: inline-block;
-  position: relative;
-  text-decoration: none;
-  color: rgba(3, 169, 244, 0.54);
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  text-align: center;
-  background: #f7f7f7;
-  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.08);
-} */
-.btn .fa {/*Button itself*/
-  position: absolute;
-  content: '';
-  width: 80px;
-  height: 80px;
-  line-height: 80px;
-  vertical-align: middle; 
-  /* left: 10px;
-  top: 9px; */
-  border-radius: 50%;
-  font-size: 40px;
-  background-image: url(../images/circle-check-solid.svg), linear-gradient(white, white);
-  background-color: transparent;
-  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.66);
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(0, 0, 0, 0.19);
-  /* border-bottom: solid 2px #b5b5b5; */
-}
-
-.btn .fa:active{
-  background-image: -webkit-linear-gradient(#efefef 0%, #d6d6d6 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(0, 0, 0, 0.19);
-  border-bottom: solid 2px #d8d8d8;
-}
-
 .user_instructions{
-  background-color: #ffffff;
-  max-width: 300px;
-  display: flex;
-  overflow: scroll;
+  background-color: transparent;
+  color: white; /*Set text color */
+  max-width: 500px; /*Maxes are picked arbitrarily to fit the dev's preferences*/
+  max-height: 500px;
+  position: relative; /*Position should be relative to other elements in dom to avoid overlapping*/
+  left: 50px; /*Shift 50px right - WHICH IS CONFUSING SINCE THE OPTION IS LEFT!*/
+  transform: translateY(10%); /*Matrix transformation that moves element 25% of the elements hight upwards*/
+  overflow-wrap: break-word; /*Makes linebreaks on words, not on letters - see https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-wrap*/
+  display: flex; /*Flexbox to fit content - see https://developer.mozilla.org/en-US/docs/Web/CSS/flex */
+  flex-direction: column; /* Each HTML is put into a single column one at time*/
+  overflow: auto; /*Make a scroll box in case there is more text than can fit*/
+
+}
+
+/* The container that holds the header and log of matrix operations */
+.matrixOperationsContainerOuter {
+  background-color: transparent;
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 700px;
+  transform: translateY(-50%);
+}
+
+/* The container that holds the log of matrix operations  */
+.matrixOperationsContainerInner {
+  position: relative;
+  text-align: center;
+  background-color: transparent;
+  color: white;
+  max-height: 500px;
+  width: 300px;
+  overflow: auto; /*Make a scroll box in case there is more text than can fit*/
+  overflow-wrap: break-word; /*Makes linebreaks on words, not on letters - see https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-wrap*/
+}
+
+/* Styling for the solutions check */
+.solution {
+  position: relative;
+  color: white;
+  text-align: center;
+  top: 20px;
 }
