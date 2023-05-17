@@ -43,10 +43,12 @@ const SETTINGS = new function() {
             this.reset_button_value = "Reset matrix";
             this.reset_button_type = "button";
             this.reset_Table = () => {
-                fillTable(document.getElementById(SETTINGS.READONLY.TABLE.table_id), "", false, "input", "value");
+                const table = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
+                fillTable(table, "", false, "input", "value");
                 unlockTable();
                 removeSolutionMsg();
                 removeRowOperations("all");
+                resizeInputFields(table);
                 sessionStorage.setItem("rowOperationsIndex", 0); // Reset the index counter
             };
             this.rewind_button_id = "rewindbutton";
@@ -102,6 +104,7 @@ function initTableGE(tableID, element) {
         let cell_value = event.target.value;
         let sanitized_cell_value = sanitizeWithDots(cell_value);
         event.target.value = Number(sanitized_cell_value);
+        resizeInputFields(event.target, true);  // Resize width of input fields to fit numbers
     });
 
     addResizeButtons(); // The ordering of the buttons is important.
@@ -606,6 +609,30 @@ function randomize_Table() {
     //CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
     sessionStorage.setItem("currentTable", JSON.stringify(generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value)));
     updateTableFromArray(document.getElementById("gaussian_elimination_matrix"), JSON.parse(sessionStorage.getItem("currentTable")), false, "input", "value");
+    resizeInputFields(document.getElementById(SETTINGS.READONLY.TABLE.table_id), false);
+}
+
+    // Resize width of input fields to fit numbers
+function resizeInputFields(element, no_parent) {
+    if(no_parent === true) {
+        if(element.value === "") {
+            element.style.width = "20px";
+        }
+        else {
+            element.style.width = element.value.length+1 + "ch";
+        }
+    }
+    else {
+    const input_fields = element.querySelectorAll("input");
+    input_fields.forEach(element => {
+        if(element.value === "") {
+            element.style.width = "20px";
+        }
+        else {
+            element.style.width = element.value.length+1 + "ch";
+        }
+    })
+    }
 }
 
 //we assume the table has at least one tbody if a tbody is not passed as that argument
@@ -910,4 +937,4 @@ document.addEventListener("GEstarted", () => {
 });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
-export {createArray, sanitizeWithDots, initTableGE, populateIDs, pushToHistory, writeSolutionMessage, appendToParent};
+export {createArray, sanitizeWithDots, initTableGE, populateIDs, pushToHistory, writeSolutionMessage, appendToParent, resizeInputFields};

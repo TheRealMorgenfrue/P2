@@ -4,6 +4,7 @@
  * @param {boolean} left is optional and defaults to false. If true, the element is placed on the parent's left side instead the right.
  */
 function attachToParent(element, left){
+    console.log("Running attachToParent");
     //get bounding rectangles for the element and its parent and initialise x and y
     //we begin by assuming that the element's parent is its frame of reference, so x and y begin as 0
     element.style.position = "absolute";

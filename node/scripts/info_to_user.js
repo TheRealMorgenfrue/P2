@@ -85,6 +85,9 @@ function displayMatrixOperations(){
 
     // We want to dynamically add a line each time we make a row operation 
     document.addEventListener("GEoperation", (event) => {
+        if(!event.detail) {
+            return null;
+        }
         //const operations_field = document.createElement("a"); // The "button" elements where each row operation is written. This version makes fancy buttons. Currently WIP.
         const operation_line = document.createElement("p");
         operation_line.innerText = `[${sessionStorage.getItem("rowOperationsIndex")}] ` + event.detail; // This should be a p with the format specified by our design documentation 
