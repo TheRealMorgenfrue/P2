@@ -25,7 +25,7 @@ const SETTINGS = new function() {
             this.row_id = "row";       // This id refers to the input box where the user selects table dimensions, not the matrix
             this.column_id = "column"; // This id refers to the input box where the user selects table dimensions, not the matrix
             this.type = "number";      // This refers to the input box where the user selects table dimensions, not the matrix
-            this.max_matrix_size = 15; // Ensure that matrix is small enough to be read by human users 
+            this.max_matrix_size = 0; // Ensure that matrix is small enough to be read by human users 
             this.min_matrix_size = 2;
             this.title = `Input desired size - max ${this.max_matrix_size}`;
         }

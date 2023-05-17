@@ -10,15 +10,8 @@ import {initDrag, disableDrag} from "./draganddrop.js";
 import {updateTableFromArray, fillTable} from "./rowoperations.js";
 import {gaussianElimination, generateEquation, roundTo, hasSolutions, isRowEchelonForm} from "./app_math.js";
 
-//let CURRENT_TABLE;
-// CURRENT_TABLE is an array of arrays (2D array). It is global since it'll be used across all functions 
-// It is denoted as "backend array" in comments since it, at all times, contains the backend values of the table shown on screen - i.e. the frontend table
-// Note that it still functions at the backend level; the values in it need to be written to the frontend by external means - e.g. element.value = CURRENT_TABLE[i][j]  
-
-//let TABLES = [];
-sessionStorage.setItem("tableHistory", JSON.stringify([]));
 // Array used to contain copies of the backend array - ensures the user can go back to a previous iteration of the matrix - i.e. the table on the frontend
-// It is global since it'll be used across all functions 
+sessionStorage.setItem("tableHistory", JSON.stringify([])); 
 
 // A number of functions need to access non-writable values as well as update writable values - this object is therefore global.
 const SETTINGS = new function() {  
@@ -30,8 +23,8 @@ const SETTINGS = new function() {
             this.row_id = "row";       // This id refers to the input box where the user selects table dimensions, not the matrix
             this.column_id = "column"; // This id refers to the input box where the user selects table dimensions, not the matrix
             this.type = "number";      // This refers to the input box where the user selects table dimensions, not the matrix
-            this.max_matrix_size = 15; // Ensure that matrix is small enough to be read by human users 
-            this.min_matrix_size = 2;
+            this.max_matrix_size = 10; // Ensure that matrix is small enough to be read by human users 
+            this.min_matrix_size = 0;
             this.title = `Input desired size - max ${this.max_matrix_size}`;
         }
         this.BUTTONS = new function() {
@@ -354,10 +347,10 @@ function undoTable(undo_count) {
             // Update the frontend table with the table loaded from tableHistory
             const table_element = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
             updateTableFromArray(table_element, new_table, null,"input","value");
+            resizeInputFields(table_element);
 
             // Remove logs of rowoperations which becomes invalid when we go back n times.
             removeRowOperations(undo_count);
-
             sessionStorage.setItem("rowOperationsIndex", Number(sessionStorage.getItem("rowOperationsIndex"))-undo_count); // Remove undo_count from our index
 
             // Testing 
@@ -474,7 +467,7 @@ function addButtonAttributes(type, Input) {
     }
     Input[`${type}_button`].id = SETTINGS.READONLY.BUTTONS[`${type}_button_id`];       // Set its ID
     sessionStorage.setItem(`${type}_button`, SETTINGS.READONLY.BUTTONS[`${type}_button_id`]); // Add IDs to sessionStorage
-    Input[`${type}_button`].classList.add(`${type}Button`);
+    Input[`${type}_button`].classList.add(`${type}Button`, "noselect");
     Input.div.append(Input[`${type}_button`]); // Add to button container div
     Input[`${type}_button`].addEventListener("click", SETTINGS.READONLY.BUTTONS[`${type}_Table`]); // Add EventListener
 }
@@ -489,7 +482,7 @@ function lockTable() {
     });
     // Since this function sets all elements in table to "readonly", only the first element in the "table_rows" array has to be checked 
     if(table_rows[0].getAttribute("readonly") !== "true") {
-        toggleDisableInputBoxes();
+        toggleDisableInputBoxes(); // Ensure the user cannot resize the table when locked
         table_rows.forEach(element => {
             element.setAttribute("readonly", "true");
         });
@@ -517,10 +510,6 @@ function lockTable() {
     else {
         console.warn("Table is already locked");
     }
-    // Lock resize buttons
-    document.getElementById("row").setAttribute("readonly", "true");
-    document.getElementById("column").setAttribute("readonly", "true");
-    //createBackendTable(tbl); - !!!!!!!!!!!! BE SURE TO CHECK IF ERROR!
     // Hide unusable buttons
     document.getElementById("randomizebutton").style.visibility = "collapse";
     document.getElementById("confirmbutton").style.visibility = "collapse";
@@ -537,7 +526,7 @@ function unlockTable() {
     });
     // Since lockTable() sets all elements to readonly, only the first element in the "table_rows" array has to be checked 
     if(table_rows[0].getAttribute("readonly") === "true") {
-        toggleDisableInputBoxes();
+        toggleDisableInputBoxes(); // Ensure the table can be resized again when unlocked
         table_rows.forEach(element => {
             element.removeAttribute("readonly");
         });
@@ -560,7 +549,7 @@ function unlockTable() {
     removeRowEchelonMsg();
 }
 /**
- * Disables the input boxes so the table's dimentions remain constant while doing row operations
+ * Disables the input boxes so the table's dimensions remain constant while doing row operations
  */
 function toggleDisableInputBoxes() {
     const container = document.getElementsByClassName("inputBox");
@@ -611,8 +600,15 @@ function randomize_Table() {
     updateTableFromArray(document.getElementById("gaussian_elimination_matrix"), JSON.parse(sessionStorage.getItem("currentTable")), false, "input", "value");
     resizeInputFields(document.getElementById(SETTINGS.READONLY.TABLE.table_id), false);
 }
-
-    // Resize width of input fields to fit numbers
+/**
+ * Resize width of input fields to fit numbers.
+ * 
+ * First argument can be either a parent of input fields or a single input field.
+ * 
+ * Second argument is optional, but must be true if first argument is a single input field.
+ * @param {HTMLElement} element Can be either a parent of input fields or a single input field if second argument is true.
+ * @param {boolean} no_parent Must be true if first argument is a single input field.
+ */
 function resizeInputFields(element, no_parent) {
     if(no_parent === true) {
         if(element.value === "") {
