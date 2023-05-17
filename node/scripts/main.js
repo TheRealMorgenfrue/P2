@@ -1,5 +1,5 @@
 'use strict'
-import{initTableGE, populateIDs, sanitizeWithDots, appendToParent} from "./app_GE.js";
+import{initTableGE, populateIDs, sanitizeWithDots, appendToParent, resizeInputFields} from "./app_GE.js";
 import{initDrag} from "./draganddrop.js";
 import{createScaleField, createSafeScaleField, moveInterface, createAddInterface, swapTableRows, resetAddInterface} from "./rowoperations.js";
 import{attachToParent, lineUpAncestors} from "./positioning.js";
@@ -129,7 +129,13 @@ window.addEventListener("load", () => {
         //resetting the history
         sessionStorage.setItem("tableHistory", JSON.stringify([]));
      })
-     // Show the tutorial to the user after we create all elements. 
+
+     // Resize width of input fields to fit numbers
+     document.addEventListener("GEoperation", event => {
+        resizeInputFields(event.target, false);
+     })
+
+    // Show the tutorial to the user after we create all elements. 
     displayTutorial();
     appendToParent(displayMatrixOperations(), document.getElementById("table_container"));
 })

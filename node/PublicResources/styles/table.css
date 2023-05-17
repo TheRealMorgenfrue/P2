@@ -51,6 +51,7 @@
 Styling for the table input cells */
 .geTable td > input {
 	width: 20px;
+	min-width: 20px;
 	text-align: center;
 	border-color: transparent;
 	background-color: transparent;

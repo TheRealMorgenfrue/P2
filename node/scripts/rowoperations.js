@@ -1,5 +1,5 @@
 
-import {pushToHistory, writeSolutionMessage} from "./app_GE.js"
+import {pushToHistory, writeSolutionMessage, resizeInputFields} from "./app_GE.js"
 import {attachToParent} from "./positioning.js" // Used for positioning buttons
 import {swapRows} from "./app_math.js"
 /**
@@ -69,6 +69,9 @@ function swapTableRows(event){
     
     let add_rows_event = new CustomEvent("GEoperation", {bubbles:true, detail:`Row ${indexA} swapped with row ${indexB}.`}); 
     event.currentTarget.dispatchEvent(add_rows_event);
+    // Firing another event so that we can resize both rows as needed.
+    add_rows_event = new CustomEvent("GEoperation", {bubbles:true, detail:""});
+    document.getElementById(event.detail.id).dispatchEvent(add_rows_event); 
 }
 /**
  * Updates a table given as the first argument with the data from the second argument, an array of arrays.
@@ -337,7 +340,7 @@ function createAddInterface(table){
     // Create a table to hold the row we're going to add and hide it for later
     const row_holder = document.createElement("table");
     row_holder.style.visibility = "hidden";
-    row_holder.style.backgroundColor = "red";    //temporary styling to make it visible without a row in it
+    row_holder.style.backgroundColor = "white";    //temporary styling to make it visible without a row in it
     row_holder.style.width = "300px";
     row_holder.style.height = "20px";            //who knows if this is big enough
     row_holder.id = "row_holder_id";
@@ -387,8 +390,24 @@ function createAddInterface(table){
     add_button.addEventListener("draggingStopped", event => {
         event.stopPropagation(); //ensure that the event does not trigger a row swap
         const held_row = event.detail.cloneNode(true);
-        held_row.style.position = "static";     //setting the held row to static so its offset is ignored
 
+        const held_row_td = held_row.querySelectorAll("td");
+        const held_row_input = held_row.querySelectorAll("input");
+        const row_holder = document.getElementById("row_holder_id");
+
+        for(let i = 0; i < held_row_td.length; i++) {
+            if(held_row_input[i].value === "") {
+                held_row.style.width = "20px";
+                held_row_td[i].style.width = "20px";
+            }
+            else {
+                held_row.style.width = held_row_input[i].value.length+1 + "ch";
+                held_row_td[i].style.width = held_row_input[i].value.length+1 + "ch";
+            }
+        }
+        row_holder.style.width = held_row.style.width;
+
+        held_row.style.position = "static";     //setting the held row to static so its offset is ignored
         console.log(`Held row is ${held_row} and contains ${typeof held_row.lastChild.firstChild}, ${typeof held_row.firstChild.firstChild}\n${event.detail.lastChild.firstChild} ${event.detail.firstChild.firstChild}`);
 
         //check if there is a tbody to place the row in and create one if there isn't
@@ -456,6 +475,7 @@ function resetAddInterface(scale_field, row_holder, go_button){
     if(extra_row){
         extra_row.remove();
     }
+    row_holder.style.width = "300px";
 }
 /**
  * A function designed for use in a mouseover-eventhandler
@@ -555,6 +575,10 @@ function createSafeScaleField(table){
             sessionStorage.setItem("bufferRow", JSON.stringify(row_copy)) // Places the row that is scaled in buffer
             console.log(`Row has been scaled by ${sessionStorage.getItem("secondaryScaleFactor")} to produce ${sessionStorage.getItem("bufferRow")}`);
             updateTableFromArray(table, [row_copy], null, "input", "value");
+            
+            // Resize held_row to match numbers in it
+            resizeInputFields(table, false);
+            attachToParent(document.getElementById("go_button_id"));
             }
         });
 

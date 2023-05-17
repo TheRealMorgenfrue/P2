@@ -27,6 +27,7 @@
 /* This directly applies to the input box */
 .inputBox > input {
   width: 35px;
+  min-width: 35px;
   cursor: pointer; /* Sets the cursor look to a specific icon */
 }
 
@@ -80,6 +81,7 @@
 
 .scale_field {
   width: 40px;
+  min-width: 40px;
   margin-left: 1px;
 }
 
