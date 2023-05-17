@@ -70,7 +70,9 @@ const SETTINGS = new function() {
 Object.freeze(SETTINGS.READONLY);  // Make the "readonly_settings" object readonly
 
 /**
- * Initialises the table at page load 
+ * Creates and initializes a table representing the matrix in which we perform gaussian elimination as well as buttons to interact with the table.
+ * 
+ * An eventlistener is added to the table that sanitizes the cells in the table when the user types in them to prevent typing illegal characters.
  * @param {string} tableID ID of the table created
  * @param {HTMLElement|string} element Optional (Defaults to document body). The HTML element which the table should be a child of.
  */
@@ -110,31 +112,12 @@ function initTableGE(tableID, element) {
     addTableButtons();
 }
 /**
- * Creates a 2D array and fills it with empty strings. 
- * 
- * This makes it easier to check for empty values later on.
- * @param {number} row_value 
- * @param {number} column_value  
- * @returns {array} 2D array
- */
-function createArray(row_value, column_value) {
-    let array = new Array(row_value);
-    for (let i = 0; i < row_value; i++) {
-      array[i] = new Array(column_value);
-      for (let j = 0; j < column_value; j++) {
-        array[i][j] = "";
-      }
-    }
-    return array;
-}
-/**
- * Create two input buttons separated by an "x" string.
+ * Create a div element containing two input buttons separated by an "x" string contained in a span element.
  *  
- * Event listeners are added to each of the buttons that change the SETTINGS.WRITABLEs for the current table to match the row and column value input by the user. 
+ * Eventlisteners are added to each of the buttons which update the dimensions of the table when the user types in them. 
+ * These are stored in the object SETTINGS.WRITABLE. 
  */
 function addResizeButtons() {
-    const body = document.body;
-
     // Object to add attributes with a variable. This compresses the code to Input.id (instead of having to write e.g. 'row.id' and 'column.id')
     const Input = {
         row: document.createElement('input'),
@@ -168,7 +151,8 @@ function addResizeButtons() {
     createEventListener(SETTINGS.READONLY.TABLE.column_id, "click");
 }
 /**
- * Helper function for addResizeButtons() that adds various attributes to row and column objects that are part of the "Input" object. 
+ * Helper function for addResizeButtons() that adds various attributes to row and column objects that are part of the "Input" object.
+ * This is done in order to reduce the amount of code written to 1x number_of_buttons instead of nx number_of_buttons, where n = number_of_buttons
  * @param {string} type 
  * @param {object} Input 
  */
@@ -182,9 +166,11 @@ function addAttributes(type, Input) {
     Input[`${type}`].min = SETTINGS.READONLY.TABLE.min_matrix_size;
 }
 /**
- * Add an event listener to the element with type_id 
- * @param {string|object} type_id
- * @param {string} listener_type 
+ * Adds an eventlistener to the element with ID = type_id.
+ * 
+ * Note that each type_id and listener_type must be defined in this function before use.
+ * @param {string|object} type_id The ID of the element which to add an eventlistener to.
+ * @param {string} listener_type The type of eventlistener to add.
  * @returns 
  */
 function createEventListener(type_id, listener_type) {
@@ -299,8 +285,12 @@ function createBackendTable(table) {
         return null;
     }
 }
-//get the current tableHistory and parse it, push an item to it, stringify it again and update tableHistory
-//tableHistory is assumed to be an array and the item is assumed to be fully JSON-compatible
+/**
+ * Get the current tableHistory and parse it, push an item to it, stringify it again and update tableHistory.
+ * 
+ * tableHistory is assumed to be an array and the item is assumed to be fully JSON serializeable.
+ * @param {*} item Must be JSON serializeable 
+ */
 function pushToHistory(item){
     const history = JSON.parse(sessionStorage.getItem("tableHistory"));
     history.push(item);
@@ -311,8 +301,8 @@ function pushToHistory(item){
 /**
  * Reverts the values of the current frontend table to match a previous instance of the frontend table.
  * 
- * Uses the holding array to store/retrieve all previous matrix instances.
- * @param {number} undo_count Number of matrix instances to go back, starting from the current "matrix" in the backend array.
+ * Uses the holding array, tableHistory, to store/retrieve all previous matrix instances.
+ * @param {number} undo_count Number of matrix instances to go back, starting from the last element in tableHistory.
  * @returns
  */
 function undoTable(undo_count) {
@@ -450,8 +440,8 @@ function addTableButtons() {
     appendToParent(Input.div, document.getElementById("table_container"));
 }
 /**
- * Helper function to addTableButtons() that adds attributes/event listeners to the buttons and places them after the table
- * @param {string} type The name of the button
+ * Helper function to addTableButtons() that adds attributes/eventlisteners to the buttons and places them after the table
+ * @param {string} type The name of the button (e.g. "lock")
  * @param {object} Input The object containing the button HTML elements
  */
 function addButtonAttributes(type, Input) {
@@ -472,7 +462,15 @@ function addButtonAttributes(type, Input) {
     Input[`${type}_button`].addEventListener("click", SETTINGS.READONLY.BUTTONS[`${type}_Table`]); // Add EventListener
 }
 /**
- * Helper function for the "lock" button that sets all cells in the table to read only
+ * This should execute when the user presses the "lock" button.
+ * 
+ * First, all input fields in the table are made readonly (if they aren't already).
+ * 
+ * Second, the input fields to change the table's dimensions are disabled.
+ * 
+ * Third, enable our custom drag-and-drop API and initialize a backend array of arrays (i.e. the backend version of the table shown on the frontend).
+ * 
+ * Lastly, dispatch events indicating that the table is now locked and ready for gaussian elimination.
  */   
 function lockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
@@ -516,7 +514,15 @@ function lockTable() {
     // Check if matrix is already row echelon
 }
 /**  
- * Helper function for the "reset" button that makes all cells in the table writeable again
+ * This should execute when the user presses the "reset" button.
+ * 
+ * First, all input fields in the table have their readonly attribute removed (if the attribute exist).
+ * 
+ * Second, the input fields to change the table's dimensions are enabled.
+ * 
+ * Third, disable our custom drag-and-drop API and reset the backend arrayof arrays (i.e. the backend version of the table shown on the frontend).
+ * 
+ * Lastly, dispatch events indicating that the table is now unlocked and NOT ready for gaussian elimination.
  */
 function unlockTable() {
     const tbl = document.getElementById(SETTINGS.READONLY.TABLE.table_id);
@@ -595,7 +601,6 @@ function sanitizeWithDots(string) {
  * Generates random numbers from -9 to 9 and fills the backend array with them
  */
 function randomize_Table() {
-    //CURRENT_TABLE = generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value);
     sessionStorage.setItem("currentTable", JSON.stringify(generateEquation(SETTINGS.WRITABLE.row_value, SETTINGS.WRITABLE.column_value)));
     updateTableFromArray(document.getElementById("gaussian_elimination_matrix"), JSON.parse(sessionStorage.getItem("currentTable")), false, "input", "value");
     resizeInputFields(document.getElementById(SETTINGS.READONLY.TABLE.table_id), false);
@@ -631,15 +636,17 @@ function resizeInputFields(element, no_parent) {
     }
 }
 
-//we assume the table has at least one tbody if a tbody is not passed as that argument
-//should be compatible with updateTableFromArray
-
-//table is the HTML-element of type "table" or "tbody" that should be resized
-
-//dimensions is an object with attributes "rows" and "columns"
-//which represent the number of rows and columns to table should be resized to have
-
-//HTMLcode is a string of HTML-code that will be placed in every cell this function creates
+/**
+ * Resizes a table element to fit the dimensions given in the second argument
+ * 
+ * We assume the table has at least one tbody if a tbody is not passed as that argument.
+ * 
+ * Should be compatible with updateTableFromArray.
+ * @param {*} table The HTML-element of type "table" or "tbody" that should be resized.
+ * @param {*} dimensions An object with attributes "rows" and "columns" which represent the number of rows and columns to table should be resized to have.
+ * @param {*} HTMLcode A string of HTML-code that will be placed in every cell this function creates.
+ * @returns 
+ */
 function resizeTableBody(table, dimensions, HTMLcode){
     try{
         removeRowEchelonMsg();
@@ -933,4 +940,4 @@ document.addEventListener("GEstarted", () => {
 });
 
 // Export function(s) to test suite (brackets matter, see drag.test.js)
-export {createArray, sanitizeWithDots, initTableGE, populateIDs, pushToHistory, writeSolutionMessage, appendToParent, resizeInputFields};
+export {sanitizeWithDots, initTableGE, populateIDs, pushToHistory, writeSolutionMessage, appendToParent, resizeInputFields};
