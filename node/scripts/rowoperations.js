@@ -67,7 +67,7 @@ function swapTableRows(event){
     pushToHistory(tableArray);
     writeSolutionMessage(tableArray);
     
-    let add_rows_event = new CustomEvent("GEoperation", {bubbles:true, detail:`Row ${indexA} swapped with row ${indexB}.`}); 
+    let add_rows_event = new CustomEvent("GEoperation", {bubbles:true, detail:`Row ${indexA+1} swapped with row ${indexB+1}.`}); 
     event.currentTarget.dispatchEvent(add_rows_event);
     // Firing another event so that we can resize both rows as needed.
     add_rows_event = new CustomEvent("GEoperation", {bubbles:true, detail:""});
@@ -344,6 +344,7 @@ function createAddInterface(table){
     row_holder.style.width = "300px";
     row_holder.style.height = "20px";            //who knows if this is big enough
     row_holder.id = "row_holder_id";
+    row_holder.style.borderCollapse = "collapse"; // Make the borders smaller
 
     // Create scale field and make it hidden
     const scale_field = createSafeScaleField(row_holder);
@@ -373,6 +374,7 @@ function createAddInterface(table){
             attachToParent(scale_field);
             row_holder.style.visibility = "visible";
             attachToParent(row_holder);
+            row_holder.style.marginTop = "15px"; // Offset the row holder downwards from it's original position to make room for the scale field
             sessionStorage.setItem("allowInterfaceMoving", "");     //an empty string is falsy, so we write that instead of "false", since a non-empty string is truthy
             console.log("Locking interface to this row");
 
@@ -466,7 +468,8 @@ function resetAddInterface(scale_field, row_holder, go_button){
     row_holder.style.visibility = "hidden";
     go_button.style.visibility = "hidden";
     //reset all the variables in sessionstorage (and on the frontend for the scale_field)
-    scale_field.querySelector("input").value = 1;
+    const scale_field_input = scale_field.querySelector("input");
+    scale_field_input.value = 1;
     sessionStorage.setItem("secondaryScaleFactor", "1");
     sessionStorage.setItem("secondaryRow", "");
     sessionStorage.setItem("allowInterfaceMoving", "true");
@@ -475,7 +478,8 @@ function resetAddInterface(scale_field, row_holder, go_button){
     if(extra_row){
         extra_row.remove();
     }
-    row_holder.style.width = "300px";
+    row_holder.style.width = "300px"; // Reset row holder to the width it was created with.
+    scale_field_input.style.width = "" // Reset style to default CSS defined style.
 }
 /**
  * A function designed for use in a mouseover-eventhandler
@@ -494,7 +498,9 @@ function moveInterface(event){
             sessionStorage.setItem("primaryScaleFactor", "1");
             sessionStorage.setItem("secondaryRow", "");
             sessionStorage.setItem("secondaryScaleFactor", "1");
-            document.getElementById(sessionStorage.getItem("primaryScaleField")).querySelector("input").value = 1;
+            const scale_field_input = document.getElementById(sessionStorage.getItem("primaryScaleField")).querySelector("input");
+            scale_field_input.value = 1;
+            scale_field_input.style.width = ""; // Reset style to default CSS defined style
             //changing what the interface elements' parent is and running attachToParent to get them positioned
             document.getElementById(sessionStorage.getItem("primaryRow")).appendChild(document.getElementById(sessionStorage.getItem("primaryScaleField")));
             document.getElementById(sessionStorage.getItem("primaryRow")).appendChild(document.getElementById(sessionStorage.getItem("addButton")));
@@ -533,6 +539,8 @@ function scaleRow(table,row,scalar,tableArray){
 
         const scale_event = new CustomEvent("GEoperation", {bubbles:true, detail:`Row ${index} scaled with ${scalar}.`});
         row.dispatchEvent(scale_event); 
+        attachToParent(document.getElementById(sessionStorage.getItem("primaryScaleField")), true);
+        attachToParent(document.getElementById(sessionStorage.getItem("addButton")));
     }
     catch(error){
         console.log(`${error.message}\n${error.lineNumber}`);
@@ -614,7 +622,9 @@ function addRows(table,tableArray,row){
             event_string = `Row ${extractRowIndex(document.getElementById((sessionStorage.getItem("secondaryRow"))))} added to row ${index}.`
         }
         let add_rows_event = new CustomEvent("GEoperation", {bubbles:true, detail:event_string}); 
-        row.dispatchEvent(add_rows_event); 
+        row.dispatchEvent(add_rows_event);
+        attachToParent(document.getElementById(sessionStorage.getItem("primaryScaleField")), true);
+        attachToParent(document.getElementById(sessionStorage.getItem("addButton"))); 
     }
     catch(error){
         console.error(error);
