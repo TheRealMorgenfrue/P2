@@ -637,14 +637,14 @@ function resizeInputFields(element, no_parent) {
 }
 
 /**
- * Resizes a table element to fit the dimensions given in the second argument
+ * Resizes a table element to fit the dimensions given in the second argument.
  * 
  * We assume the table has at least one tbody if a tbody is not passed as that argument.
  * 
  * Should be compatible with updateTableFromArray.
- * @param {*} table The HTML-element of type "table" or "tbody" that should be resized.
- * @param {*} dimensions An object with attributes "rows" and "columns" which represent the number of rows and columns to table should be resized to have.
- * @param {*} HTMLcode A string of HTML-code that will be placed in every cell this function creates.
+ * @param {HTMLTableElement} table The HTML-element of type "table" or "tbody" that should be resized.
+ * @param {Object} dimensions An object with attributes "rows" and "columns" which represent the number of rows and columns to table should be resized to have.
+ * @param {HTMLcode} HTMLcode A string of HTML-code that will be placed in every cell this function creates.
  * @returns 
  */
 function resizeTableBody(table, dimensions, HTMLcode){
@@ -763,8 +763,15 @@ function resizeTableBody(table, dimensions, HTMLcode){
     }
 }
 
-//convert an HTML-table or tbody into an array of arrays of its elements and return it
-//returns null if the input is not a table or tbody
+//
+//
+/**
+ * Convert an HTML-table or tbody into an array of arrays of its elements and return it.
+ * 
+ * Returns null if the input is not a table or tbody.
+ * @param {HTMLTableElement} table The table HTML element which values are converted to an array of arrays. 
+ * @returns 
+ */
 function convertTableToArray(table){
     try{
         //make sure we're dealing with a table or a tbody
@@ -790,7 +797,7 @@ function convertTableToArray(table){
 }
 /**
  * Assigns an ID to every row and cell in a table, provided they exist. Should mostly be used for testing.
- * @param {HTMLTableElement} table The HTML table which IDs should be assigned to .
+ * @param {HTMLTableElement} table The HTML table which IDs should be assigned to.
  */
 function populateIDs(table){
     table.querySelectorAll("tr").forEach((row, i) => {
@@ -871,10 +878,10 @@ function appendToParent(child_element, parent_element) {
 
 /**
  * Appends a message letting the user know if the table is currently in row echelon form
- * or removes the message if it no longer is
- * @param equations
+ * or removes the message if it no longer is.
+ * @param {Array} equations 2D array of numbers representing equation matrix
  */
-function writeSolutionMessage (equations) {
+function writeSolutionMessage(equations) {
     if(isRowEchelonForm(equations) && !document.getElementById("row_echelon_msg")) {
         const solution = hasSolutions(equations);
         let str = "Matrix is in row echelon form and ";
@@ -901,12 +908,16 @@ function writeSolutionMessage (equations) {
         removeRowEchelonMsg();
     }
 }
-
-function removeRowEchelonMsg () {
+/**
+ * Removes the message shown when the table is in row echelon form - provided the message exists.
+ */
+function removeRowEchelonMsg() {
     const message = document.getElementById("row_echelon_msg");
     if(message) message.remove();
 }
-
+/**
+ * Removes the message shown when the table is has a solution - provided the message exists.
+ */
 function removeSolutionMsg() {
     const message = document.getElementById("solution_msg");
     if(message) message.remove();
