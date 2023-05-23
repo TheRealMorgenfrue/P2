@@ -592,7 +592,7 @@ function sanitizeWithDots(string) {
     }
 
     // Ensure the string is valid, i.e. a number
-    if(!string || string === Infinity || isNaN(string)) {
+    if(!string || Math.abs(string) === Infinity || isNaN(string)) {
         string = "";
     }
 
