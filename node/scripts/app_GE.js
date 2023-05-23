@@ -584,7 +584,7 @@ function sanitizeWithDots(string) {
     string = string.trim();
 
     if(string.match(/[^\d+/.*-]|\/(?=\/)/g)) {
-        throw new Error(`Invalid input. Got ${string}`);
+        throw new Error(`Invalid input`);
     }
     else {
         string = eval(string);
