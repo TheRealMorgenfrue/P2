@@ -100,7 +100,7 @@ function initTableGE(tableID, element) {
         let sanitized_cell_value = sanitizeWithDots(cell_value);
         event.target.value = Number(sanitized_cell_value);
         resizeInputFields(event.target, true);  // Resize width of input fields to fit numbers
-    });
+    },{capture: true}) ;
 
     addResizeButtons(); // The ordering of the buttons is important.
     if(element) { // Wrap the table in an element container

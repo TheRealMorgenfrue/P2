@@ -287,7 +287,6 @@ sessionStorage.setItem("currentTable", "");         // Table representation of t
 function createScaleField(target_row, factor_name, table){
     // We create input box that becomes child of scale field
     const scalar_input = document.createElement("input");
-    scalar_input.type = "number";
     scalar_input.value = 1;
     scalar_input.classList.add("scale_field");
     scalar_input.id = `${target_row}_scale_input`;
@@ -558,7 +557,6 @@ function createSafeScaleField(table){
     // let row_copy = tableArray[target_row_index];
 
     const scalar_input = document.createElement("input");
-    scalar_input.type = "number";
     scalar_input.value = 1;
     sessionStorage.setItem("secondaryScaleFactor", "1");
     scalar_input.classList.add("scale_field");
