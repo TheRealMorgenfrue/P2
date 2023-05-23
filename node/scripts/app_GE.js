@@ -580,14 +580,18 @@ function toggleDisableInputBoxes() {
  * @returns {string} String where all undesired characters have been removed. 
  */
 function sanitizeWithDots(string) {
-    string = string
-    .trim()
-    .replace(/[^\d+/.*-]|\/(?=\/)/g, "");
-
     try {
+    string = string.trim();
+
+    if(string.match(/[^\d+/.*-]|\/(?=\/)/g)) {
+        throw new Error(`Invalid input. Got ${string}`);
+    }
+    else {
         string = eval(string);
-    } catch (error) {
-        console.warn(`eval returned "${error.message}" when trying to parse "${string}"\nOverwriting string`);
+    }
+    }
+    catch (error) {
+        console.warn(`RegEx returned "${error.message}" when trying to parse "${string}"\nOverwriting string`);
         string = "";
     }
 
