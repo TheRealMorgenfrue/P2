@@ -582,46 +582,16 @@ function toggleDisableInputBoxes() {
 function sanitizeWithDots(string) {
     string = string
     .trim()
+    .replace(/[^\d+/.*-]|\/(?=\/)/g, "");
 
-    .replace(/^([*/+])/gm) // Remove leading "*, /, +"
-    .replace(/[.](?!\d)/g, "") // Remove all "." which aren't with a number
-    // .replace(/(?!(^[-](?=\d)|[.](?=\d)|(\d)))./g, ""); // Use if fractions are not implemented
-    .replace(/(?!([-](?=\d)|[+](?=\d)|[.](?=\d)|[*](?=\d)|[/](?=\d)|(\d)))./g, ""); // Sanitize w.r.t. fractions
-
-    // Cleanup of additional "."
-    let dot_count = string.match(/[.]/g);
-    if(dot_count && dot_count.length > 1) {
-        for(let i = 0; i < dot_count.length-1; i++) {
-            string = string.replace(/[.]/, "");
-        } 
-    }
-
-    // Check if a fraction is input
-    if(string.search(/[\/]/) >= 0) {
-        string = parseFraction(string);
-    }
-    // Ensure the string is valid, i.e. a number
-    if(!string || string === Infinity || isNaN(string)) {
+    try {
+        string = eval(string);
+    } catch (error) {
+        console.warn(`eval returned "${error.message}" when trying to parse "${string}"\nOverwriting string`);
         string = "";
     }
-
     return `${string}`.trim();
 }
-
-/**
- * Parses fractions witout using eval() (or equivalents).
- * 
- * Split the fraction by its "/" symbol and turn both resulting strings into numbers.
- * Then return the first number divided by the second.
- * 
- * Courtesy of https://stackoverflow.com/a/73848584 
- * @param {String} fraction The fraction which to parse.
- * @returns {Number} The fraction in decimal numbers
- */
-const parseFraction = fraction => {
-    const [numerator, denominator] = fraction.split('/').map(Number);
-    return numerator / denominator;
-  }
 
 /**
  * Generates random numbers from -9 to 9 and fills the backend array with them
