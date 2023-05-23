@@ -590,6 +590,12 @@ function sanitizeWithDots(string) {
         console.warn(`eval returned "${error.message}" when trying to parse "${string}"\nOverwriting string`);
         string = "";
     }
+
+    // Ensure the string is valid, i.e. a number
+    if(!string || string === Infinity || isNaN(string)) {
+        string = "";
+    }
+
     return `${string}`.trim();
 }
 
