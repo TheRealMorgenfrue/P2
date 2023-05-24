@@ -204,38 +204,41 @@ function createEventListener(type_id, listener_type) {
             // This case handles interaction with the input boxes where the user can define the table's dimensions 
             case "row_change": {
                 element.addEventListener("change", (event) => {
-                    let element_value = event.target.value;
+                    let element_value = Math.floor(event.target.value);
 
                     // Ensure that user does not input dimensions that exceed the maximum dimensions allowed for the table
                     if(element_value > SETTINGS.READONLY.TABLE.max_matrix_size) {
                         console.warn(`ID: "${type_id}" has size (${element_value}) which is larger than max allowed (${SETTINGS.READONLY.TABLE.max_matrix_size}).\nResetting size to: ${SETTINGS.READONLY.TABLE.max_matrix_size}.`);
-                        event.target.value = SETTINGS.READONLY.TABLE.max_matrix_size;
+                        element_value = SETTINGS.READONLY.TABLE.max_matrix_size;
                     }
                     // Ensure that the user does not input dimensions below the minimum allowed for the table
                     else if(element_value < SETTINGS.READONLY.TABLE.min_matrix_size) {
                         console.warn(`ID: "${type_id}" has size (${element_value}) is smaller than min allowed (${SETTINGS.READONLY.TABLE.min_matrix_size}).\nResetting size to: ${SETTINGS.READONLY.TABLE.min_matrix_size}.`);
-                        event.target.value = SETTINGS.READONLY.TABLE.min_matrix_size;
+                        element_value = SETTINGS.READONLY.TABLE.min_matrix_size;
                     }
-                    SETTINGS.WRITABLE.row_value = Number(event.target.value); // Convert to number since strings behave weird with logical operators
+                    SETTINGS.WRITABLE.row_value = Number(element_value); // Convert to number since strings behave weird with logical operators
                     resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}">`);
+                    event.target.value = element_value;
                 });
                 break;
             } 
             case "column_change": {
                 element.addEventListener("change", (event) => {
-                    let element_value = event.target.value;
+                    let element_value = Math.floor(event.target.value);
+
                     // Ensure that user does not input dimensions that exceed the maximum dimensions allowed for the table
                     if(element_value > SETTINGS.READONLY.TABLE.max_matrix_size) {
                         console.warn(`ID: "${type_id}" has size (${element_value}) which is larger than max allowed (${SETTINGS.READONLY.TABLE.max_matrix_size}).\nResetting size to: ${SETTINGS.READONLY.TABLE.max_matrix_size}.`);
-                        event.target.value = SETTINGS.READONLY.TABLE.max_matrix_size;
+                        element_value = SETTINGS.READONLY.TABLE.max_matrix_size;
                     }
                     // Ensure that the user does not input dimensions below the minimum allowed for the table
                     else if(element_value < SETTINGS.READONLY.TABLE.min_matrix_size) {
                         console.warn(`ID: "${type_id}" has size (${element_value}) is smaller than min allowed (${SETTINGS.READONLY.TABLE.min_matrix_size}).\nResetting size to: ${SETTINGS.READONLY.TABLE.min_matrix_size}.`);
-                        event.target.value = SETTINGS.READONLY.TABLE.min_matrix_size;
+                        element_value = SETTINGS.READONLY.TABLE.min_matrix_size;
                     }
-                    SETTINGS.WRITABLE.column_value = Number(event.target.value); // Convert to number since strings behave weird with logical operators
+                    SETTINGS.WRITABLE.column_value = Number(element_value); // Convert to number since strings behave weird with logical operators
                     resizeTableBody(document.getElementById(SETTINGS.READONLY.TABLE.table_id), SETTINGS.WRITABLE, `<input placeholder="${SETTINGS.READONLY.TABLE.placeholder}" maxlength="${SETTINGS.READONLY.TABLE.max_input_length}">`);
+                    event.target.value = element_value;
                 });   
                 break;
             }
