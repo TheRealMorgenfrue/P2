@@ -100,7 +100,7 @@ function initTableGE(tableID, element) {
         let sanitized_cell_value = sanitizeWithDots(cell_value);
         event.target.value = Number(sanitized_cell_value);
         resizeInputFields(event.target, true);  // Resize width of input fields to fit numbers
-    });
+    },{capture: true}) ;
 
     addResizeButtons(); // The ordering of the buttons is important.
     if(element) { // Wrap the table in an element container
@@ -573,30 +573,36 @@ function toggleDisableInputBoxes() {
     }
 }
 /**
- * Removes all undesired characters from a string given. 
+ * Removes all undesired characters from a string given.
+ * 
+ * Now supports fractions.
  * @param {string} string 
  * @returns {string} String where all undesired characters have been removed. 
  */
 function sanitizeWithDots(string) {
-    string = string
-    .trim()
+    try {
+    string = string.trim();
 
-    // Deprecated - use if a calculator is implemented
-    // .replace(/^([*/+])/gm)
-    // .replace(/(?!([-](?=\d)|[+](?=\d)|[.](?=\d)|[*](?=\d)|[/](?=\d)|(\d)))./g, "");
-
-    .replace(/[.](?!\d)/g, "") // Remove all "." which aren't with a number
-    .replace(/(?!(^[-](?=\d)|[.](?=\d)|(\d)))./g, "");
-
-    // Cleanup of additional "."
-    let dot_count = string.match(/[.]/g);
-    if(dot_count && dot_count.length > 1) {
-        for(let i = 0; i < dot_count.length-1; i++) {
-            string = string.replace(/[.]/, "");
-        } 
+    if(string.match(/[^\d+/.*-]|\/(?=\/)/g)) {
+        throw new Error(`Invalid input`);
     }
+    else {
+        string = eval(string);
+    }
+    }
+    catch (error) {
+        console.warn(`RegEx returned "${error.message}" when trying to parse "${string}"\nOverwriting string`);
+        string = "";
+    }
+
+    // Ensure the string is valid, i.e. a number
+    if(!string || Math.abs(string) === Infinity || isNaN(string)) {
+        string = "";
+    }
+
     return `${string}`.trim();
 }
+
 /**
  * Generates random numbers from -9 to 9 and fills the backend array with them
  */

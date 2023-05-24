@@ -110,14 +110,9 @@ window.addEventListener("load", () => {
         TABLE.querySelector("tr").appendChild(document.getElementById(sessionStorage.getItem("addButton")));
         TABLE.querySelector("tr").appendChild(document.getElementById(sessionStorage.getItem("primaryScaleField")));
         attachToParent(scale_field, true);
-        
-        //eventListener updates the scale factor whenever the user changes it
-        scale_field.addEventListener("change", event => {
-            sessionStorage.setItem("primaryScaleFactor", sanitizeWithDots(String(event.target.value)));
-        });
     }, {capture: true});
 
-    document.addEventListener("GEstopped", event =>{
+    document.addEventListener("GEstopped", event => {
         //removing the interface and clearing the listeners from the table
         document.getElementById(sessionStorage.getItem("primaryScaleField")).remove();
         document.getElementById("add_button_id").remove();
