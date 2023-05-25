@@ -579,6 +579,8 @@ function toggleDisableInputBoxes() {
  * Removes all undesired characters from a string given.
  * 
  * Now supports fractions.
+ * 
+ * Note: This function is named "sanitizeAndEval" in the report for added clarity there, due to rewrites close to deadline. 
  * @param {string} string 
  * @returns {string} String where all undesired characters have been removed. 
  */
@@ -689,21 +691,11 @@ function resizeTableBody(table, dimensions, HTMLcode){
             tdAdded: [],
             tdRemoved: []
         };
-        //initialise the number of cells we need to add for various operations
-        //we can use this variable for both row- and column-changes
-        let cells_needed = 0;
-
         //add or remove rows if requested
         console.log(`Need to add ${dimensions.row_value - tableRows.length} rows`);
         if(tableRows.length < dimensions.row_value){
             //we need to add rows, since the requested number of rows is larger than the current number of rows
-            //first we find the number of columns we need to add to the new rows
-            if(table.lastElementChild){
-                cells_needed = table.lastElementChild.querySelectorAll("td").length;
-            } else {
-                cells_needed = 0;
-            }
-            //then we add a number of rows equal to the difference between the current row count and the requested row count
+            //we add a number of rows equal to the difference between the current row count and the requested row count
             for (let i = 0; i < (dimensions.row_value - tableRows.length); i++) {
                 const newRow = document.createElement("tr");
 
@@ -711,15 +703,6 @@ function resizeTableBody(table, dimensions, HTMLcode){
 
                 //add the row to our list of changes
                 changes.trAdded.push(newRow);
-                
-                /*Turns out we didn't need this, since the column-adding code below does it for us
-                    HOWEVER, if all rows are the same length, this could be readded and the column-adding code could be simplified...
-                for (let j = 0; j < cells_needed; j++) {
-                    const newCell = document.createElement("td");
-                    newCell.innerHTML = HTMLcode;
-                    newRow.appendChild(newCell);
-                }
-                */
             }
         } else if(tableRows.length > dimensions.row_value){
             //we need to remove rows
@@ -742,7 +725,7 @@ function resizeTableBody(table, dimensions, HTMLcode){
         //add or remove columns if needed. It is important to do this after adding or removing any rows
         //we do this for every row to ensure we end up with the same number of columns in every row
         tableRows.forEach(row => {
-            cells_needed = dimensions.column_value - row.querySelectorAll("td").length;
+            const cells_needed = dimensions.column_value - row.querySelectorAll("td").length;
             console.log(`Need ${cells_needed} cells on this row`);
             if(cells_needed > 0){
                 for (let i = 0; i < cells_needed; i++) {
